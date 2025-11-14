@@ -19,97 +19,126 @@ import MitgliederTable from './components/MitgliederTable';
 import DynamicTable from './components/DynamicTable';
 import UserTable from './components/UserTable';
 import { parseJwt } from './components/jwtHelper';
+import Header from './components/Header';
 
-const geraeteTabs = [
-  'Fahrzeuge_und_Fahrzeugladegeraete',
-  'Schutzkleidung',
-  'Erste_Hilfe_und_Hygiene',
-  'Signal_und_Beleuchtungsgeraete',
-  'Arbeitsgeraete',
-  'Loeschgeraete',
-  'Rettungsgeraete',
-  'Elektrische_Geraete',
-  'Fahrzeughalle_und_Werkstatt',
-  'Schulungsraum_und_Ausbildung',
-  'Kueche_Fahrzeughalle',
-  'Buero_LBZ_Fuehrung',
-  'EDV'
+const geraeteTabellen = [
+  { key: 'arbeitsgeraete', label: 'Arbeitsgeräte', table: 'Arbeitsgeraete' },
+  { key: 'loeschgeraete', label: 'Löschgeräte', table: 'Loeschgeraete' },
+  { key: 'elektrische_geraete', label: 'Elektrische Geräte', table: 'Elektrische_Geraete' },
+  { key: 'erste_hilfe_und_hygiene', label: 'Erste Hilfe und Hygiene', table: 'Erste_Hilfe_und_Hygiene' },
+  { key: 'schutzkleidung', label: 'Schutzkleidung', table: 'Schutzkleidung' },
+  { key: 'signal_und_beleuchtungsgeraete', label: 'Signal und Beleuchtungsgeräte', table: 'Signal_und_Beleuchtungsgeraete' },
+  { key: 'fahrzeuge_und_fahrzeugladegeraete', label: 'Fahrzeuge und Fahrzeugladegeräte', table: 'Fahrzeuge_und_Fahrzeugladegeraete' },
+  { key: 'edv', label: 'EDV', table: 'EDV' },
+];
+
+const gebaeudeTabellen = [
+  { key: 'fahrzeughalle_und_werkstatt', label: 'Fahrzeughalle und Werkstatt', table: 'Fahrzeughalle_und_Werkstatt' },
+  { key: 'kueche_fahrzeughalle', label: 'Küche Fahrzeughalle', table: 'Kueche_Fahrzeughalle' },
+  { key: 'schulungsraum_und_ausbildung', label: 'Schulungsraum und Ausbildung', table: 'Schulungsraum_und_Ausbildung' },
 ];
 
 const theme = createTheme({
-  palette: {
-    mode: 'light',
-    primary: { main: '#1976d2' },
-    secondary: { main: '#dc004e' },
-  },
+  // Add your theme configuration here, e.g. palette, typography, etc.
 });
 
-const drawerWidth = 240;
-
-const NAV_ITEMS = [
-  { key: 'mitglieder', label: 'Mitgliederverwaltung' },
-  { key: 'geraete', label: 'Gerätewartung' },
-  { key: 'benutzer', label: 'Benutzerverwaltung', adminOnly: true },
-];
-
 function App() {
-  const [token, setToken] = useState(null);
-  const [nav, setNav] = useState('mitglieder');
-  const [geraeteTab, setGeraeteTab] = useState(0);
-
-  if (!token) return <LoginForm onLogin={setToken} />;
-  const userPayload = parseJwt(token);
-  const userRole = userPayload?.role;
-
-  // Filter nav items for non-admins
-  const navItems = NAV_ITEMS.filter(item => !item.adminOnly || userRole === 'admin');
-
+  // State and logic for navigation and authentication
+  const drawerWidth = 260;
+  const [nav, setNav] = useState('geraete');
+  const [selectedTable, setSelectedTable] = useState(null);
+  // Token and user role logic
+  const token = localStorage.getItem('token');
+  let userRole = null;
+  if (token) {
+    try {
+      userRole = parseJwt(token).role;
+    } catch (e) {
+      userRole = null;
+    }
+  }
+  const [loggedIn, setLoggedIn] = useState(!!token);
+  const handleLogin = (newToken) => {
+    localStorage.setItem('token', newToken);
+    setLoggedIn(true);
+    window.location.reload();
+  };
+  if (!loggedIn) {
+    return <LoginForm onLogin={handleLogin} />;
+  }
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box sx={{ display: 'flex' }}>
+      {/* Horizontal Header */}
+      <Header />
+      <Box sx={{ display: 'flex', pt: 8 }}>
         <Drawer
           variant="permanent"
           sx={{
             width: drawerWidth,
             flexShrink: 0,
-            [`& .MuiDrawer-paper`]: { width: drawerWidth, boxSizing: 'border-box' },
+            [`& .MuiDrawer-paper`]: { width: drawerWidth, boxSizing: 'border-box', mt: 8 },
           }}
         >
-          <Typography variant="h5" align="center" sx={{ my: 2 }}>
-            Feuerwehr Verwaltung
-          </Typography>
           <List>
-            {navItems.map(item => (
-              <ListItem key={item.key} disablePadding>
-                <ListItemButton selected={nav === item.key} onClick={() => setNav(item.key)}>
-                  <ListItemText primary={item.label} />
+            {/* Benutzerverwaltung ganz oben */}
+            {userRole === 'admin' && (
+              <ListItem key="benutzer" disablePadding>
+                <ListItemButton selected={nav === 'benutzer'} onClick={() => { setNav('benutzer'); setSelectedTable(null); }}>
+                  <ListItemText primary="Benutzerverwaltung" />
                 </ListItemButton>
               </ListItem>
-            ))}
+            )}
+            {/* Mitgliederverwaltung */}
+            <ListItem key="mitglieder" disablePadding>
+              <ListItemButton selected={nav === 'mitglieder'} onClick={() => { setNav('mitglieder'); setSelectedTable(null); }}>
+                <ListItemText primary="Mitgliederverwaltung" />
+              </ListItemButton>
+            </ListItem>
+            {/* Gerätewartung mit Unterpunkten */}
+            <ListItem key="geraete" disablePadding>
+              <ListItemButton selected={nav === 'geraete'} onClick={() => { setNav('geraete'); setSelectedTable(null); }}>
+                <ListItemText primary="Gerätewartung" />
+              </ListItemButton>
+            </ListItem>
+            {nav === 'geraete' && (
+              <List sx={{ pl: 3 }}>
+                {geraeteTabellen.map(tab => (
+                  <ListItem key={tab.key} disablePadding>
+                    <ListItemButton selected={selectedTable === tab.table} onClick={() => setSelectedTable(tab.table)}>
+                      <ListItemText primary={tab.label} />
+                    </ListItemButton>
+                  </ListItem>
+                ))}
+              </List>
+            )}
+            {/* Gebäudeverwaltung mit Unterpunkten */}
+            <ListItem key="gebaeude" disablePadding>
+              <ListItemButton selected={nav === 'gebaeude'} onClick={() => { setNav('gebaeude'); setSelectedTable(null); }}>
+                <ListItemText primary="Gebäudeverwaltung" />
+              </ListItemButton>
+            </ListItem>
+            {nav === 'gebaeude' && (
+              <List sx={{ pl: 3 }}>
+                {gebaeudeTabellen.map(tab => (
+                  <ListItem key={tab.key} disablePadding>
+                    <ListItemButton selected={selectedTable === tab.table} onClick={() => setSelectedTable(tab.table)}>
+                      <ListItemText primary={tab.label} />
+                    </ListItemButton>
+                  </ListItem>
+                ))}
+              </List>
+            )}
           </List>
         </Drawer>
-        <Box component="main" sx={{ flexGrow: 1, p: 3, ml: `${drawerWidth}px` }}>
-          {nav === 'geraete' && (
-            <>
-              <Tabs
-                value={geraeteTab}
-                onChange={(_, v) => setGeraeteTab(v)}
-                sx={{ mb: 2 }}
-                variant="scrollable"
-                scrollButtons="auto"
-              >
-                {geraeteTabs.map((name) => (
-                  <Tab key={name} label={name} />
-                ))}
-              </Tabs>
-              <DynamicTable token={token} tableName={geraeteTabs[geraeteTab]} />
-            </>
-          )}
-          {nav === 'mitglieder' && <MitgliederTable token={token} />}
-          {nav === 'benutzer' && userRole === 'admin' && <UserTable token={token} userRole={userRole} />}
+        <Box component="main" sx={{ flexGrow: 1, p: 3, ml: 2 }}>
+          {/* Anzeige der jeweiligen Tabelle */}
+          {selectedTable && <DynamicTable token={token} tableName={selectedTable} />}
+          {nav === 'mitglieder' && !selectedTable && <MitgliederTable token={token} />}
+          {nav === 'benutzer' && userRole === 'admin' && !selectedTable && <UserTable token={token} userRole={userRole} />}
         </Box>
       </Box>
+
     </ThemeProvider>
   );
 }
