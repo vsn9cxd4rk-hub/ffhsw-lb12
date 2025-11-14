@@ -1,0 +1,12 @@
+fahrzeug_geraetehaus_id;lagerort_id;Inventarnummer;Artikelnummer;Typ;Spezifikation;Seriennummer;Hersteller;Anzahl;Einheit;Anschaffungsjahr;Kosten;Bemerkung;eigentuemer_id;Pruefung;Norm
+1;22;;Desktop PC Optiplex 7010;DELL7010;Intel Core i3 2x 3,4GHz 4GB RAM 250GB HDD;;Dell;1;Stück;2018;135;;3;false;
+1;22;;Desktop PC Medion Akoya P7300D;MD8838;Intel Core 2 Quad CPU Q8200 2.33GHz, 4GB RAM, 100 GB HDD;;Medion;1;Stück;2017;0;;3;false;
+1;22;;DELL P2211H;DELP2211H;22'' Monitor 1920x1080;;Dell;2;Stück;2019;0;;3;false;
+1;22;;Samsung Sysncmaster B2240;B2240;22'' Monitor 1680x1050;;Samsung;2;Stück;2019;0;;3;false;
+1;22;;Samsung SCX 3200;SCX3200;Samsung Mono Laser Drucker ;;Samsung;1;Stück;2016;0;;3;false;
+1;22;;Lexmark X264dn;X264dn;Lexmark Mono Laser Drucker;;Lexmark;1;Stück;2017;0;;3;false;
+1;22;;Rpi Media Box;RPIM1;RaspberryPI 1 Model A, 256MB RAM, SD card;;RaspberryPI;1;Stück;2015;0;;3;false;
+1;22;;Rpi Music Box;RPIM2;RaspberryPI 2 Model B, 1024MB RAM, microSD card;;RaspberryPI;1;Stück;2018;0;;3;false;
+1;22;;Network Switch 6fach;Netgear;10/100Mbit Network Switch, 6fach;;Netgear;3;Stück;2015;0;;3;false;
+1;22;;Notebook;Lenovo;;;Lenovo;1;Stück;2019;0;;1;true;
+1;22;;Printer;Brother;;;Brother;1;Stück;2019;0;;1;true;

@@ -25,6 +25,7 @@ const geraeteTabellen = [
   { key: 'arbeitsgeraete', label: 'Arbeitsgeräte', table: 'Arbeitsgeraete' },
   { key: 'loeschgeraete', label: 'Löschgeräte', table: 'Loeschgeraete' },
   { key: 'elektrische_geraete', label: 'Elektrische Geräte', table: 'Elektrische_Geraete' },
+  { key: 'rettungsgeraete', label: 'Rettungsgeräte', table: 'Rettungsgeraete' },
   { key: 'erste_hilfe_und_hygiene', label: 'Erste Hilfe und Hygiene', table: 'Erste_Hilfe_und_Hygiene' },
   { key: 'schutzkleidung', label: 'Schutzkleidung', table: 'Schutzkleidung' },
   { key: 'signal_und_beleuchtungsgeraete', label: 'Signal und Beleuchtungsgeräte', table: 'Signal_und_Beleuchtungsgeraete' },
@@ -36,6 +37,7 @@ const gebaeudeTabellen = [
   { key: 'fahrzeughalle_und_werkstatt', label: 'Fahrzeughalle und Werkstatt', table: 'Fahrzeughalle_und_Werkstatt' },
   { key: 'kueche_fahrzeughalle', label: 'Küche Fahrzeughalle', table: 'Kueche_Fahrzeughalle' },
   { key: 'schulungsraum_und_ausbildung', label: 'Schulungsraum und Ausbildung', table: 'Schulungsraum_und_Ausbildung' },
+  { key: 'buero_lbz_fuehrung', label: 'Büro LBZ Führung', table: 'Buero_LBZ_Fuehrung' },
 ];
 
 const theme = createTheme({
@@ -71,13 +73,14 @@ function App() {
       <CssBaseline />
       {/* Horizontal Header */}
       <Header />
-      <Box sx={{ display: 'flex', pt: 8 }}>
+      <Box sx={{ display: 'flex', pt: 0 }}>
         <Drawer
           variant="permanent"
           sx={{
             width: drawerWidth,
             flexShrink: 0,
-            [`& .MuiDrawer-paper`]: { width: drawerWidth, boxSizing: 'border-box', mt: 8 },
+            position: 'relative',
+            [`& .MuiDrawer-paper`]: { width: drawerWidth, boxSizing: 'border-box', mt: 8, position: 'relative' },
           }}
         >
           <List>
@@ -97,7 +100,18 @@ function App() {
             </ListItem>
             {/* Gerätewartung mit Unterpunkten */}
             <ListItem key="geraete" disablePadding>
-              <ListItemButton selected={nav === 'geraete'} onClick={() => { setNav('geraete'); setSelectedTable(null); }}>
+              <ListItemButton
+                selected={nav === 'geraete'}
+                onClick={() => {
+                  if (nav === 'geraete') {
+                    setNav(null);
+                    setSelectedTable(null);
+                  } else {
+                    setNav('geraete');
+                    setSelectedTable(null);
+                  }
+                }}
+              >
                 <ListItemText primary="Gerätewartung" />
               </ListItemButton>
             </ListItem>
@@ -114,7 +128,18 @@ function App() {
             )}
             {/* Gebäudeverwaltung mit Unterpunkten */}
             <ListItem key="gebaeude" disablePadding>
-              <ListItemButton selected={nav === 'gebaeude'} onClick={() => { setNav('gebaeude'); setSelectedTable(null); }}>
+              <ListItemButton
+                selected={nav === 'gebaeude'}
+                onClick={() => {
+                  if (nav === 'gebaeude') {
+                    setNav(null);
+                    setSelectedTable(null);
+                  } else {
+                    setNav('gebaeude');
+                    setSelectedTable(null);
+                  }
+                }}
+              >
                 <ListItemText primary="Gebäudeverwaltung" />
               </ListItemButton>
             </ListItem>
@@ -130,8 +155,18 @@ function App() {
               </List>
             )}
           </List>
+          <Box sx={{ position: 'absolute', bottom: 16, left: 0, width: '100%', px: 2 }}>
+            <ListItem disablePadding>
+              <ListItemButton onClick={() => {
+                localStorage.removeItem('token');
+                window.location.reload();
+              }} sx={{ backgroundColor: 'red', color: '#fff', textAlign: 'left', justifyContent: 'flex-start', pl: 2, fontSize: 16, minHeight: 36, '&:hover': { backgroundColor: '#b71c1c' } }}>
+                <ListItemText primary="Logout" sx={{ color: '#fff' }} />
+              </ListItemButton>
+            </ListItem>
+          </Box>
         </Drawer>
-        <Box component="main" sx={{ flexGrow: 1, p: 3, ml: 2 }}>
+        <Box component="main" sx={{ flexGrow: 1, p: 3, ml: 2, mt: 8 }}>
           {/* Anzeige der jeweiligen Tabelle */}
           {selectedTable && <DynamicTable token={token} tableName={selectedTable} />}
           {nav === 'mitglieder' && !selectedTable && <MitgliederTable token={token} />}

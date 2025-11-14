@@ -3,8 +3,8 @@ const sequelize = require('../db');
 
 const Buero_LBZ_Fuehrung = sequelize.define('Buero_LBZ_Fuehrung', {
   ID: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-  Lagerort: DataTypes.STRING,
-  Fahrzeug_Geraetehaus: DataTypes.STRING,
+  lagerort: DataTypes.STRING,
+  fahrzeug_geraetehaus: DataTypes.STRING,
   Inventarnummer: DataTypes.STRING,
   Artikelbezeichnung: DataTypes.STRING,
   Typ: DataTypes.STRING,
@@ -17,6 +17,7 @@ const Buero_LBZ_Fuehrung = sequelize.define('Buero_LBZ_Fuehrung', {
   Kosten: DataTypes.DECIMAL(10,2),
   Bemerkung: DataTypes.TEXT,
   eigentuemer: DataTypes.STRING,
+  feuerwehr_heusweiler: DataTypes.STRING,
   Pruefung: DataTypes.BOOLEAN,
   Norm: DataTypes.STRING
 }, {

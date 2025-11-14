@@ -3,8 +3,8 @@ const sequelize = require('../db');
 
 const Loeschgeraete = sequelize.define('Loeschgeraete', {
   ID: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-  lagerort_id: { type: DataTypes.INTEGER, references: { model: 'Lagerort', key: 'id' } },
-  fahrzeug_geraetehaus_id: { type: DataTypes.INTEGER, references: { model: 'Fahrzeug_Geraetehaus', key: 'id' } },
+  lagerort: DataTypes.STRING,
+  fahrzeug_geraetehaus: DataTypes.STRING,
   Inventarnummer: DataTypes.STRING,
   Artikelbezeichnung: DataTypes.STRING,
   Typ: DataTypes.STRING,
@@ -16,8 +16,8 @@ const Loeschgeraete = sequelize.define('Loeschgeraete', {
   Anschaffungsjahr: DataTypes.INTEGER,
   Kosten: DataTypes.DECIMAL(10,2),
   Bemerkung: DataTypes.TEXT,
-  eigentuemer_id: { type: DataTypes.INTEGER, references: { model: 'Eigentuemer', key: 'id' } },
-    feuerwehr_heusweiler_id: { type: DataTypes.INTEGER, references: { model: 'Feuerwehr_Heusweiler', key: 'id' } },
+  eigentuemer: DataTypes.STRING,
+  feuerwehr_heusweiler: DataTypes.STRING,
   Pruefung: DataTypes.BOOLEAN,
   Norm: DataTypes.STRING
 }, {
@@ -25,12 +25,4 @@ const Loeschgeraete = sequelize.define('Loeschgeraete', {
   tableName: 'Loeschgeraete'
 });
 
-const Lagerort = require('./Lagerort');
-const Fahrzeug_Geraetehaus = require('./Fahrzeug_Geraetehaus');
-const Eigentuemer = require('./Eigentuemer');
-const Feuerwehr_Heusweiler = require('./Feuerwehr_Heusweiler');
-Loeschgeraete.belongsTo(Lagerort, { foreignKey: 'lagerort_id' });
-Loeschgeraete.belongsTo(Fahrzeug_Geraetehaus, { foreignKey: 'fahrzeug_geraetehaus_id' });
-Loeschgeraete.belongsTo(Eigentuemer, { foreignKey: 'eigentuemer_id' });
-Loeschgeraete.belongsTo(Feuerwehr_Heusweiler, { foreignKey: 'feuerwehr_heusweiler_id' });
 module.exports = Loeschgeraete;

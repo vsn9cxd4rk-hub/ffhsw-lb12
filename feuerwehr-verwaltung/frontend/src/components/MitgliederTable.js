@@ -15,7 +15,13 @@ export default function MitgliederTable({ token }) {
       headers: { Authorization: `Bearer ${token}` },
       params: search ? { q: search } : {},
     });
-    setRows(res.data);
+    // Datumsfelder explizit in deutsche Strings umwandeln
+    const mapped = res.data.map(row => ({
+      ...row,
+      geburtsdatum: row.geburtsdatum ? toGermanDate(typeof row.geburtsdatum === 'string' ? row.geburtsdatum : new Date(row.geburtsdatum).toISOString()) : '',
+      eintrittsdatum: row.eintrittsdatum ? toGermanDate(typeof row.eintrittsdatum === 'string' ? row.eintrittsdatum : new Date(row.eintrittsdatum).toISOString()) : '',
+    }));
+    setRows(mapped);
     setLoading(false);
   };
 
@@ -93,21 +99,9 @@ export default function MitgliederTable({ token }) {
   const columns = [
     { field: 'vorname', headerName: 'Vorname', width: 120, editable: true },
     { field: 'nachname', headerName: 'Nachname', width: 120, editable: true },
-  { field: 'geburtsdatum', headerName: 'Geburtsdatum', width: 120, valueGetter: (params) => {
-    const val = params.row && params.row.geburtsdatum;
-    if (!val) return '';
-    if (typeof val === 'string') return toGermanDate(val);
-    if (val instanceof Date) return toGermanDate(val.toISOString());
-    return '';
-  } },
+  { field: 'geburtsdatum', headerName: 'Geburtsdatum', width: 120 },
     { field: 'rang', headerName: 'Rang', width: 120 },
-  { field: 'eintrittsdatum', headerName: 'Eintrittsdatum', width: 120, valueGetter: (params) => {
-    const val = params.row && params.row.eintrittsdatum;
-    if (!val) return '';
-    if (typeof val === 'string') return toGermanDate(val);
-    if (val instanceof Date) return toGermanDate(val.toISOString());
-    return '';
-  } },
+  { field: 'eintrittsdatum', headerName: 'Eintrittsdatum', width: 120 },
     { field: 'aktiv', headerName: 'Aktiv', width: 80, type: 'boolean' },
     {
       field: 'actions', headerName: 'Aktionen', width: 180, renderCell: (params) => (

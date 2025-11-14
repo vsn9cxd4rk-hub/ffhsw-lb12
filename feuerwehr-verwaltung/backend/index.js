@@ -14,10 +14,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/mitglieder', require('./routes/mitglieder'));
 app.use('/api/geraeteTabs', require('./routes/geraeteTabs'));
 app.use('/api/users', require('./routes/users'));
-app.use('/api/lagerort', require('./routes/lagerort'));
-app.use('/api/fahrzeug_geraetehaus', require('./routes/fahrzeug_geraetehaus'));
-app.use('/api/eigentuemer', require('./routes/eigentuemer'));
-app.use('/api/feuerwehr_heusweiler', require('./routes/feuerwehr_heusweiler'));
+app.use('/api/import', require('./routes/import'));
 
 app.get('/', (req, res) => res.send('Feuerwehr Verwaltung Backend läuft.'));
 

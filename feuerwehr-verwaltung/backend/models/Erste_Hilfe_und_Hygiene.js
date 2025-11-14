@@ -3,8 +3,8 @@ const sequelize = require('../db');
 
 const Erste_Hilfe_und_Hygiene = sequelize.define('Erste_Hilfe_und_Hygiene', {
   ID: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-  Lagerort: DataTypes.STRING,
-  Fahrzeug_Geraetehaus: DataTypes.STRING,
+  lagerort: DataTypes.STRING,
+  fahrzeug_geraetehaus: DataTypes.STRING,
   Inventarnummer: DataTypes.STRING,
   Artikelbezeichnung: DataTypes.STRING,
   Typ: DataTypes.STRING,
@@ -17,6 +17,7 @@ const Erste_Hilfe_und_Hygiene = sequelize.define('Erste_Hilfe_und_Hygiene', {
   Kosten: DataTypes.DECIMAL(10,2),
   Bemerkung: DataTypes.TEXT,
   eigentuemer: DataTypes.STRING,
+  feuerwehr_heusweiler: DataTypes.STRING,
   Pruefung: DataTypes.BOOLEAN,
   Norm: DataTypes.STRING
 }, {

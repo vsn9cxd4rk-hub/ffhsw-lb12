@@ -24,7 +24,7 @@ export default function LoginForm({ onLogin }) {
         <TextField label="Benutzername" fullWidth margin="normal" value={username} onChange={e => setUsername(e.target.value)} />
         <TextField label="Passwort" type="password" fullWidth margin="normal" value={password} onChange={e => setPassword(e.target.value)} />
         {error && <Typography color="error">{error}</Typography>}
-        <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }}>Login</Button>
+        <Button type="submit" variant="contained" fullWidth sx={{ mt: 2, backgroundColor: '#c62828', color: '#fff', '&:hover': { backgroundColor: '#b71c1c' } }}>Login</Button>
       </form>
     </Box>
   );

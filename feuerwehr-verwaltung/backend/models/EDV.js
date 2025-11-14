@@ -3,8 +3,8 @@ const sequelize = require('../db');
 
 const EDV = sequelize.define('EDV', {
   ID: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-  Lagerort: DataTypes.STRING,
-  Fahrzeug_Geraetehaus: DataTypes.STRING,
+  lagerort: DataTypes.STRING,
+  fahrzeug_geraetehaus: DataTypes.STRING,
   Inventarnummer: DataTypes.STRING,
   Artikelbezeichnung: DataTypes.STRING,
   Typ: DataTypes.STRING,
@@ -17,6 +17,7 @@ const EDV = sequelize.define('EDV', {
   Kosten: DataTypes.DECIMAL(10,2),
   Bemerkung: DataTypes.TEXT,
   eigentuemer: DataTypes.STRING,
+  feuerwehr_heusweiler: DataTypes.STRING,
   Pruefung: DataTypes.BOOLEAN,
   Norm: DataTypes.STRING
 }, {
@@ -24,4 +25,5 @@ const EDV = sequelize.define('EDV', {
   tableName: 'EDV'
 });
 
+// FK-Relationen entfernt, Felder sind jetzt Strings
 module.exports = EDV;
