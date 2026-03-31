@@ -1,0 +1,625 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== AUTH & USER MANAGEMENT ====================
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique @db.VarChar(100)
+  email     String?  @unique @db.VarChar(255)
+  password  String   @db.VarChar(255)
+  name      String?  @db.VarChar(255)
+  isAdmin   Boolean  @default(false)
+  isActive  Boolean  @default(true)
+  groupId   Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  group         PermissionGroup? @relation(fields: [groupId], references: [id])
+  refreshTokens RefreshToken[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique @db.VarChar(512)
+  userId    Int
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+model PermissionGroup {
+  id          Int     @id @default(autoincrement())
+  name        String  @db.VarChar(100)
+  description String? @db.VarChar(255)
+
+  // 76 permission bits (BR0-BR75)
+  br0  Boolean @default(false)
+  br1  Boolean @default(false)
+  br2  Boolean @default(false)
+  br3  Boolean @default(false)
+  br4  Boolean @default(false)
+  br5  Boolean @default(false)
+  br6  Boolean @default(false)
+  br7  Boolean @default(false)
+  br8  Boolean @default(false)
+  br9  Boolean @default(false)
+  br10 Boolean @default(false)
+  br11 Boolean @default(false)
+  br12 Boolean @default(false)
+  br13 Boolean @default(false)
+  br14 Boolean @default(false)
+  br15 Boolean @default(false)
+  br16 Boolean @default(false)
+  br17 Boolean @default(false)
+  br18 Boolean @default(false)
+  br19 Boolean @default(false)
+  br20 Boolean @default(false)
+  br21 Boolean @default(false)
+  br22 Boolean @default(false)
+  br23 Boolean @default(false)
+  br24 Boolean @default(false)
+  br25 Boolean @default(false)
+  br26 Boolean @default(false)
+  br27 Boolean @default(false)
+  br28 Boolean @default(false)
+  br29 Boolean @default(false)
+  br30 Boolean @default(false)
+  br31 Boolean @default(false)
+  br32 Boolean @default(false)
+  br33 Boolean @default(false)
+  br34 Boolean @default(false)
+  br35 Boolean @default(false)
+  br36 Boolean @default(false)
+  br37 Boolean @default(false)
+  br38 Boolean @default(false)
+  br39 Boolean @default(false)
+  br40 Boolean @default(false)
+  br41 Boolean @default(false)
+  br42 Boolean @default(false)
+  br43 Boolean @default(false)
+  br44 Boolean @default(false)
+  br45 Boolean @default(false)
+  br46 Boolean @default(false)
+  br47 Boolean @default(false)
+  br48 Boolean @default(false)
+  br49 Boolean @default(false)
+  br50 Boolean @default(false)
+  br51 Boolean @default(false)
+  br52 Boolean @default(false)
+  br53 Boolean @default(false)
+  br54 Boolean @default(false)
+  br55 Boolean @default(false)
+  br56 Boolean @default(false)
+  br57 Boolean @default(false)
+  br58 Boolean @default(false)
+  br59 Boolean @default(false)
+  br60 Boolean @default(false)
+  br61 Boolean @default(false)
+  br62 Boolean @default(false)
+  br63 Boolean @default(false)
+  br64 Boolean @default(false)
+  br65 Boolean @default(false)
+  br66 Boolean @default(false)
+  br67 Boolean @default(false)
+  br68 Boolean @default(false)
+  br69 Boolean @default(false)
+  br70 Boolean @default(false)
+  br71 Boolean @default(false)
+  br72 Boolean @default(false)
+  br73 Boolean @default(false)
+  br74 Boolean @default(false)
+  br75 Boolean @default(false)
+
+  users User[]
+
+  @@map("permission_groups")
+}
+
+// ==================== MEMBER / PERSONAL MANAGEMENT ====================
+
+model MemberGroup {
+  id                  Int     @id @default(autoincrement())
+  name                String  @db.VarChar(100)
+  employeeNumberPrefix String? @db.VarChar(20)
+  nextEmployeeNumber  Int     @default(1)
+
+  members Member[]
+
+  @@map("member_groups")
+}
+
+model Member {
+  id              Int       @id @default(autoincrement())
+  groupId         Int?
+  salutation      String?   @db.VarChar(20)
+  lastName        String    @db.VarChar(100)
+  firstName       String    @db.VarChar(100)
+  street          String?   @db.VarChar(255)
+  city            String?   @db.VarChar(100)
+  phonePrivate    String?   @db.VarChar(50)
+  phoneMobile     String?   @db.VarChar(50)
+  phoneWork       String?   @db.VarChar(50)
+  telegramId      String?   @db.VarChar(100)
+  email           String?   @db.VarChar(255)
+  email2          String?   @db.VarChar(255)
+  occupation      String?   @db.VarChar(255)
+  nationality     String?   @db.VarChar(100)
+  rank            String?   @db.VarChar(100)
+  isInactive      Boolean   @default(false)
+  memberSince     DateTime?
+  memberUntil     DateTime?
+  birthDate       DateTime?
+  marriageDate    DateTime?
+  comment         String?   @db.Text
+  driverLicenseNo String?   @db.VarChar(100)
+  driverAuthNo    String?   @db.VarChar(100)
+  serviceCardNo   String?   @db.VarChar(100)
+  healthInsurance String?   @db.VarChar(255)
+  medications     String?   @db.Text
+  conditions      String?   @db.Text
+  swimmingBadge   String?   @db.VarChar(100)
+  sportsRating    String?   @db.VarChar(100)
+  emailDisabled       Boolean   @default(false)
+  qualLicenseC        Boolean   @default(false)
+  qualLicenseB        Boolean   @default(false)
+  qualFirstAid        Boolean   @default(false)
+  qualRadioOperator   Boolean   @default(false)
+  qualMachinist       Boolean   @default(false)
+  qualTruppmann       Boolean   @default(false)
+  qualTruppfuehrer    Boolean   @default(false)
+  qualGruppenfuehrer  Boolean   @default(false)
+  qualZugfuehrer      Boolean   @default(false)
+  qualRettSan         Boolean   @default(false)
+  qualFwSan           Boolean   @default(false)
+  qualVerbandfuehrer  Boolean   @default(false)
+  qualAGT             Boolean   @default(false)
+  qualTH1             Boolean   @default(false)
+  tenantId            Int?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime?
+
+  group        MemberGroup?       @relation(fields: [groupId], references: [id])
+  family       MemberFamily[]
+  work         MemberWork?
+  bank         MemberBank?
+  examination  MemberExamination?
+  availability MemberAvailability[]
+  courses      Course[]
+  attendances  Attendance[]
+  absences     Absence[]
+  history      MemberHistory[]
+
+  @@map("members")
+}
+
+model MemberFamily {
+  id           Int     @id @default(autoincrement())
+  memberId     Int
+  name         String  @db.VarChar(255)
+  phone        String? @db.VarChar(50)
+  phone2       String? @db.VarChar(50)
+  email        String? @db.VarChar(255)
+  street       String? @db.VarChar(255)
+  city         String? @db.VarChar(100)
+  relationship String? @db.VarChar(100)
+
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@map("member_family")
+}
+
+model MemberWork {
+  id            Int     @id @default(autoincrement())
+  memberId      Int     @unique
+  employer      String? @db.VarChar(255)
+  street        String? @db.VarChar(255)
+  city          String? @db.VarChar(100)
+  phone         String? @db.VarChar(50)
+  contactPerson String? @db.VarChar(255)
+  email         String? @db.VarChar(255)
+
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@map("member_work")
+}
+
+model MemberBank {
+  id       Int     @id @default(autoincrement())
+  memberId Int     @unique
+  iban     String? @db.VarChar(34)
+  bic      String? @db.VarChar(11)
+
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@map("member_bank")
+}
+
+model MemberExamination {
+  id               Int       @id @default(autoincrement())
+  memberId         Int       @unique
+  g25Date          DateTime?
+  g26Date          DateTime?
+  g30Date          DateTime?
+  agtTrainingDate  DateTime?
+  lkwLicenseExpiry DateTime?
+  notifyG25        Boolean   @default(false)
+  notifyG26        Boolean   @default(false)
+  notifyG30        Boolean   @default(false)
+
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@map("member_examinations")
+}
+
+model MemberAvailability {
+  id         Int       @id @default(autoincrement())
+  memberId   Int
+  status     String    @db.VarChar(50)
+  validFrom  DateTime  @default(now())
+  validUntil DateTime?
+  notes      String?   @db.VarChar(500)
+
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@map("member_availability")
+}
+
+model MemberHistory {
+  id         Int      @id @default(autoincrement())
+  memberId   Int
+  field      String   @db.VarChar(100)
+  oldValue   String?  @db.Text
+  newValue   String?  @db.Text
+  changedBy  String   @db.VarChar(100)
+  changedAt  DateTime @default(now())
+
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@map("member_history")
+}
+
+// ==================== VEHICLE / FAHRZEUG MANAGEMENT ====================
+
+model Vehicle {
+  id           Int     @id @default(autoincrement())
+  name         String  @db.VarChar(100)
+  description  String? @db.Text
+  licensePlate String? @db.VarChar(20)
+  callSign     String? @db.VarChar(50)
+  seats        Int?
+  minCrew      Int?
+  maxCrew      Int?
+  licenseClass String? @db.VarChar(20)
+  isRetired    Boolean @default(false)
+  isTrailer    Boolean @default(false)
+  sortOrder    Int     @default(0)
+  tenantId     Int?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  inspection          VehicleInspection?
+  logbook             LogbookEntry[]
+  equipmentInspections EquipmentInspection[]
+  assignedInventory   ArticleAssignment[]
+  warehouses          Warehouse[]
+
+  @@map("vehicles")
+}
+
+model VehicleInspection {
+  id            Int       @id @default(autoincrement())
+  vehicleId     Int       @unique
+  tuevDate      DateTime?
+  spDate        DateTime?
+  serviceDate   DateTime?
+  notifyTuev    Boolean   @default(false)
+  notifySp      Boolean   @default(false)
+  notifyService Boolean   @default(false)
+  notes         String?   @db.Text
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@map("vehicle_inspections")
+}
+
+model LogbookEntry {
+  id           Int      @id @default(autoincrement())
+  vehicleId    Int
+  date         DateTime
+  driver       String   @db.VarChar(255)
+  startMileage Int
+  endMileage   Int
+  purpose      String   @db.VarChar(500)
+  notes        String?  @db.Text
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@map("logbook_entries")
+}
+
+model EquipmentInspection {
+  id             Int       @id @default(autoincrement())
+  vehicleId      Int
+  type           String    @db.VarChar(100)
+  lastInspection DateTime?
+  nextInspection DateTime?
+  notes          String?   @db.Text
+  notifyDue      Boolean   @default(false)
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@map("equipment_inspections")
+}
+
+// ==================== INVENTORY / BESTANDSLISTE ====================
+
+model Warehouse {
+  id          Int     @id @default(autoincrement())
+  name        String  @db.VarChar(100)
+  description String? @db.VarChar(500)
+  vehicleId   Int?
+  createdAt   DateTime @default(now())
+
+  vehicle      Vehicle?           @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  articles     Article[]
+  assignments  ArticleAssignment[]
+
+  @@map("warehouses")
+}
+
+model Article {
+  id                 Int      @id @default(autoincrement())
+  name               String   @db.VarChar(255)
+  manufacturer       String?  @db.VarChar(255)
+  articleType        String?  @db.VarChar(100)
+  description        String?  @db.Text
+  inspectionInterval Int?
+  imagePath          String?  @db.VarChar(500)
+  value              Decimal? @db.Decimal(10, 2)
+  ean                String?  @db.VarChar(50)
+  isExtinguisher     Boolean  @default(false)
+  inventoryNumber    String?  @unique @db.VarChar(100)
+  warehouseId        Int?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  warehouse   Warehouse?          @relation(fields: [warehouseId], references: [id], onDelete: SetNull)
+  assignments ArticleAssignment[]
+  inspections ArticleInspection[]
+
+  @@map("articles")
+}
+
+model ArticleInspection {
+  id            Int       @id @default(autoincrement())
+  articleId     Int
+  inspectedAt   DateTime
+  inspectedBy   String    @db.VarChar(255)
+  result        String    @db.VarChar(50)
+  notes         String?   @db.Text
+  nextDueDate   DateTime?
+  createdAt     DateTime  @default(now())
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@map("article_inspections")
+}
+
+model ArticleAssignment {
+  id          Int      @id @default(autoincrement())
+  articleId   Int
+  warehouseId Int
+  vehicleId   Int?
+  quantity    Int      @default(1)
+  assignedTo  String?  @db.VarChar(255)
+  assignedAt  DateTime @default(now())
+  notes       String?  @db.VarChar(500)
+
+  article   Article   @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  warehouse Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  vehicle   Vehicle?  @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+
+  @@map("article_assignments")
+}
+
+// ==================== OPERATIONS / EINSÄTZE ====================
+
+model Operation {
+  id              Int       @id @default(autoincrement())
+  operationNumber String?   @db.VarChar(50)
+  officialNumber  String?   @db.VarChar(50)
+  date            DateTime
+  alarmTime       String?   @db.VarChar(10)
+  departureTime   String?   @db.VarChar(10)
+  arrivalTime     String?   @db.VarChar(10)
+  returnTime      String?   @db.VarChar(10)
+  location        String    @db.VarChar(500)
+  district        String?   @db.VarChar(100)
+  keyword         String?   @db.VarChar(255)
+  vehicles        String?   @db.Text
+  description     String?   @db.Text
+  leaderCount     Int       @default(0)
+  memberCount     Int       @default(0)
+  commanderId     Int?
+  commanderBfId   Int?
+  categoryId      Int?
+  tenantId        Int?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  times   OperationTime[]
+  reports OperationReport[]
+
+  @@map("operations")
+}
+
+model OperationTime {
+  id            Int     @id @default(autoincrement())
+  operationId   Int
+  vehicleId     Int?
+  vehicleName   String  @db.VarChar(100)
+  alarmTime     String? @db.VarChar(10)
+  departureTime String? @db.VarChar(10)
+  arrivalTime   String? @db.VarChar(10)
+  returnTime    String? @db.VarChar(10)
+
+  operation Operation @relation(fields: [operationId], references: [id], onDelete: Cascade)
+
+  @@map("operation_times")
+}
+
+model OperationReport {
+  id          Int      @id @default(autoincrement())
+  operationId Int
+  content     String   @db.Text
+  createdBy   String   @db.VarChar(100)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  operation Operation @relation(fields: [operationId], references: [id], onDelete: Cascade)
+
+  @@map("operation_reports")
+}
+
+// ==================== EVENTS / VERANSTALTUNGEN ====================
+
+model Event {
+  id                  Int       @id @default(autoincrement())
+  name                String    @db.VarChar(255)
+  name2               String?   @db.VarChar(255)
+  category            Int       @default(2) // 1=Einsatz, 2=Dienstabend, 3=BSW, 4=Sonstige
+  date                DateTime
+  startTime           String?   @db.VarChar(10)
+  endTime             String?   @db.VarChar(10)
+  hasVehicleAssignment Boolean  @default(false)
+  infoSent            Boolean   @default(false)
+  notes               String?   @db.Text
+  tenantId            Int?
+  createdAt           DateTime  @default(now())
+
+  attendances Attendance[]
+
+  @@map("events")
+}
+
+model Attendance {
+  id        Int      @id @default(autoincrement())
+  year      Int
+  eventId   Int
+  memberId  Int
+  status    String   @default("present") @db.VarChar(20) // present, absent, excused
+  createdAt DateTime @default(now())
+
+  event  Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, memberId])
+  @@map("attendances")
+}
+
+model Absence {
+  id       Int      @id @default(autoincrement())
+  memberId Int
+  eventId  Int?
+  date     DateTime
+  reason   Int      @default(0)
+  notes    String?  @db.Text
+
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@map("absences")
+}
+
+model FireWatch {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(255)
+  date      DateTime
+  startTime String?  @db.VarChar(10)
+  endTime   String?  @db.VarChar(10)
+  location  String?  @db.VarChar(500)
+  notes     String?  @db.Text
+  tenantId  Int?
+  createdAt DateTime @default(now())
+
+  @@map("fire_watches")
+}
+
+// ==================== TRAINING / AUSBILDUNG ====================
+
+model CourseCategory {
+  id          Int     @id @default(autoincrement())
+  name        String  @db.VarChar(100)
+  description String? @db.VarChar(500)
+
+  courses Course[]
+
+  @@map("course_categories")
+}
+
+model Course {
+  id         Int       @id @default(autoincrement())
+  memberId   Int
+  categoryId Int
+  status     String    @default("pending") @db.VarChar(50) // pending, active, completed, failed
+  startDate  DateTime?
+  endDate    DateTime?
+  location   String?   @db.VarChar(255)
+  notes      String?   @db.Text
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  member   Member         @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  category CourseCategory @relation(fields: [categoryId], references: [id])
+
+  @@map("courses")
+}
+
+// ==================== REFERENCE DATA ====================
+
+model Rank {
+  id           Int    @id @default(autoincrement())
+  name         String @db.VarChar(100)
+  abbreviation String @db.VarChar(20)
+  sortOrder    Int    @default(0)
+
+  @@map("ranks")
+}
+
+model AbsenceReason {
+  id    Int     @id @default(autoincrement())
+  name  String  @db.VarChar(100)
+  color String? @db.VarChar(20)
+
+  @@map("absence_reasons")
+}
+
+model Setting {
+  id          Int      @id @default(autoincrement())
+  key         String   @unique @db.VarChar(100)
+  value       String   @db.Text
+  description String?  @db.VarChar(500)
+  updatedAt   DateTime @updatedAt
+
+  @@map("settings")
+}
+
+model Year {
+  id       Int     @id @default(autoincrement())
+  year     Int     @unique
+  isActive Boolean @default(false)
+
+  @@map("years")
+}

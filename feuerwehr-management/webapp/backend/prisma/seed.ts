@@ -1,0 +1,210 @@
+import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
+
+const prisma = new PrismaClient();
+
+async function main() {
+  console.log('Seeding database...');
+
+  // Create permission groups
+  const adminGroup = await prisma.permissionGroup.upsert({
+    where: { id: 1 },
+    update: {},
+    create: {
+      id: 1,
+      name: 'Administrator',
+      description: 'Vollzugriff auf alle Funktionen',
+      br0: true, br1: true, br2: true, br3: true, br4: true, br5: true,
+      br6: true, br7: true, br8: true, br9: true, br10: true, br11: true,
+      br12: true, br13: true, br14: true, br15: true, br16: true, br17: true,
+      br18: true, br19: true, br20: true, br21: true, br22: true, br23: true,
+      br24: true, br25: true, br26: true, br27: true, br28: true, br29: true,
+      br30: true, br31: true, br32: true, br33: true, br34: true, br35: true,
+      br36: true, br37: true, br38: true, br39: true, br40: true, br41: true,
+      br42: true, br43: true, br44: true, br45: true, br46: true, br47: true,
+      br48: true, br49: true, br50: true, br51: true, br52: true, br53: true,
+      br54: true, br55: true, br56: true, br57: true, br58: true, br59: true,
+      br60: true, br61: true, br62: true, br63: true, br64: true, br65: true,
+      br66: true, br67: true, br68: true, br69: true, br70: true, br71: true,
+      br72: true, br73: true, br74: true, br75: true,
+    },
+  });
+
+  const userGroup = await prisma.permissionGroup.upsert({
+    where: { id: 2 },
+    update: {},
+    create: {
+      id: 2,
+      name: 'Benutzer',
+      description: 'Standardbenutzer mit Lesezugriff',
+      br0: true, br1: true, br2: true, br3: true, br4: true,
+      br10: true, br11: true, br20: true, br21: true, br30: true,
+    },
+  });
+
+  const guestGroup = await prisma.permissionGroup.upsert({
+    where: { id: 3 },
+    update: {},
+    create: {
+      id: 3,
+      name: 'Gast',
+      description: 'Eingeschränkter Lesezugriff',
+      br0: true,
+    },
+  });
+
+  console.log('Permission groups created:', adminGroup.name, userGroup.name, guestGroup.name);
+
+  // Create admin user
+  const hashedPassword = await bcrypt.hash('Admin123!', 12);
+  const admin = await prisma.user.upsert({
+    where: { username: 'admin' },
+    update: {},
+    create: {
+      username: 'admin',
+      email: 'admin@feuerwehr.local',
+      password: hashedPassword,
+      name: 'Administrator',
+      isAdmin: true,
+      isActive: true,
+      groupId: adminGroup.id,
+    },
+  });
+  console.log('Admin user created:', admin.username);
+
+  // Create ranks (Dienstgrade)
+  const ranks = [
+    { name: 'Feuerwehrmann-Anwärter', abbreviation: 'FwA', sortOrder: 1 },
+    { name: 'Feuerwehrmann', abbreviation: 'Fw', sortOrder: 2 },
+    { name: 'Oberfeuerwehrmann', abbreviation: 'OFw', sortOrder: 3 },
+    { name: 'Hauptfeuerwehrmann', abbreviation: 'HFw', sortOrder: 4 },
+    { name: 'Unterbrandmeister', abbreviation: 'UBM', sortOrder: 5 },
+    { name: 'Brandmeister', abbreviation: 'BM', sortOrder: 6 },
+    { name: 'Oberbrandmeister', abbreviation: 'OBM', sortOrder: 7 },
+    { name: 'Hauptbrandmeister', abbreviation: 'HBM', sortOrder: 8 },
+    { name: 'Brandinspektor', abbreviation: 'BI', sortOrder: 9 },
+    { name: 'Brandoberinspektor', abbreviation: 'BOI', sortOrder: 10 },
+    { name: 'Brandamtmann', abbreviation: 'BAM', sortOrder: 11 },
+    { name: 'Brandamtsrat', abbreviation: 'BAR', sortOrder: 12 },
+    { name: 'Branddirektor', abbreviation: 'BD', sortOrder: 13 },
+  ];
+
+  for (const rank of ranks) {
+    await prisma.rank.upsert({
+      where: { id: ranks.indexOf(rank) + 1 },
+      update: {},
+      create: rank,
+    });
+  }
+  console.log('Ranks created:', ranks.length);
+
+  // Create course categories (Lehrgang-Kategorien)
+  const categories = [
+    { name: 'Führerschein', description: 'Führerscheinausbildung' },
+    { name: 'Erste Hilfe', description: 'Erste-Hilfe-Kurs' },
+    { name: 'Truppführer', description: 'Truppführer-Lehrgang' },
+    { name: 'Gruppenführer', description: 'Gruppenführer-Lehrgang' },
+    { name: 'Zugführer', description: 'Zugführer-Lehrgang' },
+    { name: 'Sprechfunker', description: 'Sprechfunker-Ausbildung' },
+    { name: 'Atemschutzgeräteträger', description: 'Atemschutz-Ausbildung' },
+    { name: 'Absturzsicherung', description: 'Absturzsicherungs-Ausbildung' },
+    { name: 'Kettensäge', description: 'Kettensägen-Ausbildung' },
+    { name: 'TM1', description: 'Technische Hilfeleistung' },
+    { name: 'CBRN-Schutz', description: 'CBRN-Schutz-Ausbildung' },
+    { name: 'Wasserrettung', description: 'Wasserrettungs-Ausbildung' },
+    { name: 'Maschinisten', description: 'Maschinisten-Ausbildung' },
+    { name: 'Drehleiter', description: 'Drehleiter-Ausbildung' },
+    { name: 'Sonstiges', description: 'Sonstige Ausbildungen' },
+  ];
+
+  for (const cat of categories) {
+    await prisma.courseCategory.upsert({
+      where: { id: categories.indexOf(cat) + 1 },
+      update: {},
+      create: { ...cat, id: categories.indexOf(cat) + 1 },
+    });
+  }
+  console.log('Course categories created:', categories.length);
+
+  // Create absence reasons
+  const absenceReasons = [
+    { name: 'Undefiniert', color: 'gray' },
+    { name: 'Unentschuldigt', color: 'red' },
+    { name: 'Entschuldigt', color: 'yellow' },
+    { name: 'Urlaub', color: 'blue' },
+    { name: 'Krank', color: 'orange' },
+    { name: 'BSW', color: 'green' },
+  ];
+
+  for (const reason of absenceReasons) {
+    await prisma.absenceReason.upsert({
+      where: { id: absenceReasons.indexOf(reason) + 1 },
+      update: {},
+      create: { ...reason, id: absenceReasons.indexOf(reason) + 1 },
+    });
+  }
+  console.log('Absence reasons created:', absenceReasons.length);
+
+  // Create member groups
+  const memberGroups = [
+    { id: 1, name: 'Einsatzabteilung', nextEmployeeNumber: 1 },
+    { id: 2, name: 'Jugendfeuerwehr', nextEmployeeNumber: 1 },
+    { id: 3, name: 'Altersabteilung', nextEmployeeNumber: 1 },
+    { id: 4, name: 'passive Mitglieder', nextEmployeeNumber: 1 },
+  ];
+  for (const group of memberGroups) {
+    await prisma.memberGroup.upsert({
+      where: { id: group.id },
+      update: { name: group.name },
+      create: group,
+    });
+  }
+  console.log('Member groups created:', memberGroups.length);
+
+  // Create initial year
+  const currentYear = new Date().getFullYear();
+  await prisma.year.upsert({
+    where: { year: currentYear },
+    update: {},
+    create: {
+      year: currentYear,
+      isActive: true,
+    },
+  });
+
+  // Create default settings
+  const defaultSettings = [
+    { key: 'fireStationName', value: 'Freiwillige Feuerwehr', description: 'Name der Feuerwehr' },
+    { key: 'fireStationCity', value: 'Musterstadt', description: 'Stadt' },
+    { key: 'fireStationZip', value: '12345', description: 'PLZ' },
+    { key: 'fireStationStreet', value: 'Feuerwehrstr. 1', description: 'Straße' },
+    { key: 'fireStationPhone', value: '', description: 'Telefon' },
+    { key: 'fireStationEmail', value: '', description: 'E-Mail' },
+    { key: 'inspectionReminderDays', value: '30', description: 'Erinnerung vor Prüfung (Tage)' },
+    { key: 'medicalExamReminderDays', value: '60', description: 'Erinnerung vor Untersuchung (Tage)' },
+  ];
+
+  for (const setting of defaultSettings) {
+    await prisma.setting.upsert({
+      where: { key: setting.key },
+      update: {},
+      create: setting,
+    });
+  }
+  console.log('Default settings created');
+
+  console.log('\nSeed completed successfully!');
+  console.log('Default admin credentials:');
+  console.log('  Username: admin');
+  console.log('  Password: Admin123!');
+  console.log('\nIMPORTANT: Change the admin password immediately after first login!');
+}
+
+main()
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

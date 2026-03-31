@@ -1,0 +1,273 @@
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { PlusIcon } from '@heroicons/react/24/outline';
+import { Article, ArticleInspection } from '../../types';
+import { Table } from '../../components/ui/Table';
+import { Button } from '../../components/ui/Button';
+import { Badge } from '../../components/ui/Badge';
+import { Card } from '../../components/ui/Card';
+import { Modal } from '../../components/ui/Modal';
+import { Input } from '../../components/ui/Input';
+import { Textarea } from '../../components/ui/Textarea';
+import { Pagination } from '../../components/ui/Pagination';
+import { formatDate } from '../../utils/format';
+import client from '../../api/client';
+
+const inspectionApi = {
+  getDue: () => client.get('/inspections/due'),
+  getAll: (params?: Record<string, unknown>) => client.get('/inspections', { params }),
+  create: (data: Record<string, unknown>) => client.post('/inspections', data),
+  update: (id: number, data: Record<string, unknown>) => client.put(`/inspections/${id}`, data),
+};
+
+type Tab = 'due' | 'history';
+
+function InspectionModal({ isOpen, onClose, preselectedArticle, dueArticles }: {
+  isOpen: boolean;
+  onClose: () => void;
+  preselectedArticle?: Article;
+  dueArticles: Article[];
+}) {
+  const queryClient = useQueryClient();
+  const today = new Date().toISOString().substring(0, 10);
+  const [form, setForm] = useState({
+    articleId: preselectedArticle?.id?.toString() || '',
+    inspectedAt: today,
+    inspectedBy: '',
+    result: 'passed',
+    notes: '',
+  });
+  const [error, setError] = useState('');
+
+  const selectedArticle = dueArticles.find(a => a.id === parseInt(form.articleId));
+  const nextDueDate = form.inspectedAt && selectedArticle?.inspectionInterval
+    ? (() => {
+        const d = new Date(form.inspectedAt);
+        d.setMonth(d.getMonth() + selectedArticle.inspectionInterval);
+        return d.toLocaleDateString('de-DE');
+      })()
+    : null;
+
+  const mutation = useMutation({
+    mutationFn: () => inspectionApi.create({
+      articleId: parseInt(form.articleId),
+      inspectedAt: form.inspectedAt,
+      inspectedBy: form.inspectedBy,
+      result: form.result,
+      notes: form.notes || undefined,
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['inspections-due'] });
+      queryClient.invalidateQueries({ queryKey: ['inspections-history'] });
+      setError('');
+      onClose();
+    },
+    onError: (err: unknown) => {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Speichern fehlgeschlagen';
+      setError(msg);
+    },
+  });
+
+  const u = (f: string, v: string) => setForm(p => ({ ...p, [f]: v }));
+  const isValid = form.articleId && form.inspectedAt && form.inspectedBy && form.result;
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title="Prüfung dokumentieren" size="md"
+      footer={
+        <>
+          <Button variant="secondary" onClick={onClose}>Abbrechen</Button>
+          <Button variant="primary" onClick={() => mutation.mutate()} loading={mutation.isPending} disabled={!isValid}>Speichern</Button>
+        </>
+      }
+    >
+      <div className="space-y-3">
+        {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-md">{error}</div>}
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">Artikel</label>
+          <select
+            value={form.articleId}
+            onChange={(e) => u('articleId', e.target.value)}
+            disabled={!!preselectedArticle}
+            className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none bg-white disabled:bg-gray-100"
+          >
+            <option value="">-- Artikel wählen --</option>
+            {dueArticles.map(a => (
+              <option key={a.id} value={a.id}>
+                {a.name}{a.inventoryNumber ? ` (${a.inventoryNumber})` : ''}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <Input label="Prüfdatum" value={form.inspectedAt} onChange={(e) => u('inspectedAt', e.target.value)} type="date" required />
+          <Input label="Prüfer" value={form.inspectedBy} onChange={(e) => u('inspectedBy', e.target.value)} required />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">Ergebnis</label>
+          <select
+            value={form.result}
+            onChange={(e) => u('result', e.target.value)}
+            className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none bg-white"
+          >
+            <option value="passed">Bestanden</option>
+            <option value="failed">Nicht bestanden</option>
+          </select>
+        </div>
+
+        <Textarea label="Bemerkungen" value={form.notes} onChange={(e) => u('notes', e.target.value)} rows={2} />
+
+        {nextDueDate && (
+          <div className="bg-blue-50 border border-blue-200 text-blue-700 text-sm px-4 py-3 rounded-md">
+            Nächste Prüfung fällig am: <strong>{nextDueDate}</strong>
+          </div>
+        )}
+      </div>
+    </Modal>
+  );
+}
+
+function DueTab({ onInspect }: { onInspect: (article: Article) => void }) {
+  const { data: dueArticles, isLoading } = useQuery({
+    queryKey: ['inspections-due'],
+    queryFn: () => inspectionApi.getDue().then(r => r.data.data),
+  });
+
+  const columns = [
+    { key: 'inventoryNumber', header: 'Inv.-Nr.', render: (a: Article) => a.inventoryNumber || '-' },
+    { key: 'name', header: 'Artikel', render: (a: Article) => (
+      <div><p className="font-medium">{a.name}</p>{a.manufacturer && <p className="text-xs text-gray-500">{a.manufacturer}</p>}</div>
+    )},
+    { key: 'warehouse', header: 'Lagerort', render: (a: Article) => a.warehouse?.name || '-' },
+    { key: 'interval', header: 'Intervall', render: (a: Article) => a.inspectionInterval ? `${a.inspectionInterval} Monate` : '-' },
+    { key: 'lastInspection', header: 'Letzte Prüfung', render: (a: Article) => {
+      const inspections = (a as Article & { inspections?: ArticleInspection[] }).inspections;
+      return inspections && inspections.length > 0 ? formatDate(inspections[0].inspectedAt) : 'Nie';
+    }},
+    { key: 'status', header: 'Status', render: (a: Article) => {
+      const inspections = (a as Article & { inspections?: ArticleInspection[] }).inspections;
+      if (!inspections || inspections.length === 0) return <Badge variant="warning">Nie geprüft</Badge>;
+      const last = inspections[0];
+      if (last.nextDueDate && new Date(last.nextDueDate) <= new Date()) return <Badge variant="danger">Überfällig</Badge>;
+      return <Badge variant="warning">Fällig</Badge>;
+    }},
+    { key: 'action', header: '', render: (a: Article) => (
+      <Button variant="primary" size="sm" onClick={(e: React.MouseEvent) => { e.stopPropagation(); onInspect(a); }}>
+        Prüfen
+      </Button>
+    )},
+  ];
+
+  return (
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+      <Table
+        columns={columns}
+        data={dueArticles || []}
+        loading={isLoading}
+        emptyMessage="Keine fälligen Prüfungen."
+        keyExtractor={(a) => a.id}
+      />
+    </div>
+  );
+}
+
+function HistoryTab() {
+  const [page, setPage] = useState(1);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['inspections-history', page],
+    queryFn: () => inspectionApi.getAll({ page, limit: 20 }).then(r => r.data),
+  });
+
+  const columns = [
+    { key: 'inspectedAt', header: 'Datum', render: (i: ArticleInspection) => formatDate(i.inspectedAt) },
+    { key: 'article', header: 'Artikel', render: (i: ArticleInspection) => (
+      <div>
+        <p className="font-medium">{i.article?.name}</p>
+        {i.article?.inventoryNumber && <p className="text-xs text-gray-500">{i.article.inventoryNumber}</p>}
+      </div>
+    )},
+    { key: 'warehouse', header: 'Lagerort', render: (i: ArticleInspection) => i.article?.warehouse?.name || '-' },
+    { key: 'inspectedBy', header: 'Prüfer' },
+    { key: 'result', header: 'Ergebnis', render: (i: ArticleInspection) => (
+      <Badge variant={i.result === 'passed' ? 'success' : 'danger'}>
+        {i.result === 'passed' ? 'Bestanden' : 'Nicht bestanden'}
+      </Badge>
+    )},
+    { key: 'notes', header: 'Bemerkungen', render: (i: ArticleInspection) => (
+      <span className="text-gray-500 text-sm truncate max-w-[200px] block">{i.notes || '-'}</span>
+    )},
+    { key: 'nextDueDate', header: 'Nächste Prüfung', render: (i: ArticleInspection) => i.nextDueDate ? formatDate(i.nextDueDate) : '-' },
+  ];
+
+  return (
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+      <Table
+        columns={columns}
+        data={data?.data || []}
+        loading={isLoading}
+        emptyMessage="Keine Prüfungen dokumentiert."
+        keyExtractor={(i) => i.id}
+      />
+      {data?.pagination && <Pagination {...data.pagination} onPageChange={setPage} />}
+    </div>
+  );
+}
+
+export function InspectionBookPage() {
+  const [tab, setTab] = useState<Tab>('due');
+  const [showModal, setShowModal] = useState(false);
+  const [selectedArticle, setSelectedArticle] = useState<Article | undefined>();
+
+  const { data: dueArticles } = useQuery({
+    queryKey: ['inspections-due'],
+    queryFn: () => inspectionApi.getDue().then(r => r.data.data as Article[]),
+  });
+
+  const openInspect = (article?: Article) => {
+    setSelectedArticle(article);
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setSelectedArticle(undefined);
+  };
+
+  const tabs = [
+    { id: 'due' as const, label: 'Fällige Prüfungen' },
+    { id: 'history' as const, label: 'Prüfhistorie' },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="border-b border-gray-200">
+          <nav className="flex gap-4 -mb-px">
+            {tabs.map((t) => (
+              <button key={t.id} onClick={() => setTab(t.id)}
+                className={`pb-3 px-1 text-sm font-medium border-b-2 transition-colors ${tab === t.id ? 'border-primary-600 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+                {t.label}
+              </button>
+            ))}
+          </nav>
+        </div>
+        <Button variant="primary" icon={<PlusIcon />} onClick={() => openInspect()}>
+          Prüfung dokumentieren
+        </Button>
+      </div>
+
+      {tab === 'due' && <DueTab onInspect={openInspect} />}
+      {tab === 'history' && <HistoryTab />}
+
+      <InspectionModal
+        isOpen={showModal}
+        onClose={closeModal}
+        preselectedArticle={selectedArticle}
+        dueArticles={dueArticles || []}
+      />
+    </div>
+  );
+}
