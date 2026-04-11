@@ -1,9 +1,4 @@
 import { Request, Response } from 'express';
-<<<<<<< HEAD
-import { prisma } from '../config/database';
-import { sendSuccess, sendError } from '../utils/response';
-
-=======
 import path from 'path';
 import fs from 'fs';
 import multer from 'multer';
@@ -33,7 +28,6 @@ export const templateUpload = multer({
   },
 }).single('file');
 
->>>>>>> a9dc7840 (Added New FW Management system)
 export async function getSettings(_req: Request, res: Response): Promise<void> {
   try {
     const settings = await prisma.setting.findMany({ orderBy: { key: 'asc' } });
@@ -130,8 +124,6 @@ export async function updateYear(req: Request, res: Response): Promise<void> {
     sendError(res, (err as Error).message);
   }
 }
-<<<<<<< HEAD
-=======
 
 // Templates
 export async function getTemplates(_req: Request, res: Response): Promise<void> {
@@ -522,4 +514,3 @@ export async function importInspections(req: Request, res: Response): Promise<vo
     sendError(res, (err as Error).message);
   }
 }
->>>>>>> a9dc7840 (Added New FW Management system)

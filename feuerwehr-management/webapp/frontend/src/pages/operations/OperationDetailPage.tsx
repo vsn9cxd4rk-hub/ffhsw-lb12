@@ -1,16 +1,10 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-<<<<<<< HEAD
-import { ArrowLeftIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
-import { operationsApi } from '../../api/operations';
-import { Operation } from '../../types';
-=======
 import { ArrowLeftIcon, PlusIcon, TrashIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 import { operationsApi } from '../../api/operations';
 import { settingsApi } from '../../api/settings';
 import { Operation, OperationDocument, Template } from '../../types';
->>>>>>> a9dc7840 (Added New FW Management system)
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Textarea } from '../../components/ui/Textarea';
@@ -23,11 +17,7 @@ export function OperationDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-<<<<<<< HEAD
-  const [tab, setTab] = useState<'details' | 'times' | 'report'>('details');
-=======
   const [tab, setTab] = useState<'details' | 'times' | 'report' | 'documents'>('details');
->>>>>>> a9dc7840 (Added New FW Management system)
 
   const { data: op, isLoading } = useQuery({
     queryKey: ['operation', id],
@@ -54,11 +44,7 @@ export function OperationDetailPage() {
 
       <div className="border-b border-gray-200">
         <nav className="flex gap-4 -mb-px">
-<<<<<<< HEAD
-          {[{ id: 'details', label: 'Details' }, { id: 'times', label: 'Fahrzeugzeiten' }, { id: 'report', label: 'Bericht' }].map((t) => (
-=======
           {[{ id: 'details', label: 'Details' }, { id: 'times', label: 'Fahrzeugzeiten' }, { id: 'report', label: 'Bericht' }, { id: 'documents', label: 'Dokumente' }].map((t) => (
->>>>>>> a9dc7840 (Added New FW Management system)
             <button key={t.id} onClick={() => setTab(t.id as typeof tab)}
               className={`pb-3 px-1 text-sm font-medium border-b-2 transition-colors ${tab === t.id ? 'border-primary-600 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
               {t.label}
@@ -70,10 +56,7 @@ export function OperationDetailPage() {
       {tab === 'details' && <OperationDetailsTab op={op} onSave={(d) => updateMutation.mutate(d)} saving={updateMutation.isPending} />}
       {tab === 'times' && <OperationTimesTab operationId={parseInt(id!)} times={op.times || []} />}
       {tab === 'report' && <OperationReportTab operationId={parseInt(id!)} report={op.reports?.[0]} />}
-<<<<<<< HEAD
-=======
       {tab === 'documents' && <OperationDocumentsTab operationId={parseInt(id!)} />}
->>>>>>> a9dc7840 (Added New FW Management system)
     </div>
   );
 }
@@ -193,8 +176,6 @@ function OperationReportTab({ operationId, report }: { operationId: number; repo
     </Card>
   );
 }
-<<<<<<< HEAD
-=======
 
 function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -324,4 +305,3 @@ function OperationDocumentsTab({ operationId }: { operationId: number }) {
     </>
   );
 }
->>>>>>> a9dc7840 (Added New FW Management system)

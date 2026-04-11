@@ -69,12 +69,9 @@ export async function getArticles(req: Request, res: Response): Promise<void> {
     const search = req.query.search as string;
     const warehouseId = req.query.warehouseId ? parseInt(req.query.warehouseId as string) : undefined;
 
-<<<<<<< HEAD
-=======
     const deviceClassId = req.query.deviceClassId ? parseInt(req.query.deviceClassId as string) : undefined;
     const deviceSubclassId = req.query.deviceSubclassId ? parseInt(req.query.deviceSubclassId as string) : undefined;
 
->>>>>>> a9dc7840 (Added New FW Management system)
     const where: Record<string, unknown> = {};
     if (search) {
       where.OR = [
@@ -87,14 +84,11 @@ export async function getArticles(req: Request, res: Response): Promise<void> {
     if (warehouseId !== undefined) {
       where.warehouseId = warehouseId;
     }
-<<<<<<< HEAD
-=======
     if (deviceSubclassId !== undefined) {
       where.deviceSubclassId = deviceSubclassId;
     } else if (deviceClassId !== undefined) {
       where.deviceSubclass = { deviceClassId };
     }
->>>>>>> a9dc7840 (Added New FW Management system)
 
     const [articles, total] = await Promise.all([
       prisma.article.findMany({
@@ -103,10 +97,7 @@ export async function getArticles(req: Request, res: Response): Promise<void> {
         take,
         include: {
           warehouse: true,
-<<<<<<< HEAD
-=======
           deviceSubclass: { include: { deviceClass: true } },
->>>>>>> a9dc7840 (Added New FW Management system)
           assignments: {
             include: { warehouse: true },
           },
@@ -124,11 +115,6 @@ export async function getArticles(req: Request, res: Response): Promise<void> {
 
 export async function createArticle(req: Request, res: Response): Promise<void> {
   try {
-<<<<<<< HEAD
-    const article = await prisma.article.create({
-      data: req.body,
-      include: { warehouse: true },
-=======
     const { deviceSubclassId, manufacturingDate, specification, serialNumber, din, isDecommissioned, ...rest } = req.body;
     const article = await prisma.article.create({
       data: {
@@ -141,7 +127,6 @@ export async function createArticle(req: Request, res: Response): Promise<void> 
         isDecommissioned: isDecommissioned || false,
       },
       include: { warehouse: true, deviceSubclass: { include: { deviceClass: true } } },
->>>>>>> a9dc7840 (Added New FW Management system)
     });
     sendSuccess(res, article, 201);
   } catch (err) {
@@ -153,15 +138,11 @@ export async function getArticle(req: Request, res: Response): Promise<void> {
   try {
     const article = await prisma.article.findUnique({
       where: { id: parseInt(req.params.id) },
-<<<<<<< HEAD
-      include: { assignments: { include: { warehouse: true } } },
-=======
       include: {
         warehouse: true,
         deviceSubclass: { include: { deviceClass: true } },
         assignments: { include: { warehouse: true } },
       },
->>>>>>> a9dc7840 (Added New FW Management system)
     });
     if (!article) { sendError(res, 'Artikel nicht gefunden', 404); return; }
     sendSuccess(res, article);
@@ -172,12 +153,6 @@ export async function getArticle(req: Request, res: Response): Promise<void> {
 
 export async function updateArticle(req: Request, res: Response): Promise<void> {
   try {
-<<<<<<< HEAD
-    const article = await prisma.article.update({
-      where: { id: parseInt(req.params.id) },
-      data: req.body,
-      include: { warehouse: true },
-=======
     const { deviceSubclassId, manufacturingDate, ...rest } = req.body;
     const data: Record<string, unknown> = { ...rest };
     if (deviceSubclassId !== undefined) data.deviceSubclassId = deviceSubclassId || null;
@@ -187,7 +162,6 @@ export async function updateArticle(req: Request, res: Response): Promise<void> 
       where: { id: parseInt(req.params.id) },
       data,
       include: { warehouse: true, deviceSubclass: { include: { deviceClass: true } } },
->>>>>>> a9dc7840 (Added New FW Management system)
     });
     sendSuccess(res, article);
   } catch (err) {

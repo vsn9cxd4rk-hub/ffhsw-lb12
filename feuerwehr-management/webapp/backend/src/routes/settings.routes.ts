@@ -5,14 +5,11 @@ import {
   getSettings, updateSettings,
   getRanks, createRank, updateRank, deleteRank,
   getYears, createYear, updateYear,
-<<<<<<< HEAD
-=======
   getTemplates, uploadTemplate, templateUpload, updateTemplate, downloadTemplate, deleteTemplate, getTemplateHistory,
   getDeviceClasses, createDeviceClass, updateDeviceClass, deleteDeviceClass,
   createSubclass, updateSubclass, deleteSubclass,
   createCriterion, updateCriterion, deleteCriterion,
   importArticles, importInspections,
->>>>>>> a9dc7840 (Added New FW Management system)
 } from '../controllers/settings.controller';
 
 const router = Router();
@@ -30,8 +27,6 @@ router.get('/years', getYears);
 router.post('/years', requireAdmin, createYear);
 router.put('/years/:id', requireAdmin, updateYear);
 
-<<<<<<< HEAD
-=======
 router.get('/templates', getTemplates);
 router.post('/templates', requireAdmin, templateUpload, uploadTemplate);
 router.put('/templates/:id', requireAdmin, templateUpload, updateTemplate);
@@ -55,5 +50,4 @@ router.delete('/inspection-criteria/:id', requireAdmin, deleteCriterion);
 router.post('/import/articles', requireAdmin, importArticles);
 router.post('/import/inspections', requireAdmin, importInspections);
 
->>>>>>> a9dc7840 (Added New FW Management system)
 export default router;

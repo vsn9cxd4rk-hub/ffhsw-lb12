@@ -1,16 +1,11 @@
 import { Request, Response } from 'express';
-<<<<<<< HEAD
-=======
 import path from 'path';
 import fs from 'fs';
 import multer from 'multer';
->>>>>>> a9dc7840 (Added New FW Management system)
 import { prisma } from '../config/database';
 import { sendSuccess, sendError, sendPaginated } from '../utils/response';
 import { getPagination } from '../utils/pagination';
 
-<<<<<<< HEAD
-=======
 const uploadDir = process.env.UPLOAD_PATH || './uploads';
 
 const eventDocStorage = multer.diskStorage({
@@ -34,7 +29,6 @@ export const eventDocUpload = multer({
   },
 }).single('file');
 
->>>>>>> a9dc7840 (Added New FW Management system)
 export async function getEvents(req: Request, res: Response): Promise<void> {
   try {
     const { skip, take, page, limit } = getPagination(req);
@@ -230,8 +224,6 @@ export async function deleteFireWatch(req: Request, res: Response): Promise<void
     sendError(res, (err as Error).message);
   }
 }
-<<<<<<< HEAD
-=======
 
 // Event Documents
 export async function getEventDocuments(req: Request, res: Response): Promise<void> {
@@ -289,4 +281,3 @@ export async function deleteEventDocument(req: Request, res: Response): Promise<
     sendError(res, (err as Error).message);
   }
 }
->>>>>>> a9dc7840 (Added New FW Management system)

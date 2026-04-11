@@ -3,27 +3,18 @@ import { prisma } from '../config/database';
 import { sendSuccess, sendError, sendPaginated } from '../utils/response';
 import { getPagination } from '../utils/pagination';
 
-<<<<<<< HEAD
-// All inspections (paginated, filterable)
-=======
 // All inspections (paginated, filterable by result, deviceClassId, year)
->>>>>>> a9dc7840 (Added New FW Management system)
 export async function getInspections(req: Request, res: Response): Promise<void> {
   try {
     const { skip, take, page, limit } = getPagination(req);
     const result = req.query.result as string | undefined;
-<<<<<<< HEAD
-=======
     const deviceClassId = req.query.deviceClassId ? parseInt(req.query.deviceClassId as string) : undefined;
     const year = req.query.year ? parseInt(req.query.year as string) : undefined;
->>>>>>> a9dc7840 (Added New FW Management system)
 
     const where: Record<string, unknown> = {};
     if (result) {
       where.result = result;
     }
-<<<<<<< HEAD
-=======
     if (deviceClassId) {
       where.article = { deviceSubclass: { deviceClassId } };
     }
@@ -33,7 +24,6 @@ export async function getInspections(req: Request, res: Response): Promise<void>
         lt: new Date(`${year + 1}-01-01`),
       };
     }
->>>>>>> a9dc7840 (Added New FW Management system)
 
     const [inspections, total] = await Promise.all([
       prisma.articleInspection.findMany({
@@ -42,9 +32,6 @@ export async function getInspections(req: Request, res: Response): Promise<void>
         take,
         include: {
           article: {
-<<<<<<< HEAD
-            include: { warehouse: true },
-=======
             include: {
               warehouse: true,
               deviceSubclass: { include: { deviceClass: true } },
@@ -53,7 +40,6 @@ export async function getInspections(req: Request, res: Response): Promise<void>
           criterionResults: {
             include: { criterion: true },
             orderBy: { criterion: { sortOrder: 'asc' } },
->>>>>>> a9dc7840 (Added New FW Management system)
           },
         },
         orderBy: { inspectedAt: 'desc' },
@@ -68,19 +54,6 @@ export async function getInspections(req: Request, res: Response): Promise<void>
 }
 
 // Articles that are due for inspection
-<<<<<<< HEAD
-export async function getDueInspections(_req: Request, res: Response): Promise<void> {
-  try {
-    const now = new Date();
-
-    // Get all articles with an inspection interval
-    const articles = await prisma.article.findMany({
-      where: {
-        inspectionInterval: { not: null },
-      },
-      include: {
-        warehouse: true,
-=======
 export async function getDueInspections(req: Request, res: Response): Promise<void> {
   try {
     const now = new Date();
@@ -102,7 +75,6 @@ export async function getDueInspections(req: Request, res: Response): Promise<vo
       include: {
         warehouse: true,
         deviceSubclass: { include: { deviceClass: true } },
->>>>>>> a9dc7840 (Added New FW Management system)
         inspections: {
           orderBy: { inspectedAt: 'desc' },
           take: 1,
@@ -111,10 +83,6 @@ export async function getDueInspections(req: Request, res: Response): Promise<vo
       orderBy: { name: 'asc' },
     });
 
-<<<<<<< HEAD
-    // Filter: due if never inspected OR nextDueDate <= now
-=======
->>>>>>> a9dc7840 (Added New FW Management system)
     const dueArticles = articles.filter(article => {
       if (article.inspections.length === 0) return true;
       const lastInspection = article.inspections[0];
@@ -133,15 +101,12 @@ export async function getArticleInspections(req: Request, res: Response): Promis
     const articleId = parseInt(req.params.articleId);
     const inspections = await prisma.articleInspection.findMany({
       where: { articleId },
-<<<<<<< HEAD
-=======
       include: {
         criterionResults: {
           include: { criterion: true },
           orderBy: { criterion: { sortOrder: 'asc' } },
         },
       },
->>>>>>> a9dc7840 (Added New FW Management system)
       orderBy: { inspectedAt: 'desc' },
     });
     sendSuccess(res, inspections);
@@ -150,17 +115,6 @@ export async function getArticleInspections(req: Request, res: Response): Promis
   }
 }
 
-<<<<<<< HEAD
-// Create inspection with auto-calculated nextDueDate
-export async function createInspection(req: Request, res: Response): Promise<void> {
-  try {
-    const { articleId, inspectedAt, inspectedBy, result, notes } = req.body;
-
-    // Get article to calculate next due date
-    const article = await prisma.article.findUnique({ where: { id: articleId } });
-    if (!article) { sendError(res, 'Artikel nicht gefunden', 404); return; }
-
-=======
 // Get inspection criteria for an article based on its subclass
 export async function getInspectionCriteria(req: Request, res: Response): Promise<void> {
   try {
@@ -210,27 +164,12 @@ export async function createInspection(req: Request, res: Response): Promise<voi
       computedResult = hasNio ? 'failed' : 'passed';
     }
 
->>>>>>> a9dc7840 (Added New FW Management system)
     let nextDueDate: Date | null = null;
     if (article.inspectionInterval) {
       nextDueDate = new Date(inspectedAt);
       nextDueDate.setMonth(nextDueDate.getMonth() + article.inspectionInterval);
     }
 
-<<<<<<< HEAD
-    const inspection = await prisma.articleInspection.create({
-      data: {
-        articleId,
-        inspectedAt: new Date(inspectedAt),
-        inspectedBy,
-        result,
-        notes: notes || null,
-        nextDueDate,
-      },
-      include: {
-        article: { include: { warehouse: true } },
-      },
-=======
     const inspection = await prisma.$transaction(async (tx) => {
       const insp = await tx.articleInspection.create({
         data: {
@@ -268,7 +207,6 @@ export async function createInspection(req: Request, res: Response): Promise<voi
           },
         },
       });
->>>>>>> a9dc7840 (Added New FW Management system)
     });
 
     sendSuccess(res, inspection, 201);
@@ -281,14 +219,8 @@ export async function createInspection(req: Request, res: Response): Promise<voi
 export async function updateInspection(req: Request, res: Response): Promise<void> {
   try {
     const id = parseInt(req.params.id);
-<<<<<<< HEAD
-    const { inspectedAt, inspectedBy, result, notes } = req.body;
-
-    // Recalculate nextDueDate if inspectedAt changed
-=======
     const { inspectedAt, inspectedBy, notes, criterionResults } = req.body;
 
->>>>>>> a9dc7840 (Added New FW Management system)
     const existing = await prisma.articleInspection.findUnique({
       where: { id },
       include: { article: true },
@@ -301,20 +233,6 @@ export async function updateInspection(req: Request, res: Response): Promise<voi
       nextDueDate.setMonth(nextDueDate.getMonth() + existing.article.inspectionInterval);
     }
 
-<<<<<<< HEAD
-    const inspection = await prisma.articleInspection.update({
-      where: { id },
-      data: {
-        inspectedAt: inspectedAt ? new Date(inspectedAt) : undefined,
-        inspectedBy,
-        result,
-        notes: notes !== undefined ? notes || null : undefined,
-        nextDueDate,
-      },
-      include: {
-        article: { include: { warehouse: true } },
-      },
-=======
     // Auto-compute result if criterion results provided
     let computedResult = existing.result;
     if (criterionResults && criterionResults.length > 0) {
@@ -355,7 +273,6 @@ export async function updateInspection(req: Request, res: Response): Promise<voi
           },
         },
       });
->>>>>>> a9dc7840 (Added New FW Management system)
     });
 
     sendSuccess(res, inspection);
@@ -363,8 +280,6 @@ export async function updateInspection(req: Request, res: Response): Promise<voi
     sendError(res, (err as Error).message);
   }
 }
-<<<<<<< HEAD
-=======
 
 // Report endpoint: full inspection details for PDF generation
 export async function getInspectionReport(req: Request, res: Response): Promise<void> {
@@ -408,4 +323,3 @@ export async function getInspectionReport(req: Request, res: Response): Promise<
     sendError(res, (err as Error).message);
   }
 }
->>>>>>> a9dc7840 (Added New FW Management system)

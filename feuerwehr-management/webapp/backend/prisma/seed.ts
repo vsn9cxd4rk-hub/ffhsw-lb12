@@ -30,32 +30,6 @@ async function main() {
     },
   });
 
-<<<<<<< HEAD
-  const userGroup = await prisma.permissionGroup.upsert({
-    where: { id: 2 },
-    update: {},
-    create: {
-      id: 2,
-      name: 'Benutzer',
-      description: 'Standardbenutzer mit Lesezugriff',
-      br0: true, br1: true, br2: true, br3: true, br4: true,
-      br10: true, br11: true, br20: true, br21: true, br30: true,
-    },
-  });
-
-  const guestGroup = await prisma.permissionGroup.upsert({
-    where: { id: 3 },
-    update: {},
-    create: {
-      id: 3,
-      name: 'Gast',
-      description: 'Eingeschränkter Lesezugriff',
-      br0: true,
-    },
-  });
-
-  console.log('Permission groups created:', adminGroup.name, userGroup.name, guestGroup.name);
-=======
   const geraetewarteGroup = await prisma.permissionGroup.upsert({
     where: { id: 2 },
     update: { name: 'Gerätewarte', description: 'Zugriff auf Fahrzeuge, Bestandsliste und Prüfbuch' },
@@ -97,7 +71,6 @@ async function main() {
   });
 
   console.log('Permission groups created:', adminGroup.name, geraetewarteGroup.name, userGroup.name, machinistenGroup.name, gruppenfuehrerGroup.name);
->>>>>>> a9dc7840 (Added New FW Management system)
 
   // Create admin user
   const hashedPassword = await bcrypt.hash('Admin123!', 12);
@@ -237,8 +210,6 @@ async function main() {
   }
   console.log('Default settings created');
 
-<<<<<<< HEAD
-=======
   // Create device classes with subclasses and inspection criteria
   const deviceClassesData = [
     {
@@ -341,7 +312,6 @@ async function main() {
   }
   console.log('Device classes with subclasses and criteria created');
 
->>>>>>> a9dc7840 (Added New FW Management system)
   console.log('\nSeed completed successfully!');
   console.log('Default admin credentials:');
   console.log('  Username: admin');

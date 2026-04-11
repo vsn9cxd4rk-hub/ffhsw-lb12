@@ -65,11 +65,7 @@ export async function getMembers(req: Request, res: Response): Promise<void> {
 export async function createMember(req: Request, res: Response): Promise<void> {
   try {
     const member = await prisma.member.create({
-<<<<<<< HEAD
-      data: convertDates(req.body),
-=======
       data: convertDates(req.body) as any,
->>>>>>> a9dc7840 (Added New FW Management system)
       include: MEMBER_INCLUDE,
     });
 
@@ -147,11 +143,7 @@ export async function updateMember(req: Request, res: Response): Promise<void> {
 
     const member = await prisma.member.update({
       where: { id },
-<<<<<<< HEAD
-      data: convertDates(req.body),
-=======
       data: convertDates(req.body) as any,
->>>>>>> a9dc7840 (Added New FW Management system)
       include: MEMBER_INCLUDE,
     });
 

@@ -343,10 +343,7 @@ model LogbookEntry {
   startMileage Int
   endMileage   Int
   purpose      String   @db.VarChar(500)
-<<<<<<< HEAD
-=======
   destination  String?  @db.VarChar(500)
->>>>>>> a9dc7840 (Added New FW Management system)
   notes        String?  @db.Text
 
   vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
@@ -368,8 +365,6 @@ model EquipmentInspection {
   @@map("equipment_inspections")
 }
 
-<<<<<<< HEAD
-=======
 // ==================== DEVICE CLASSES / GERÄTEKLASSEN ====================
 
 model DeviceClass {
@@ -424,7 +419,6 @@ model InspectionCriterionResult {
   @@map("inspection_criterion_results")
 }
 
->>>>>>> a9dc7840 (Added New FW Management system)
 // ==================== INVENTORY / BESTANDSLISTE ====================
 
 model Warehouse {
@@ -442,26 +436,6 @@ model Warehouse {
 }
 
 model Article {
-<<<<<<< HEAD
-  id                 Int      @id @default(autoincrement())
-  name               String   @db.VarChar(255)
-  manufacturer       String?  @db.VarChar(255)
-  articleType        String?  @db.VarChar(100)
-  description        String?  @db.Text
-  inspectionInterval Int?
-  imagePath          String?  @db.VarChar(500)
-  value              Decimal? @db.Decimal(10, 2)
-  ean                String?  @db.VarChar(50)
-  isExtinguisher     Boolean  @default(false)
-  inventoryNumber    String?  @unique @db.VarChar(100)
-  warehouseId        Int?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-
-  warehouse   Warehouse?          @relation(fields: [warehouseId], references: [id], onDelete: SetNull)
-  assignments ArticleAssignment[]
-  inspections ArticleInspection[]
-=======
   id                 Int       @id @default(autoincrement())
   name               String    @db.VarChar(255)
   manufacturer       String?   @db.VarChar(255)
@@ -487,7 +461,6 @@ model Article {
   deviceSubclass DeviceSubclass?  @relation(fields: [deviceSubclassId], references: [id], onDelete: SetNull)
   assignments    ArticleAssignment[]
   inspections    ArticleInspection[]
->>>>>>> a9dc7840 (Added New FW Management system)
 
   @@map("articles")
 }
@@ -502,12 +475,8 @@ model ArticleInspection {
   nextDueDate   DateTime?
   createdAt     DateTime  @default(now())
 
-<<<<<<< HEAD
-  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
-=======
   article          Article                     @relation(fields: [articleId], references: [id], onDelete: Cascade)
   criterionResults InspectionCriterionResult[]
->>>>>>> a9dc7840 (Added New FW Management system)
 
   @@map("article_inspections")
 }
@@ -554,14 +523,9 @@ model Operation {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
-<<<<<<< HEAD
-  times   OperationTime[]
-  reports OperationReport[]
-=======
   times     OperationTime[]
   reports   OperationReport[]
   documents OperationDocument[]
->>>>>>> a9dc7840 (Added New FW Management system)
 
   @@map("operations")
 }
@@ -594,8 +558,6 @@ model OperationReport {
   @@map("operation_reports")
 }
 
-<<<<<<< HEAD
-=======
 model OperationDocument {
   id          Int      @id @default(autoincrement())
   operationId Int
@@ -611,7 +573,6 @@ model OperationDocument {
   @@map("operation_documents")
 }
 
->>>>>>> a9dc7840 (Added New FW Management system)
 // ==================== EVENTS / VERANSTALTUNGEN ====================
 
 model Event {
@@ -629,10 +590,7 @@ model Event {
   createdAt           DateTime  @default(now())
 
   attendances Attendance[]
-<<<<<<< HEAD
-=======
   documents   EventDocument[]
->>>>>>> a9dc7840 (Added New FW Management system)
 
   @@map("events")
 }
@@ -692,18 +650,6 @@ model CourseCategory {
 }
 
 model Course {
-<<<<<<< HEAD
-  id         Int       @id @default(autoincrement())
-  memberId   Int
-  categoryId Int
-  status     String    @default("pending") @db.VarChar(50) // pending, active, completed, failed
-  startDate  DateTime?
-  endDate    DateTime?
-  location   String?   @db.VarChar(255)
-  notes      String?   @db.Text
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-=======
   id              Int       @id @default(autoincrement())
   memberId        Int
   categoryId      Int
@@ -715,7 +661,6 @@ model Course {
   certificatePath String?   @db.VarChar(500)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
->>>>>>> a9dc7840 (Added New FW Management system)
 
   member   Member         @relation(fields: [memberId], references: [id], onDelete: Cascade)
   category CourseCategory @relation(fields: [categoryId], references: [id])
@@ -723,8 +668,6 @@ model Course {
   @@map("courses")
 }
 
-<<<<<<< HEAD
-=======
 model EventDocument {
   id          Int      @id @default(autoincrement())
   eventId     Int
@@ -770,7 +713,6 @@ model TemplateHistory {
   @@map("template_history")
 }
 
->>>>>>> a9dc7840 (Added New FW Management system)
 // ==================== REFERENCE DATA ====================
 
 model Rank {

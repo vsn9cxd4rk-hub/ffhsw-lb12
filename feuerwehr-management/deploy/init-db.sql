@@ -346,10 +346,7 @@ CREATE TABLE IF NOT EXISTS `logbook_entries` (
   `startMileage` INT          NOT NULL,
   `endMileage`   INT          NOT NULL,
   `purpose`      VARCHAR(500) NOT NULL,
-<<<<<<< HEAD
-=======
   `destination`  VARCHAR(500) NULL,
->>>>>>> a9dc7840 (Added New FW Management system)
   `notes`        TEXT         NULL,
   PRIMARY KEY (`id`),
   CONSTRAINT `logbook_entries_vehicleId_fkey`
@@ -375,8 +372,6 @@ CREATE TABLE IF NOT EXISTS `equipment_inspections` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- -----------------------------------------------------------------------------
-<<<<<<< HEAD
-=======
 -- Geräteklassen
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `device_classes` (
@@ -420,7 +415,6 @@ CREATE TABLE IF NOT EXISTS `inspection_criteria` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- -----------------------------------------------------------------------------
->>>>>>> a9dc7840 (Added New FW Management system)
 -- Lager
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `warehouses` (
@@ -451,27 +445,21 @@ CREATE TABLE IF NOT EXISTS `articles` (
   `isExtinguisher`     TINYINT(1)     NOT NULL DEFAULT 0,
   `inventoryNumber`    VARCHAR(100)   NULL,
   `warehouseId`        INT            NULL,
-<<<<<<< HEAD
-=======
   `deviceSubclassId`   INT            NULL,
   `manufacturingDate`  DATETIME(3)    NULL,
   `specification`      VARCHAR(500)   NULL,
   `serialNumber`       VARCHAR(255)   NULL,
   `din`                VARCHAR(100)   NULL,
   `isDecommissioned`   TINYINT(1)     NOT NULL DEFAULT 0,
->>>>>>> a9dc7840 (Added New FW Management system)
   `createdAt`          DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updatedAt`          DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `articles_inventoryNumber_key` (`inventoryNumber`),
   CONSTRAINT `articles_warehouseId_fkey`
     FOREIGN KEY (`warehouseId`) REFERENCES `warehouses` (`id`)
-<<<<<<< HEAD
-=======
     ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `articles_deviceSubclassId_fkey`
     FOREIGN KEY (`deviceSubclassId`) REFERENCES `device_subclasses` (`id`)
->>>>>>> a9dc7840 (Added New FW Management system)
     ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -518,8 +506,6 @@ CREATE TABLE IF NOT EXISTS `article_inspections` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- -----------------------------------------------------------------------------
-<<<<<<< HEAD
-=======
 -- Prüfkriterien-Einzelergebnisse (io/nio je Kriterium pro Prüfung)
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `inspection_criterion_results` (
@@ -538,7 +524,6 @@ CREATE TABLE IF NOT EXISTS `inspection_criterion_results` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- -----------------------------------------------------------------------------
->>>>>>> a9dc7840 (Added New FW Management system)
 -- Einsätze
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `operations` (
@@ -601,8 +586,6 @@ CREATE TABLE IF NOT EXISTS `operation_reports` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- -----------------------------------------------------------------------------
-<<<<<<< HEAD
-=======
 -- Einsätze - Dokumente (PDF-Uploads)
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `operation_documents` (
@@ -621,7 +604,6 @@ CREATE TABLE IF NOT EXISTS `operation_documents` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- -----------------------------------------------------------------------------
->>>>>>> a9dc7840 (Added New FW Management system)
 -- Veranstaltungen / Dienstabende
 -- (category: 1=Einsatz, 2=Dienstabend, 3=BSW, 4=Sonstige, 5=Übung)
 -- -----------------------------------------------------------------------------
@@ -679,8 +661,6 @@ CREATE TABLE IF NOT EXISTS `absences` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- -----------------------------------------------------------------------------
-<<<<<<< HEAD
-=======
 -- Veranstaltungen - Dokumente
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `event_documents` (
@@ -731,7 +711,6 @@ CREATE TABLE IF NOT EXISTS `template_history` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- -----------------------------------------------------------------------------
->>>>>>> a9dc7840 (Added New FW Management system)
 -- Brandsicherheitswachen
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `fire_watches` (
@@ -769,16 +748,10 @@ CREATE TABLE IF NOT EXISTS `courses` (
   `startDate`  DATETIME     NULL,
   `endDate`    DATETIME     NULL,
   `location`   VARCHAR(255) NULL,
-<<<<<<< HEAD
-  `notes`      TEXT         NULL,
-  `createdAt`  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updatedAt`  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-=======
   `notes`           TEXT         NULL,
   `certificatePath` VARCHAR(500) NULL,
   `createdAt`       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updatedAt`       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
->>>>>>> a9dc7840 (Added New FW Management system)
   PRIMARY KEY (`id`),
   CONSTRAINT `courses_memberId_fkey`
     FOREIGN KEY (`memberId`) REFERENCES `members` (`id`)
@@ -851,27 +824,12 @@ INSERT IGNORE INTO `permission_groups`
    `br60`,`br61`,`br62`,`br63`,`br64`,`br65`,`br66`,`br67`,`br68`,`br69`,
    `br70`,`br71`,`br72`,`br73`,`br74`,`br75`)
 VALUES
-<<<<<<< HEAD
-  -- Administrator: alle Berechtigungen
-=======
   -- Administrator: Vollzugriff
->>>>>>> a9dc7840 (Added New FW Management system)
   (1, 'Administrator', 'Vollzugriff auf alle Funktionen',
    1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,
    1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,
    1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,
    1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1),
-<<<<<<< HEAD
-  -- Benutzer: Lesezugriff
-  (2, 'Benutzer', 'Standardbenutzer mit Lesezugriff',
-   1,1,1,1,1,0,0,0,0,0, 1,1,0,0,0,0,0,0,0,0,
-   1,1,0,0,0,0,0,0,0,0, 1,0,0,0,0,0,0,0,0,0,
-   0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
-   0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0),
-  -- Gast: nur Ansicht
-  (3, 'Gast', 'Eingeschränkter Lesezugriff',
-   1,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
-=======
   -- Gerätewarte: Fahrzeuge, Bestandsliste, Prüfbuch (kein Personal/Einsätze/Veranstaltungen/Ausbildung)
   (2, 'Gerätewarte', 'Zugriff auf Fahrzeuge, Bestandsliste und Prüfbuch',
    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
@@ -893,7 +851,6 @@ VALUES
   -- Gruppenführer: wie Benutzer + Einsätze/Veranstaltungen (Berichte anlegen)
   (5, 'Gruppenführer', 'Wie Benutzer, zusätzlich Berichte bei Einsätzen und Veranstaltungen',
    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
->>>>>>> a9dc7840 (Added New FW Management system)
    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0);
@@ -904,41 +861,17 @@ VALUES
 -- Dieser Eintrag ist ein Platzhalter. Nach dem Seed-Schritt ist das
 -- Passwort "Admin123!" (muss nach erster Anmeldung geändert werden).
 -- -----------------------------------------------------------------------------
-<<<<<<< HEAD
-INSERT IGNORE INTO `users`
-  (`id`, `username`, `email`, `password`, `name`, `isAdmin`, `isActive`, `groupId`)
-VALUES
-  (1, 'admin', 'admin@feuerwehr.local',
-   'PENDING_BCRYPT_HASH_SET_BY_SEED',
-   'Administrator', 1, 1, 1);
-=======
 -- INSERT IGNORE INTO `users`
 --  (`id`, `username`, `email`, `password`, `name`, `isAdmin`, `isActive`, `groupId`)
 -- VALUES
 --  (1, 'admin', 'admin@feuerwehr.local',
 --   'PENDING_BCRYPT_HASH_SET_BY_SEED',
 --   'Administrator', 1, 1, 1);
->>>>>>> a9dc7840 (Added New FW Management system)
 
 -- -----------------------------------------------------------------------------
 -- Dienstgrade
 -- -----------------------------------------------------------------------------
 INSERT IGNORE INTO `ranks` (`id`, `name`, `abbreviation`, `sortOrder`) VALUES
-<<<<<<< HEAD
-  (1,  'Feuerwehrmann-Anwärter', 'FwA', 1),
-  (2,  'Feuerwehrmann',          'Fw',  2),
-  (3,  'Oberfeuerwehrmann',      'OFw', 3),
-  (4,  'Hauptfeuerwehrmann',     'HFw', 4),
-  (5,  'Unterbrandmeister',      'UBM', 5),
-  (6,  'Brandmeister',           'BM',  6),
-  (7,  'Oberbrandmeister',       'OBM', 7),
-  (8,  'Hauptbrandmeister',      'HBM', 8),
-  (9,  'Brandinspektor',         'BI',  9),
-  (10, 'Brandoberinspektor',     'BOI', 10),
-  (11, 'Brandamtmann',           'BAM', 11),
-  (12, 'Brandamtsrat',           'BAR', 12),
-  (13, 'Branddirektor',          'BD',  13);
-=======
   (1,  'Feuerwehrmann-Anwärter', 'FMA', 1),
   (2,  'Feuerwehrmann',          'FM',  2),
   (3,  'Oberfeuerwehrmann',      'OFM', 3),
@@ -950,7 +883,6 @@ INSERT IGNORE INTO `ranks` (`id`, `name`, `abbreviation`, `sortOrder`) VALUES
   (9,  'Oberbrandmeister',       'OBM', 9),
   (10, 'Hauptbrandmeister',      'HBM', 10),
   (11, 'Brandinspektor',         'BI',  11);
->>>>>>> a9dc7840 (Added New FW Management system)
 
 -- -----------------------------------------------------------------------------
 -- Ausbildungs-Kategorien
@@ -973,13 +905,9 @@ INSERT IGNORE INTO `course_categories` (`id`, `name`, `description`) VALUES
   (15, 'Sonstiges',                          'Sonstige Ausbildungen'),
   (16, 'G26.3 Untersuchung',                 'Arbeitsmedizinische Vorsorgeuntersuchung G26.3 für Atemschutzgeräteträger'),
   (17, 'LKW-Führerschein Folgeuntersuchung', 'Ärztliche Untersuchung zur Verlängerung der Fahrerlaubnis Klasse C/CE'),
-<<<<<<< HEAD
-  (18, 'TM2',                                'Truppmann Lehrgang Teil 2');
-=======
   (18, 'TM2',                                'Truppmann Lehrgang Teil 2'),
   (19, 'TH 1/2',                             'Technische Hilfe Ausbildung'),
   (20, 'Patientengerechtes Retten',          'Patientengerechtes Retten Ausbildung');
->>>>>>> a9dc7840 (Added New FW Management system)
 
 -- -----------------------------------------------------------------------------
 -- Feste Lagerorte
@@ -987,12 +915,8 @@ INSERT IGNORE INTO `course_categories` (`id`, `name`, `description`) VALUES
 INSERT IGNORE INTO `warehouses` (`id`, `name`) VALUES
   (1, 'Gerätehalle'),
   (2, 'Werkstatt'),
-<<<<<<< HEAD
-  (3, 'Schulungsraum');
-=======
   (3, 'Schulungsraum'),
   (4, 'LBF Büro');
->>>>>>> a9dc7840 (Added New FW Management system)
 
 -- -----------------------------------------------------------------------------
 -- Abwesenheitsgründe
@@ -1024,24 +948,15 @@ INSERT IGNORE INTO `years` (`year`, `isActive`)
 -- Standard-Einstellungen
 -- -----------------------------------------------------------------------------
 INSERT IGNORE INTO `settings` (`key`, `value`, `description`) VALUES
-<<<<<<< HEAD
-  ('fireStationName',        'Freiwillige Feuerwehr', 'Name der Feuerwehr'),
-  ('fireStationCity',        'Musterstadt',           'Stadt'),
-  ('fireStationZip',         '12345',                 'PLZ'),
-  ('fireStationStreet',      'Feuerwehrstr. 1',       'Straße'),
-=======
   ('fireStationName',        'FFW Heusweiler - LB Wahlschied', 'Name der Feuerwehr'),
   ('fireStationCity',        'Heusweiler',            'Stadt'),
   ('fireStationZip',         '66265',                 'PLZ'),
   ('fireStationStreet',      'Im Dorf 13',            'Straße'),
->>>>>>> a9dc7840 (Added New FW Management system)
   ('fireStationPhone',       '',                      'Telefon'),
   ('fireStationEmail',       '',                      'E-Mail'),
   ('inspectionReminderDays', '30',                    'Erinnerung vor Prüfung (Tage)'),
   ('medicalExamReminderDays','60',                    'Erinnerung vor Untersuchung (Tage)');
 
-<<<<<<< HEAD
-=======
 -- -----------------------------------------------------------------------------
 -- Geräteklassen mit Unterklassen und Prüfkriterien
 -- -----------------------------------------------------------------------------
@@ -1128,7 +1043,6 @@ INSERT IGNORE INTO `device_subclasses` (`id`, `deviceClassId`, `name`, `sortOrde
 INSERT IGNORE INTO `inspection_criteria` (`deviceSubclassId`, `name`, `sortOrder`) VALUES
   (21, 'Zustand', 1), (21, 'Vollständigkeit', 2), (21, 'Funktionsprüfung', 3), (21, 'Kennzeichnung', 4);
 
->>>>>>> a9dc7840 (Added New FW Management system)
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- =============================================================================
@@ -1155,11 +1069,6 @@ SET FOREIGN_KEY_CHECKS = 1;
 --    logbook_entries     - Fahrtenbuch
 --    equipment_inspections - Geräteprüfungen
 --
-<<<<<<< HEAD
---  Bestandsliste:
---    warehouses          - Lager (auch fahrzeuggebunden)
---    articles            - Artikel / Ausrüstung (mit Inventarnummer + Lagerort)
-=======
 --  Geräteprüfung:
 --    device_classes               - Geräteklassen (PSA, Löschgeräte, etc.)
 --    device_subclasses            - Unterklassen (Helme, Schläuche, etc.)
@@ -1169,7 +1078,6 @@ SET FOREIGN_KEY_CHECKS = 1;
 --  Bestandsliste:
 --    warehouses          - Lager (auch fahrzeuggebunden)
 --    articles            - Artikel / Ausrüstung (inkl. Geräteklasse, DIN, Seriennr.)
->>>>>>> a9dc7840 (Added New FW Management system)
 --    article_assignments - Zuweisung Artikel → Lager/Fahrzeug
 --    article_inspections - Prüfbuch (Prüfungen je Artikel)
 --
@@ -1177,19 +1085,12 @@ SET FOREIGN_KEY_CHECKS = 1;
 --    operations          - Einsätze
 --    operation_times     - Fahrzeugzeiten je Einsatz
 --    operation_reports   - Einsatzberichte
-<<<<<<< HEAD
-=======
 --    operation_documents - Dokumente (PDF-Uploads)
->>>>>>> a9dc7840 (Added New FW Management system)
 --
 --  Veranstaltungen:
 --    events              - Dienstabende, BSW, Sonstiges
 --    attendances         - Anwesenheitsliste
 --    absences            - Abwesenheiten
-<<<<<<< HEAD
---    fire_watches        - Brandsicherheitswachen
---
-=======
 --    event_documents     - Dokumente (PDF-Uploads)
 --    fire_watches        - Brandsicherheitswachen
 --
@@ -1197,7 +1098,6 @@ SET FOREIGN_KEY_CHECKS = 1;
 --    templates           - Dokument-Vorlagen
 --    template_history    - Änderungshistorie
 --
->>>>>>> a9dc7840 (Added New FW Management system)
 --  Ausbildung:
 --    course_categories   - Lehrgang-Typen
 --    courses             - Lehrgänge je Mitglied

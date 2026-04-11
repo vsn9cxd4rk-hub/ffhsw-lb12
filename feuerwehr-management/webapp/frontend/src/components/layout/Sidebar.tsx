@@ -17,18 +17,6 @@ import {
 import { cn } from '../../utils/cn';
 import { useAuthStore } from '../../store/auth.store';
 
-<<<<<<< HEAD
-const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
-  { name: 'Personal', href: '/members', icon: UserGroupIcon },
-  { name: 'Fahrzeuge', href: '/vehicles', icon: TruckIcon },
-  { name: 'Bestandsliste', href: '/inventory', icon: ArchiveBoxIcon },
-  { name: 'Prüfbuch', href: '/inspections', icon: ClipboardDocumentCheckIcon },
-  { name: 'Einsätze', href: '/operations', icon: FireIcon },
-  { name: 'Veranstaltungen', href: '/events', icon: CalendarIcon },
-  { name: 'Ausbildung', href: '/training', icon: AcademicCapIcon },
-  { name: 'Einstellungen', href: '/settings', icon: Cog6ToothIcon },
-=======
 // groupIds: null = alle, [1] = nur Admin
 const GROUP_ADMIN = 1;
 const GROUP_GERAETEWARTE = 2;
@@ -46,7 +34,6 @@ const navigation = [
   { name: 'Veranstaltungen', href: '/events', icon: CalendarIcon, groups: [GROUP_ADMIN, GROUP_BENUTZER, GROUP_MASCHINISTEN, GROUP_GRUPPENFUEHRER] },
   { name: 'Ausbildung', href: '/training', icon: AcademicCapIcon, groups: [GROUP_ADMIN, GROUP_BENUTZER, GROUP_MASCHINISTEN, GROUP_GRUPPENFUEHRER] },
   { name: 'Einstellungen', href: '/settings', icon: Cog6ToothIcon, groups: [GROUP_ADMIN] },
->>>>>>> a9dc7840 (Added New FW Management system)
 ];
 
 interface SidebarProps {
@@ -57,15 +44,12 @@ interface SidebarProps {
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const user = useAuthStore((s) => s.user);
 
-<<<<<<< HEAD
-=======
   const visibleNavigation = navigation.filter(item => {
     if (user?.isAdmin) return true;
     if (item.groups === null) return true;
     return user?.groupId ? item.groups.includes(user.groupId) : false;
   });
 
->>>>>>> a9dc7840 (Added New FW Management system)
   return (
     <>
       {/* Mobile overlay */}
@@ -106,11 +90,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         {/* Navigation */}
         <nav className="flex-1 py-4 overflow-y-auto">
           <ul className="space-y-1 px-2">
-<<<<<<< HEAD
-            {navigation.map((item) => (
-=======
             {visibleNavigation.map((item) => (
->>>>>>> a9dc7840 (Added New FW Management system)
               <li key={item.name}>
                 <NavLink
                   to={item.href}

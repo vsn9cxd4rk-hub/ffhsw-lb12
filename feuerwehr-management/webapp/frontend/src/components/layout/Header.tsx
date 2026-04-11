@@ -64,11 +64,7 @@ export function Header({ onMenuClick, pageTitle }: HeaderProps) {
                 <Menu.Item>
                   {({ active }) => (
                     <button
-<<<<<<< HEAD
-                      onClick={() => navigate('/settings/password')}
-=======
                       onClick={() => navigate('/password')}
->>>>>>> a9dc7840 (Added New FW Management system)
                       className={`flex items-center gap-2 w-full px-4 py-2 text-sm ${active ? 'bg-gray-50' : ''} text-gray-700`}
                     >
                       <KeyIcon className="h-4 w-4" />

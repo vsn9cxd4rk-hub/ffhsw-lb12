@@ -1,9 +1,5 @@
 import client from './client';
-<<<<<<< HEAD
-import { Rank } from '../types';
-=======
 import { Rank, Template, TemplateHistory, DeviceClass } from '../types';
->>>>>>> a9dc7840 (Added New FW Management system)
 
 export const settingsApi = {
   get: () => client.get<{ data: Record<string, string> }>('/settings'),
@@ -17,8 +13,6 @@ export const settingsApi = {
   getYears: () => client.get('/settings/years'),
   createYear: (year: number) => client.post('/settings/years', { year }),
   updateYear: (id: number, data: { isActive?: boolean }) => client.put(`/settings/years/${id}`, data),
-<<<<<<< HEAD
-=======
 
   getTemplates: () => client.get<{ data: Template[] }>('/settings/templates'),
   uploadTemplate: (name: string, file: File) => {
@@ -54,5 +48,4 @@ export const settingsApi = {
     client.post<{ data: { imported: number; errors: Array<{ row: number; message: string }>; total: number } }>('/settings/import/articles', { articles }),
   importInspections: (inspections: Array<Record<string, string>>) =>
     client.post<{ data: { imported: number; errors: Array<{ row: number; message: string }>; total: number } }>('/settings/import/inspections', { inspections }),
->>>>>>> a9dc7840 (Added New FW Management system)
 };

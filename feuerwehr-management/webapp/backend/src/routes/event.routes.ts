@@ -4,10 +4,7 @@ import {
   getEvents, createEvent, getEvent, updateEvent, deleteEvent,
   getAttendance, updateAttendance,
   getFireWatches, createFireWatch, getFireWatch, updateFireWatch, deleteFireWatch,
-<<<<<<< HEAD
-=======
   getEventDocuments, uploadEventDocument, eventDocUpload, downloadEventDocument, deleteEventDocument,
->>>>>>> a9dc7840 (Added New FW Management system)
 } from '../controllers/event.controller';
 
 const router = Router();
@@ -26,12 +23,9 @@ router.put('/:id', updateEvent);
 router.delete('/:id', deleteEvent);
 router.get('/:id/attendance', getAttendance);
 router.post('/:id/attendance', updateAttendance);
-<<<<<<< HEAD
-=======
 router.get('/:id/documents', getEventDocuments);
 router.post('/:id/documents', eventDocUpload, uploadEventDocument);
 router.get('/:id/documents/:docId/download', downloadEventDocument);
 router.delete('/:id/documents/:docId', deleteEventDocument);
->>>>>>> a9dc7840 (Added New FW Management system)
 
 export default router;

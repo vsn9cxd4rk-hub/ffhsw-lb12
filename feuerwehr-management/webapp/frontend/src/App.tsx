@@ -13,17 +13,11 @@ import { InspectionBookPage } from './pages/inspections/InspectionBookPage';
 import { OperationsPage } from './pages/operations/OperationsPage';
 import { OperationDetailPage } from './pages/operations/OperationDetailPage';
 import { EventsPage } from './pages/events/EventsPage';
-<<<<<<< HEAD
-import { AttendancePage } from './pages/events/AttendancePage';
-import { TrainingPage } from './pages/training/TrainingPage';
-import { SettingsPage } from './pages/settings/SettingsPage';
-=======
 import { EventDetailPage } from './pages/events/EventDetailPage';
 import { AttendancePage } from './pages/events/AttendancePage';
 import { TrainingPage } from './pages/training/TrainingPage';
 import { SettingsPage } from './pages/settings/SettingsPage';
 import { ChangePasswordPage } from './pages/auth/ChangePasswordPage';
->>>>>>> a9dc7840 (Added New FW Management system)
 import { UsersPage } from './pages/users/UsersPage';
 
 export default function App() {
@@ -59,11 +53,7 @@ export default function App() {
 
           {/* Events */}
           <Route path="/events" element={<EventsPage />} />
-<<<<<<< HEAD
-          <Route path="/events/:id" element={<EventsPage />} />
-=======
           <Route path="/events/:id" element={<EventDetailPage />} />
->>>>>>> a9dc7840 (Added New FW Management system)
           <Route path="/events/:id/attendance" element={<AttendancePage />} />
 
           {/* Training */}
@@ -71,13 +61,9 @@ export default function App() {
 
           {/* Settings */}
           <Route path="/settings" element={<SettingsPage />} />
-<<<<<<< HEAD
-          <Route path="/settings/password" element={<SettingsPage />} />
-=======
 
           {/* Password change - accessible for all authenticated users */}
           <Route path="/password" element={<ChangePasswordPage />} />
->>>>>>> a9dc7840 (Added New FW Management system)
 
           {/* Admin */}
           <Route path="/admin/users" element={<UsersPage />} />

@@ -1,13 +1,3 @@
-<<<<<<< HEAD
-import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { PlusIcon } from '@heroicons/react/24/outline';
-import { trainingApi } from '../../api/training';
-import { membersApi } from '../../api/members';
-import { Course, Member } from '../../types';
-import { Table } from '../../components/ui/Table';
-import { Button } from '../../components/ui/Button';
-=======
 import React, { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PlusIcon, ArrowDownTrayIcon, TrashIcon, DocumentIcon } from '@heroicons/react/24/outline';
@@ -17,7 +7,6 @@ import { Course, Member, CourseCategory } from '../../types';
 import { Table } from '../../components/ui/Table';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
->>>>>>> a9dc7840 (Added New FW Management system)
 import { SearchInput } from '../../components/ui/SearchInput';
 import { Pagination } from '../../components/ui/Pagination';
 import { Modal } from '../../components/ui/Modal';
@@ -26,35 +15,6 @@ import { Select } from '../../components/ui/Select';
 import { Textarea } from '../../components/ui/Textarea';
 import { formatDate, getCourseStatusLabel, getCourseStatusColor } from '../../utils/format';
 
-<<<<<<< HEAD
-function CourseCreateModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-  const queryClient = useQueryClient();
-  const [form, setForm] = useState({ memberId: '', categoryId: '', status: 'pending', startDate: '', endDate: '', location: '', notes: '' });
-
-  const { data: categories } = useQuery({ queryKey: ['course-categories'], queryFn: () => trainingApi.getCategories().then(r => r.data.data) });
-  const { data: membersData } = useQuery({ queryKey: ['members-search', ''], queryFn: () => membersApi.getAll({ isInactive: false, limit: 100 }).then(r => r.data.data) });
-
-  const mutation = useMutation({
-    mutationFn: () => trainingApi.create({ ...form, memberId: parseInt(form.memberId), categoryId: parseInt(form.categoryId), startDate: form.startDate || null, endDate: form.endDate || null }),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['courses'] }); onClose(); },
-  });
-
-  const u = (f: string, v: string) => setForm(p => ({ ...p, [f]: v }));
-
-  return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Neuer Lehrgang" size="lg"
-      footer={<><Button variant="secondary" onClick={onClose}>Abbrechen</Button><Button variant="primary" onClick={() => mutation.mutate()} loading={mutation.isPending} disabled={!form.memberId || !form.categoryId}>Anlegen</Button></>}
-    >
-      <div className="space-y-3">
-        <Select label="Mitglied" value={form.memberId} onChange={(e) => u('memberId', e.target.value)} required
-          options={(membersData || []).map((m: Member) => ({ value: m.id, label: `${m.lastName}, ${m.firstName}` }))}
-          placeholder="Bitte wählen" />
-        <Select label="Lehrgang" value={form.categoryId} onChange={(e) => u('categoryId', e.target.value)} required
-          options={(categories || []).map(c => ({ value: c.id, label: c.name }))}
-          placeholder="Bitte wählen" />
-        <Select label="Status" value={form.status} onChange={(e) => u('status', e.target.value)}
-          options={[{ value: 'pending', label: 'Geplant' }, { value: 'active', label: 'Laufend' }, { value: 'completed', label: 'Abgeschlossen' }, { value: 'failed', label: 'Nicht bestanden' }]} />
-=======
 const STATUS_OPTIONS = [
   { value: 'pending', label: 'Geplant' },
   { value: 'active', label: 'Laufend' },
@@ -181,15 +141,12 @@ function CourseFormModal({ isOpen, onClose, editCourse }: { isOpen: boolean; onC
 
         <Select label="Status" value={form.status} onChange={(e) => u('status', e.target.value)} options={STATUS_OPTIONS} />
 
->>>>>>> a9dc7840 (Added New FW Management system)
         <div className="grid grid-cols-2 gap-3">
           <Input label="Beginn" value={form.startDate} onChange={(e) => u('startDate', e.target.value)} type="date" />
           <Input label="Ende" value={form.endDate} onChange={(e) => u('endDate', e.target.value)} type="date" />
         </div>
         <Input label="Ort" value={form.location} onChange={(e) => u('location', e.target.value)} />
         <Textarea label="Notizen" value={form.notes} onChange={(e) => u('notes', e.target.value)} rows={2} />
-<<<<<<< HEAD
-=======
 
         {/* Certificate section - only for existing courses */}
         {editCourse && (
@@ -223,7 +180,6 @@ function CourseFormModal({ isOpen, onClose, editCourse }: { isOpen: boolean; onC
             )}
           </div>
         )}
->>>>>>> a9dc7840 (Added New FW Management system)
       </div>
     </Modal>
   );
@@ -234,12 +190,8 @@ export function TrainingPage() {
   const [categoryId, setCategoryId] = useState('');
   const [status, setStatus] = useState('');
   const [page, setPage] = useState(1);
-<<<<<<< HEAD
-  const [showCreate, setShowCreate] = useState(false);
-=======
   const [showForm, setShowForm] = useState(false);
   const [editCourse, setEditCourse] = useState<Course | null>(null);
->>>>>>> a9dc7840 (Added New FW Management system)
 
   const { data: categories } = useQuery({ queryKey: ['course-categories'], queryFn: () => trainingApi.getCategories().then(r => r.data.data) });
 
@@ -248,13 +200,10 @@ export function TrainingPage() {
     queryFn: () => trainingApi.getCourses({ search: search || undefined, categoryId: categoryId || undefined, status: status || undefined, page, limit: 20 }).then(r => r.data),
   });
 
-<<<<<<< HEAD
-=======
   const openCreate = () => { setEditCourse(null); setShowForm(true); };
   const openEdit = (course: Course) => { setEditCourse(course); setShowForm(true); };
   const closeForm = () => { setShowForm(false); setEditCourse(null); };
 
->>>>>>> a9dc7840 (Added New FW Management system)
   const columns = [
     { key: 'member', header: 'Mitglied', render: (c: Course) => c.member ? `${c.member.lastName}, ${c.member.firstName}` : '-' },
     { key: 'category', header: 'Lehrgang', render: (c: Course) => c.category?.name || '-' },
@@ -267,12 +216,9 @@ export function TrainingPage() {
       c.startDate || c.endDate ? `${c.startDate ? formatDate(c.startDate) : '?'} - ${c.endDate ? formatDate(c.endDate) : '?'}` : '-'
     },
     { key: 'location', header: 'Ort', render: (c: Course) => c.location || '-' },
-<<<<<<< HEAD
-=======
     { key: 'certificate', header: 'Urkunde', render: (c: Course) => c.certificatePath ? (
       <Badge variant="success">Vorhanden</Badge>
     ) : null },
->>>>>>> a9dc7840 (Added New FW Management system)
   ];
 
   return (
@@ -288,23 +234,6 @@ export function TrainingPage() {
           <select value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }}
             className="border border-gray-300 rounded-md px-3 py-2 text-sm">
             <option value="">Alle Status</option>
-<<<<<<< HEAD
-            <option value="pending">Geplant</option>
-            <option value="active">Laufend</option>
-            <option value="completed">Abgeschlossen</option>
-            <option value="failed">Nicht bestanden</option>
-          </select>
-        </div>
-        <Button variant="primary" icon={<PlusIcon />} onClick={() => setShowCreate(true)}>Neuer Lehrgang</Button>
-      </div>
-
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <Table columns={columns} data={data?.data || []} loading={isLoading} emptyMessage="Keine Lehrgänge gefunden." keyExtractor={(c) => c.id} />
-        {data?.pagination && <Pagination {...data.pagination} onPageChange={setPage} />}
-      </div>
-
-      <CourseCreateModal isOpen={showCreate} onClose={() => setShowCreate(false)} />
-=======
             {STATUS_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
         </div>
@@ -320,7 +249,6 @@ export function TrainingPage() {
       {showForm && (
         <CourseFormModal key={editCourse?.id || 'new'} isOpen={showForm} onClose={closeForm} editCourse={editCourse} />
       )}
->>>>>>> a9dc7840 (Added New FW Management system)
     </div>
   );
 }

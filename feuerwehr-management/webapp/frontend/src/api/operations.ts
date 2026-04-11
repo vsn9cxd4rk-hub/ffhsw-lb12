@@ -18,8 +18,6 @@ export const operationsApi = {
   getReport: (id: number) => client.get(`/operations/${id}/report`),
   updateReport: (id: number, content: string) =>
     client.put(`/operations/${id}/report`, { content }),
-<<<<<<< HEAD
-=======
 
   getDocuments: (id: number) => client.get(`/operations/${id}/documents`),
   uploadDocument: (id: number, file: File) => {
@@ -33,5 +31,4 @@ export const operationsApi = {
     client.get(`/operations/${operationId}/documents/${docId}/download`, { responseType: 'blob' }),
   deleteDocument: (operationId: number, docId: number) =>
     client.delete(`/operations/${operationId}/documents/${docId}`),
->>>>>>> a9dc7840 (Added New FW Management system)
 };

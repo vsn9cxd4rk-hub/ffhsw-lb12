@@ -1,22 +1,12 @@
-<<<<<<< HEAD
-import React, { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-=======
 import React, { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PlusIcon, ArrowDownTrayIcon, TrashIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
->>>>>>> a9dc7840 (Added New FW Management system)
 import { settingsApi } from '../../api/settings';
 import { Card } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { Table } from '../../components/ui/Table';
 import { Modal } from '../../components/ui/Modal';
-<<<<<<< HEAD
-import { Rank } from '../../types';
-
-type Tab = 'allgemein' | 'dienstgrade' | 'jahre';
-=======
 import { Rank, Template, TemplateHistory } from '../../types';
 import { formatDate } from '../../utils/format';
 import { DeviceInspectionSettings } from './DeviceInspectionSettings';
@@ -24,7 +14,6 @@ import { DataImportSettings } from './DataImportSettings';
 import { WarehouseSettings } from './WarehouseSettings';
 
 type Tab = 'allgemein' | 'dienstgrade' | 'jahre' | 'templates' | 'geraetepruefung' | 'lagerorte' | 'datenimport';
->>>>>>> a9dc7840 (Added New FW Management system)
 
 export function SettingsPage() {
   const [tab, setTab] = useState<Tab>('allgemein');
@@ -33,11 +22,7 @@ export function SettingsPage() {
     <div className="space-y-4">
       <div className="border-b border-gray-200">
         <nav className="flex gap-4 -mb-px">
-<<<<<<< HEAD
-          {[{ id: 'allgemein', label: 'Allgemein' }, { id: 'dienstgrade', label: 'Dienstgrade' }, { id: 'jahre', label: 'Jahre' }].map((t) => (
-=======
           {[{ id: 'allgemein', label: 'Allgemein' }, { id: 'dienstgrade', label: 'Dienstgrade' }, { id: 'jahre', label: 'Jahre' }, { id: 'templates', label: 'Templates' }, { id: 'geraetepruefung', label: 'Geräteprüfung' }, { id: 'lagerorte', label: 'Lagerorte' }, { id: 'datenimport', label: 'Datenimport' }].map((t) => (
->>>>>>> a9dc7840 (Added New FW Management system)
             <button key={t.id} onClick={() => setTab(t.id as Tab)}
               className={`pb-3 px-1 text-sm font-medium border-b-2 transition-colors ${tab === t.id ? 'border-primary-600 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
               {t.label}
@@ -49,13 +34,10 @@ export function SettingsPage() {
       {tab === 'allgemein' && <GeneralSettings />}
       {tab === 'dienstgrade' && <RanksSettings />}
       {tab === 'jahre' && <YearsSettings />}
-<<<<<<< HEAD
-=======
       {tab === 'templates' && <TemplatesSettings />}
       {tab === 'geraetepruefung' && <DeviceInspectionSettings />}
       {tab === 'lagerorte' && <WarehouseSettings />}
       {tab === 'datenimport' && <DataImportSettings />}
->>>>>>> a9dc7840 (Added New FW Management system)
     </div>
   );
 }
@@ -176,8 +158,6 @@ function YearsSettings() {
     </Card>
   );
 }
-<<<<<<< HEAD
-=======
 
 function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -345,4 +325,3 @@ function TemplatesSettings() {
     </div>
   );
 }
->>>>>>> a9dc7840 (Added New FW Management system)

@@ -1,16 +1,11 @@
 import { Request, Response } from 'express';
-<<<<<<< HEAD
-=======
 import path from 'path';
 import fs from 'fs';
 import multer from 'multer';
->>>>>>> a9dc7840 (Added New FW Management system)
 import { prisma } from '../config/database';
 import { sendSuccess, sendError, sendPaginated } from '../utils/response';
 import { getPagination } from '../utils/pagination';
 
-<<<<<<< HEAD
-=======
 const uploadDir = process.env.UPLOAD_PATH || './uploads';
 
 const certificateStorage = multer.diskStorage({
@@ -34,7 +29,6 @@ export const certificateUpload = multer({
   },
 }).single('certificate');
 
->>>>>>> a9dc7840 (Added New FW Management system)
 export async function getCourses(req: Request, res: Response): Promise<void> {
   try {
     const { skip, take, page, limit } = getPagination(req);
@@ -120,8 +114,6 @@ export async function deleteCourse(req: Request, res: Response): Promise<void> {
   }
 }
 
-<<<<<<< HEAD
-=======
 // Certificate upload
 export async function uploadCertificate(req: Request, res: Response): Promise<void> {
   try {
@@ -182,7 +174,6 @@ export async function deleteCertificate(req: Request, res: Response): Promise<vo
   }
 }
 
->>>>>>> a9dc7840 (Added New FW Management system)
 // Categories
 export async function getCategories(_req: Request, res: Response): Promise<void> {
   try {

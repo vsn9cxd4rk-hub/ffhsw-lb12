@@ -1,16 +1,11 @@
 import { Request, Response } from 'express';
-<<<<<<< HEAD
-=======
 import path from 'path';
 import fs from 'fs';
 import multer from 'multer';
->>>>>>> a9dc7840 (Added New FW Management system)
 import { prisma } from '../config/database';
 import { sendSuccess, sendError, sendPaginated } from '../utils/response';
 import { getPagination } from '../utils/pagination';
 
-<<<<<<< HEAD
-=======
 // Multer configuration for document uploads
 const uploadDir = process.env.UPLOAD_PATH || './uploads';
 
@@ -39,7 +34,6 @@ export const uploadMiddleware = multer({
   },
 }).single('file');
 
->>>>>>> a9dc7840 (Added New FW Management system)
 export async function getOperations(req: Request, res: Response): Promise<void> {
   try {
     const { skip, take, page, limit } = getPagination(req);
@@ -177,8 +171,6 @@ export async function upsertOperationReport(req: Request, res: Response): Promis
     sendError(res, (err as Error).message);
   }
 }
-<<<<<<< HEAD
-=======
 
 // Documents
 export async function getDocuments(req: Request, res: Response): Promise<void> {
@@ -255,4 +247,3 @@ export async function deleteDocument(req: Request, res: Response): Promise<void>
     sendError(res, (err as Error).message);
   }
 }
->>>>>>> a9dc7840 (Added New FW Management system)
