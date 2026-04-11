@@ -1,0 +1,28 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const auth_middleware_1 = require("../middleware/auth.middleware");
+const member_controller_1 = require("../controllers/member.controller");
+const router = (0, express_1.Router)();
+router.use(auth_middleware_1.authenticate);
+router.get('/groups', member_controller_1.getMemberGroups);
+router.post('/groups', member_controller_1.createMemberGroup);
+router.put('/groups/:groupId', member_controller_1.updateMemberGroup);
+router.get('/', member_controller_1.getMembers);
+router.post('/', member_controller_1.createMember);
+router.get('/:id', member_controller_1.getMember);
+router.put('/:id', member_controller_1.updateMember);
+router.delete('/:id', member_controller_1.deleteMember);
+router.get('/:id/history', member_controller_1.getMemberHistory);
+router.post('/:id/family', member_controller_1.createMemberFamily);
+router.put('/:id/family/:familyId', member_controller_1.updateMemberFamily);
+router.delete('/:id/family/:familyId', member_controller_1.deleteMemberFamily);
+router.put('/:id/work', member_controller_1.upsertMemberWork);
+router.put('/:id/bank', member_controller_1.upsertMemberBank);
+router.put('/:id/examination', member_controller_1.upsertMemberExamination);
+router.post('/:id/availability', member_controller_1.createMemberAvailability);
+router.get('/:id/courses', member_controller_1.getMemberCourses);
+router.post('/:id/courses', member_controller_1.createMemberCourse);
+router.put('/:id/courses/:courseId', member_controller_1.updateMemberCourse);
+exports.default = router;
+//# sourceMappingURL=member.routes.js.map

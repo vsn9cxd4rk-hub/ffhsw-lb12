@@ -8,6 +8,21 @@ export const trainingApi = {
   update: (id: number, data: Partial<Course>) => client.put<{ data: Course }>(`/training/courses/${id}`, data),
   delete: (id: number) => client.delete(`/training/courses/${id}`),
 
+<<<<<<< HEAD
+=======
+  uploadCertificate: (courseId: number, file: File) => {
+    const formData = new FormData();
+    formData.append('certificate', file);
+    return client.post(`/training/courses/${courseId}/certificate`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+  downloadCertificate: (courseId: number) =>
+    client.get(`/training/courses/${courseId}/certificate`, { responseType: 'blob' }),
+  deleteCertificate: (courseId: number) =>
+    client.delete(`/training/courses/${courseId}/certificate`),
+
+>>>>>>> a9dc7840 (Added New FW Management system)
   getCategories: () => client.get<{ data: CourseCategory[] }>('/training/categories'),
   createCategory: (data: Partial<CourseCategory>) => client.post('/training/categories', data),
   updateCategory: (id: number, data: Partial<CourseCategory>) =>

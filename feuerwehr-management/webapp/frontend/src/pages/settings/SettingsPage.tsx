@@ -1,14 +1,30 @@
+<<<<<<< HEAD
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+=======
+import React, { useState, useEffect, useRef } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { PlusIcon, ArrowDownTrayIcon, TrashIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+>>>>>>> a9dc7840 (Added New FW Management system)
 import { settingsApi } from '../../api/settings';
 import { Card } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { Table } from '../../components/ui/Table';
 import { Modal } from '../../components/ui/Modal';
+<<<<<<< HEAD
 import { Rank } from '../../types';
 
 type Tab = 'allgemein' | 'dienstgrade' | 'jahre';
+=======
+import { Rank, Template, TemplateHistory } from '../../types';
+import { formatDate } from '../../utils/format';
+import { DeviceInspectionSettings } from './DeviceInspectionSettings';
+import { DataImportSettings } from './DataImportSettings';
+import { WarehouseSettings } from './WarehouseSettings';
+
+type Tab = 'allgemein' | 'dienstgrade' | 'jahre' | 'templates' | 'geraetepruefung' | 'lagerorte' | 'datenimport';
+>>>>>>> a9dc7840 (Added New FW Management system)
 
 export function SettingsPage() {
   const [tab, setTab] = useState<Tab>('allgemein');
@@ -17,7 +33,11 @@ export function SettingsPage() {
     <div className="space-y-4">
       <div className="border-b border-gray-200">
         <nav className="flex gap-4 -mb-px">
+<<<<<<< HEAD
           {[{ id: 'allgemein', label: 'Allgemein' }, { id: 'dienstgrade', label: 'Dienstgrade' }, { id: 'jahre', label: 'Jahre' }].map((t) => (
+=======
+          {[{ id: 'allgemein', label: 'Allgemein' }, { id: 'dienstgrade', label: 'Dienstgrade' }, { id: 'jahre', label: 'Jahre' }, { id: 'templates', label: 'Templates' }, { id: 'geraetepruefung', label: 'Geräteprüfung' }, { id: 'lagerorte', label: 'Lagerorte' }, { id: 'datenimport', label: 'Datenimport' }].map((t) => (
+>>>>>>> a9dc7840 (Added New FW Management system)
             <button key={t.id} onClick={() => setTab(t.id as Tab)}
               className={`pb-3 px-1 text-sm font-medium border-b-2 transition-colors ${tab === t.id ? 'border-primary-600 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
               {t.label}
@@ -29,6 +49,13 @@ export function SettingsPage() {
       {tab === 'allgemein' && <GeneralSettings />}
       {tab === 'dienstgrade' && <RanksSettings />}
       {tab === 'jahre' && <YearsSettings />}
+<<<<<<< HEAD
+=======
+      {tab === 'templates' && <TemplatesSettings />}
+      {tab === 'geraetepruefung' && <DeviceInspectionSettings />}
+      {tab === 'lagerorte' && <WarehouseSettings />}
+      {tab === 'datenimport' && <DataImportSettings />}
+>>>>>>> a9dc7840 (Added New FW Management system)
     </div>
   );
 }
@@ -149,3 +176,173 @@ function YearsSettings() {
     </Card>
   );
 }
+<<<<<<< HEAD
+=======
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function TemplatesSettings() {
+  const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const replaceInputRef = useRef<HTMLInputElement>(null);
+  const [showUpload, setShowUpload] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [fileSelected, setFileSelected] = useState(false);
+  const [error, setError] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
+
+  const { data: templates, isLoading } = useQuery({
+    queryKey: ['templates'],
+    queryFn: () => settingsApi.getTemplates().then(r => r.data.data as Template[]),
+  });
+
+  const { data: history } = useQuery({
+    queryKey: ['template-history', selectedTemplate?.id],
+    queryFn: () => selectedTemplate ? settingsApi.getTemplateHistory(selectedTemplate.id).then(r => r.data.data as TemplateHistory[]) : Promise.resolve([]),
+    enabled: !!selectedTemplate && showHistory,
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => settingsApi.deleteTemplate(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['templates'] }),
+  });
+
+  const handleUpload = async () => {
+    const file = fileInputRef.current?.files?.[0];
+    if (!file || !newName.trim()) return;
+    setUploading(true);
+    setError('');
+    try {
+      await settingsApi.uploadTemplate(newName.trim(), file);
+      queryClient.invalidateQueries({ queryKey: ['templates'] });
+      setShowUpload(false);
+      setNewName('');
+      setFileSelected(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    } catch (err: unknown) {
+      setError((err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Upload fehlgeschlagen');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleReplace = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedTemplate) return;
+    setUploading(true);
+    setError('');
+    try {
+      await settingsApi.updateTemplate(selectedTemplate.id, file);
+      queryClient.invalidateQueries({ queryKey: ['templates'] });
+      queryClient.invalidateQueries({ queryKey: ['template-history', selectedTemplate.id] });
+    } catch (err: unknown) {
+      setError((err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Ersetzen fehlgeschlagen');
+    } finally {
+      setUploading(false);
+      if (replaceInputRef.current) replaceInputRef.current.value = '';
+    }
+  };
+
+  const handleDownload = async (t: Template) => {
+    try {
+      const response = await settingsApi.downloadTemplate(t.id);
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = t.name + (t.mimeType.includes('pdf') ? '.pdf' : '.docx');
+      link.click();
+      window.URL.revokeObjectURL(url);
+    } catch {
+      setError('Download fehlgeschlagen');
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <Card title="Dokument-Vorlagen"
+        actions={<Button variant="primary" icon={<PlusIcon />} onClick={() => setShowUpload(true)}>Neues Template</Button>}
+      >
+        {error && <div className="mb-4 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-md">{error}</div>}
+
+        <Table
+          columns={[
+            { key: 'name', header: 'Name', render: (t: Template) => (
+              <button onClick={() => handleDownload(t)} className="text-primary-600 hover:underline font-medium text-sm">{t.name}</button>
+            )},
+            { key: 'fileSize', header: 'Größe', render: (t: Template) => formatFileSize(t.fileSize) },
+            { key: 'createdBy', header: 'Erstellt von' },
+            { key: 'createdAt', header: 'Erstellt am', render: (t: Template) => formatDate(t.createdAt) },
+            { key: 'updatedAt', header: 'Geändert am', render: (t: Template) => formatDate(t.updatedAt) },
+            { key: 'actions', header: '', render: (t: Template) => (
+              <div className="flex gap-2">
+                <input ref={selectedTemplate?.id === t.id ? replaceInputRef : undefined} type="file" accept=".pdf,.doc,.docx" onChange={handleReplace} className="hidden" />
+                <Button size="sm" variant="secondary" icon={<ArrowPathIcon />}
+                  onClick={(e: React.MouseEvent) => { e.stopPropagation(); setSelectedTemplate(t); setTimeout(() => replaceInputRef.current?.click(), 50); }}
+                  loading={uploading && selectedTemplate?.id === t.id}>
+                  Ersetzen
+                </Button>
+                <Button size="sm" variant="secondary"
+                  onClick={(e: React.MouseEvent) => { e.stopPropagation(); setSelectedTemplate(t); setShowHistory(true); }}>
+                  Historie
+                </Button>
+                <Button size="sm" variant="danger" icon={<TrashIcon />}
+                  onClick={(e: React.MouseEvent) => { e.stopPropagation(); deleteMutation.mutate(t.id); }} />
+              </div>
+            )},
+          ]}
+          data={templates || []}
+          loading={isLoading}
+          emptyMessage="Keine Templates vorhanden."
+          keyExtractor={(t) => t.id}
+        />
+        <p className="mt-3 text-xs text-gray-400">Erlaubte Dateitypen: PDF, Word (max. 20 MB)</p>
+      </Card>
+
+      {/* Upload Modal */}
+      <Modal isOpen={showUpload} onClose={() => setShowUpload(false)} title="Neues Template" size="md"
+        footer={<><Button variant="secondary" onClick={() => setShowUpload(false)}>Abbrechen</Button><Button variant="primary" onClick={handleUpload} loading={uploading} disabled={!newName.trim() || !fileSelected}>Hochladen</Button></>}
+      >
+        <div className="space-y-3">
+          <Input label="Template-Name" value={newName} onChange={(e) => setNewName(e.target.value)} required placeholder="z.B. Einsatzbericht-Vorlage" />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Datei</label>
+            <input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx" onChange={(e) => setFileSelected(!!e.target.files?.length)} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100" />
+          </div>
+        </div>
+      </Modal>
+
+      {/* History Modal */}
+      <Modal isOpen={showHistory} onClose={() => setShowHistory(false)} title={`Historie: ${selectedTemplate?.name || ''}`} size="md">
+        {(!history || history.length === 0) ? (
+          <p className="text-sm text-gray-500">Keine Einträge.</p>
+        ) : (
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Datum</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Aktion</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Benutzer</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {history.map(h => (
+                <tr key={h.id}>
+                  <td className="px-4 py-2 text-sm text-gray-500">{formatDate(h.changedAt)}</td>
+                  <td className="px-4 py-2 text-sm font-medium">{h.action}</td>
+                  <td className="px-4 py-2 text-sm text-gray-500">{h.changedBy}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </Modal>
+    </div>
+  );
+}
+>>>>>>> a9dc7840 (Added New FW Management system)

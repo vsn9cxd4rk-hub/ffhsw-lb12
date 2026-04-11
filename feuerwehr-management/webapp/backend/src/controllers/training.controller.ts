@@ -1,8 +1,40 @@
 import { Request, Response } from 'express';
+<<<<<<< HEAD
+=======
+import path from 'path';
+import fs from 'fs';
+import multer from 'multer';
+>>>>>>> a9dc7840 (Added New FW Management system)
 import { prisma } from '../config/database';
 import { sendSuccess, sendError, sendPaginated } from '../utils/response';
 import { getPagination } from '../utils/pagination';
 
+<<<<<<< HEAD
+=======
+const uploadDir = process.env.UPLOAD_PATH || './uploads';
+
+const certificateStorage = multer.diskStorage({
+  destination: (_req, _file, cb) => {
+    const dir = path.join(uploadDir, 'certificates');
+    fs.mkdirSync(dir, { recursive: true });
+    cb(null, dir);
+  },
+  filename: (_req, file, cb) => {
+    cb(null, `${Date.now()}-${file.originalname}`);
+  },
+});
+
+export const certificateUpload = multer({
+  storage: certificateStorage,
+  limits: { fileSize: 20 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const allowed = ['application/pdf', 'image/jpeg', 'image/png'];
+    if (allowed.includes(file.mimetype)) cb(null, true);
+    else cb(new Error('Nur PDF- und Bilddateien sind erlaubt'));
+  },
+}).single('certificate');
+
+>>>>>>> a9dc7840 (Added New FW Management system)
 export async function getCourses(req: Request, res: Response): Promise<void> {
   try {
     const { skip, take, page, limit } = getPagination(req);
@@ -88,6 +120,69 @@ export async function deleteCourse(req: Request, res: Response): Promise<void> {
   }
 }
 
+<<<<<<< HEAD
+=======
+// Certificate upload
+export async function uploadCertificate(req: Request, res: Response): Promise<void> {
+  try {
+    const id = parseInt(req.params.id);
+    if (!req.file) { sendError(res, 'Keine Datei hochgeladen', 400); return; }
+
+    const course = await prisma.course.findUnique({ where: { id } });
+    if (!course) { sendError(res, 'Lehrgang nicht gefunden', 404); return; }
+
+    // Delete old certificate if exists
+    if (course.certificatePath && fs.existsSync(course.certificatePath)) {
+      fs.unlinkSync(course.certificatePath);
+    }
+
+    const updated = await prisma.course.update({
+      where: { id },
+      data: { certificatePath: req.file.path },
+      include: { category: true, member: { select: { id: true, firstName: true, lastName: true, rank: true } } },
+    });
+    sendSuccess(res, updated);
+  } catch (err) {
+    sendError(res, (err as Error).message);
+  }
+}
+
+export async function downloadCertificate(req: Request, res: Response): Promise<void> {
+  try {
+    const course = await prisma.course.findUnique({ where: { id: parseInt(req.params.id) } });
+    if (!course || !course.certificatePath) { sendError(res, 'Keine Urkunde vorhanden', 404); return; }
+
+    if (!fs.existsSync(course.certificatePath)) {
+      sendError(res, 'Datei nicht gefunden', 404);
+      return;
+    }
+
+    const fileName = path.basename(course.certificatePath);
+    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(fileName)}"`);
+    fs.createReadStream(course.certificatePath).pipe(res);
+  } catch (err) {
+    sendError(res, (err as Error).message);
+  }
+}
+
+export async function deleteCertificate(req: Request, res: Response): Promise<void> {
+  try {
+    const id = parseInt(req.params.id);
+    const course = await prisma.course.findUnique({ where: { id } });
+    if (!course) { sendError(res, 'Lehrgang nicht gefunden', 404); return; }
+
+    if (course.certificatePath && fs.existsSync(course.certificatePath)) {
+      fs.unlinkSync(course.certificatePath);
+    }
+
+    await prisma.course.update({ where: { id }, data: { certificatePath: null } });
+    sendSuccess(res, { message: 'Urkunde gelöscht' });
+  } catch (err) {
+    sendError(res, (err as Error).message);
+  }
+}
+
+>>>>>>> a9dc7840 (Added New FW Management system)
 // Categories
 export async function getCategories(_req: Request, res: Response): Promise<void> {
   try {

@@ -5,6 +5,14 @@ import {
   getSettings, updateSettings,
   getRanks, createRank, updateRank, deleteRank,
   getYears, createYear, updateYear,
+<<<<<<< HEAD
+=======
+  getTemplates, uploadTemplate, templateUpload, updateTemplate, downloadTemplate, deleteTemplate, getTemplateHistory,
+  getDeviceClasses, createDeviceClass, updateDeviceClass, deleteDeviceClass,
+  createSubclass, updateSubclass, deleteSubclass,
+  createCriterion, updateCriterion, deleteCriterion,
+  importArticles, importInspections,
+>>>>>>> a9dc7840 (Added New FW Management system)
 } from '../controllers/settings.controller';
 
 const router = Router();
@@ -22,4 +30,30 @@ router.get('/years', getYears);
 router.post('/years', requireAdmin, createYear);
 router.put('/years/:id', requireAdmin, updateYear);
 
+<<<<<<< HEAD
+=======
+router.get('/templates', getTemplates);
+router.post('/templates', requireAdmin, templateUpload, uploadTemplate);
+router.put('/templates/:id', requireAdmin, templateUpload, updateTemplate);
+router.get('/templates/:id/download', downloadTemplate);
+router.delete('/templates/:id', requireAdmin, deleteTemplate);
+router.get('/templates/:id/history', getTemplateHistory);
+
+// Device Classes / Geräteklassen
+router.get('/device-classes', getDeviceClasses);
+router.post('/device-classes', requireAdmin, createDeviceClass);
+router.put('/device-classes/:id', requireAdmin, updateDeviceClass);
+router.delete('/device-classes/:id', requireAdmin, deleteDeviceClass);
+router.post('/device-classes/:classId/subclasses', requireAdmin, createSubclass);
+router.put('/device-subclasses/:id', requireAdmin, updateSubclass);
+router.delete('/device-subclasses/:id', requireAdmin, deleteSubclass);
+router.post('/device-subclasses/:subclassId/criteria', requireAdmin, createCriterion);
+router.put('/inspection-criteria/:id', requireAdmin, updateCriterion);
+router.delete('/inspection-criteria/:id', requireAdmin, deleteCriterion);
+
+// CSV Import
+router.post('/import/articles', requireAdmin, importArticles);
+router.post('/import/inspections', requireAdmin, importInspections);
+
+>>>>>>> a9dc7840 (Added New FW Management system)
 export default router;

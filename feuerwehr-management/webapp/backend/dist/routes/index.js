@@ -1,0 +1,31 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const auth_routes_1 = __importDefault(require("./auth.routes"));
+const user_routes_1 = __importDefault(require("./user.routes"));
+const member_routes_1 = __importDefault(require("./member.routes"));
+const vehicle_routes_1 = __importDefault(require("./vehicle.routes"));
+const inventory_routes_1 = __importDefault(require("./inventory.routes"));
+const operation_routes_1 = __importDefault(require("./operation.routes"));
+const event_routes_1 = __importDefault(require("./event.routes"));
+const training_routes_1 = __importDefault(require("./training.routes"));
+const settings_routes_1 = __importDefault(require("./settings.routes"));
+const dashboard_routes_1 = __importDefault(require("./dashboard.routes"));
+const inspection_routes_1 = __importDefault(require("./inspection.routes"));
+const router = (0, express_1.Router)();
+router.use('/auth', auth_routes_1.default);
+router.use('/users', user_routes_1.default);
+router.use('/members', member_routes_1.default);
+router.use('/vehicles', vehicle_routes_1.default);
+router.use('/inventory', inventory_routes_1.default);
+router.use('/operations', operation_routes_1.default);
+router.use('/events', event_routes_1.default);
+router.use('/training', training_routes_1.default);
+router.use('/settings', settings_routes_1.default);
+router.use('/dashboard', dashboard_routes_1.default);
+router.use('/inspections', inspection_routes_1.default);
+exports.default = router;
+//# sourceMappingURL=index.js.map

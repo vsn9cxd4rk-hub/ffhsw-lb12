@@ -1,0 +1,20 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const auth_middleware_1 = require("../middleware/auth.middleware");
+const permission_middleware_1 = require("../middleware/permission.middleware");
+const user_controller_1 = require("../controllers/user.controller");
+const validate_middleware_1 = require("../middleware/validate.middleware");
+const router = (0, express_1.Router)();
+router.use(auth_middleware_1.authenticate);
+router.get('/', permission_middleware_1.requireAdmin, user_controller_1.getUsers);
+router.post('/', permission_middleware_1.requireAdmin, user_controller_1.createUserValidation, validate_middleware_1.validate, user_controller_1.createUser);
+router.get('/groups', user_controller_1.getPermissionGroups);
+router.post('/groups', permission_middleware_1.requireAdmin, user_controller_1.createPermissionGroup);
+router.put('/groups/:id', permission_middleware_1.requireAdmin, user_controller_1.updatePermissionGroup);
+router.delete('/groups/:id', permission_middleware_1.requireAdmin, user_controller_1.deletePermissionGroup);
+router.get('/:id', permission_middleware_1.requireAdmin, user_controller_1.getUser);
+router.put('/:id', permission_middleware_1.requireAdmin, user_controller_1.updateUser);
+router.delete('/:id', permission_middleware_1.requireAdmin, user_controller_1.deleteUser);
+exports.default = router;
+//# sourceMappingURL=user.routes.js.map

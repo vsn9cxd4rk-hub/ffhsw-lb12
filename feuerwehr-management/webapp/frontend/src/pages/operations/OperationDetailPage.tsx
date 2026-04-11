@@ -1,9 +1,16 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+<<<<<<< HEAD
 import { ArrowLeftIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { operationsApi } from '../../api/operations';
 import { Operation } from '../../types';
+=======
+import { ArrowLeftIcon, PlusIcon, TrashIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import { operationsApi } from '../../api/operations';
+import { settingsApi } from '../../api/settings';
+import { Operation, OperationDocument, Template } from '../../types';
+>>>>>>> a9dc7840 (Added New FW Management system)
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Textarea } from '../../components/ui/Textarea';
@@ -16,7 +23,11 @@ export function OperationDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+<<<<<<< HEAD
   const [tab, setTab] = useState<'details' | 'times' | 'report'>('details');
+=======
+  const [tab, setTab] = useState<'details' | 'times' | 'report' | 'documents'>('details');
+>>>>>>> a9dc7840 (Added New FW Management system)
 
   const { data: op, isLoading } = useQuery({
     queryKey: ['operation', id],
@@ -43,7 +54,11 @@ export function OperationDetailPage() {
 
       <div className="border-b border-gray-200">
         <nav className="flex gap-4 -mb-px">
+<<<<<<< HEAD
           {[{ id: 'details', label: 'Details' }, { id: 'times', label: 'Fahrzeugzeiten' }, { id: 'report', label: 'Bericht' }].map((t) => (
+=======
+          {[{ id: 'details', label: 'Details' }, { id: 'times', label: 'Fahrzeugzeiten' }, { id: 'report', label: 'Bericht' }, { id: 'documents', label: 'Dokumente' }].map((t) => (
+>>>>>>> a9dc7840 (Added New FW Management system)
             <button key={t.id} onClick={() => setTab(t.id as typeof tab)}
               className={`pb-3 px-1 text-sm font-medium border-b-2 transition-colors ${tab === t.id ? 'border-primary-600 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
               {t.label}
@@ -55,6 +70,10 @@ export function OperationDetailPage() {
       {tab === 'details' && <OperationDetailsTab op={op} onSave={(d) => updateMutation.mutate(d)} saving={updateMutation.isPending} />}
       {tab === 'times' && <OperationTimesTab operationId={parseInt(id!)} times={op.times || []} />}
       {tab === 'report' && <OperationReportTab operationId={parseInt(id!)} report={op.reports?.[0]} />}
+<<<<<<< HEAD
+=======
+      {tab === 'documents' && <OperationDocumentsTab operationId={parseInt(id!)} />}
+>>>>>>> a9dc7840 (Added New FW Management system)
     </div>
   );
 }
@@ -174,3 +193,135 @@ function OperationReportTab({ operationId, report }: { operationId: number; repo
     </Card>
   );
 }
+<<<<<<< HEAD
+=======
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function OperationDocumentsTab({ operationId }: { operationId: number }) {
+  const queryClient = useQueryClient();
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [error, setError] = useState('');
+  const [uploading, setUploading] = useState(false);
+
+  const { data: documents, isLoading } = useQuery({
+    queryKey: ['operation-documents', operationId],
+    queryFn: () => operationsApi.getDocuments(operationId).then(r => r.data.data as OperationDocument[]),
+  });
+
+  const { data: templates } = useQuery({
+    queryKey: ['templates'],
+    queryFn: () => settingsApi.getTemplates().then(r => r.data.data as Template[]),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (docId: number) => operationsApi.deleteDocument(operationId, docId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['operation-documents', operationId] }),
+  });
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setError('');
+    setUploading(true);
+    try {
+      await operationsApi.uploadDocument(operationId, file);
+      queryClient.invalidateQueries({ queryKey: ['operation-documents', operationId] });
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Upload fehlgeschlagen';
+      setError(msg);
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleDownload = async (doc: OperationDocument) => {
+    try {
+      const response = await operationsApi.downloadDocument(operationId, doc.id);
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = doc.fileName;
+      link.click();
+      window.URL.revokeObjectURL(url);
+    } catch {
+      setError('Download fehlgeschlagen');
+    }
+  };
+
+  return (
+    <>
+    <Card title="Dokumente"
+      actions={
+        <div>
+          <input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx" onChange={handleUpload} className="hidden" />
+          <Button variant="primary" icon={<PlusIcon />} onClick={() => fileInputRef.current?.click()} loading={uploading}>
+            Dokument hochladen
+          </Button>
+        </div>
+      }
+    >
+      {error && (
+        <div className="mb-4 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-md">{error}</div>
+      )}
+
+      {isLoading ? (
+        <p className="text-sm text-gray-500">Lade...</p>
+      ) : !documents || documents.length === 0 ? (
+        <p className="text-sm text-gray-500">Keine Dokumente vorhanden.</p>
+      ) : (
+        <Table
+          columns={[
+            { key: 'fileName', header: 'Dateiname', render: (d: OperationDocument) => (
+              <button onClick={() => handleDownload(d)} className="text-primary-600 hover:underline font-medium text-sm">
+                {d.fileName}
+              </button>
+            )},
+            { key: 'fileSize', header: 'Größe', render: (d: OperationDocument) => formatFileSize(d.fileSize) },
+            { key: 'uploadedBy', header: 'Hochgeladen von' },
+            { key: 'createdAt', header: 'Datum', render: (d: OperationDocument) => formatDate(d.createdAt) },
+            { key: 'actions', header: '', render: (d: OperationDocument) => (
+              <Button variant="ghost" size="sm" onClick={(e: React.MouseEvent) => { e.stopPropagation(); deleteMutation.mutate(d.id); }}>
+                <TrashIcon className="h-4 w-4 text-red-500" />
+              </Button>
+            )},
+          ]}
+          data={documents}
+          keyExtractor={(d) => d.id}
+        />
+      )}
+
+      <p className="mt-3 text-xs text-gray-400">Erlaubte Dateitypen: PDF, Word (max. 20 MB)</p>
+    </Card>
+
+    {templates && templates.length > 0 && (
+      <Card title="Vorlagen">
+        <ul className="divide-y divide-gray-100">
+          {templates.map(t => (
+            <li key={t.id} className="py-2 flex items-center justify-between">
+              <span className="text-sm font-medium text-gray-700">{t.name}</span>
+              <Button variant="secondary" size="sm" icon={<ArrowDownTrayIcon />} onClick={async () => {
+                try {
+                  const response = await settingsApi.downloadTemplate(t.id);
+                  const url = window.URL.createObjectURL(new Blob([response.data]));
+                  const link = document.createElement('a');
+                  link.href = url;
+                  link.download = t.name + (t.mimeType.includes('pdf') ? '.pdf' : '.docx');
+                  link.click();
+                  window.URL.revokeObjectURL(url);
+                } catch { setError('Template-Download fehlgeschlagen'); }
+              }}>Herunterladen</Button>
+            </li>
+          ))}
+        </ul>
+      </Card>
+    )}
+    </>
+  );
+}
+>>>>>>> a9dc7840 (Added New FW Management system)

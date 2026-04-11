@@ -30,6 +30,7 @@ async function main() {
     },
   });
 
+<<<<<<< HEAD
   const userGroup = await prisma.permissionGroup.upsert({
     where: { id: 2 },
     update: {},
@@ -54,6 +55,49 @@ async function main() {
   });
 
   console.log('Permission groups created:', adminGroup.name, userGroup.name, guestGroup.name);
+=======
+  const geraetewarteGroup = await prisma.permissionGroup.upsert({
+    where: { id: 2 },
+    update: { name: 'Gerätewarte', description: 'Zugriff auf Fahrzeuge, Bestandsliste und Prüfbuch' },
+    create: {
+      id: 2,
+      name: 'Gerätewarte',
+      description: 'Zugriff auf Fahrzeuge, Bestandsliste und Prüfbuch',
+    },
+  });
+
+  const userGroup = await prisma.permissionGroup.upsert({
+    where: { id: 3 },
+    update: { name: 'Benutzer', description: 'Zugriff auf eigene Daten, Veranstaltungen und Ausbildung' },
+    create: {
+      id: 3,
+      name: 'Benutzer',
+      description: 'Zugriff auf eigene Daten, Veranstaltungen und Ausbildung',
+    },
+  });
+
+  const machinistenGroup = await prisma.permissionGroup.upsert({
+    where: { id: 4 },
+    update: { name: 'Maschinisten', description: 'Wie Benutzer, zusätzlich Fahrzeuge und Fahrtenbuch' },
+    create: {
+      id: 4,
+      name: 'Maschinisten',
+      description: 'Wie Benutzer, zusätzlich Fahrzeuge und Fahrtenbuch',
+    },
+  });
+
+  const gruppenfuehrerGroup = await prisma.permissionGroup.upsert({
+    where: { id: 5 },
+    update: { name: 'Gruppenführer', description: 'Wie Benutzer, zusätzlich Berichte bei Einsätzen und Veranstaltungen' },
+    create: {
+      id: 5,
+      name: 'Gruppenführer',
+      description: 'Wie Benutzer, zusätzlich Berichte bei Einsätzen und Veranstaltungen',
+    },
+  });
+
+  console.log('Permission groups created:', adminGroup.name, geraetewarteGroup.name, userGroup.name, machinistenGroup.name, gruppenfuehrerGroup.name);
+>>>>>>> a9dc7840 (Added New FW Management system)
 
   // Create admin user
   const hashedPassword = await bcrypt.hash('Admin123!', 12);
@@ -193,6 +237,111 @@ async function main() {
   }
   console.log('Default settings created');
 
+<<<<<<< HEAD
+=======
+  // Create device classes with subclasses and inspection criteria
+  const deviceClassesData = [
+    {
+      name: 'PSA',
+      sortOrder: 1,
+      subclasses: [
+        { name: 'Helme', sortOrder: 1, criteria: ['Zustand Helmschale', 'Innenausstattung', 'Visier/Gesichtsschutz', 'Nackenschutz', 'Kennzeichnung'] },
+        { name: 'Schutzkleidung TH', sortOrder: 2, criteria: ['Zustand Obermaterial', 'Nähte', 'Verschlüsse', 'Reflexstreifen', 'Kennzeichnung'] },
+        { name: 'Schutzkleidung Brandbekämpfung', sortOrder: 3, criteria: ['Zustand Obermaterial', 'Nähte', 'Verschlüsse', 'Reflexstreifen', 'Feuchtesperre', 'Kennzeichnung'] },
+        { name: 'Schutzkleidung sonstige', sortOrder: 4, criteria: ['Zustand Obermaterial', 'Nähte', 'Verschlüsse', 'Kennzeichnung'] },
+      ],
+    },
+    {
+      name: 'Erste Hilfe & Hygiene',
+      sortOrder: 2,
+      subclasses: [
+        { name: 'Sanitäts- & Wiederbelebungsgeräte', sortOrder: 1, criteria: ['Vollständigkeit', 'Zustand Geräte', 'Verfallsdaten', 'Funktionsprüfung', 'Kennzeichnung'] },
+      ],
+    },
+    {
+      name: 'Signal- & Beleuchtungsgeräte',
+      sortOrder: 3,
+      subclasses: [
+        { name: 'Funkgeräte & Melder', sortOrder: 1, criteria: ['Zustand Gehäuse', 'Akku/Batterie', 'Funktionsprüfung', 'Antenne', 'Kennzeichnung'] },
+        { name: 'Geräte Verkehrssicherung', sortOrder: 2, criteria: ['Zustand', 'Leuchtmittel', 'Funktionsprüfung', 'Kennzeichnung'] },
+        { name: 'Signal- & Beleuchtungsgeräte', sortOrder: 3, criteria: ['Zustand Gehäuse', 'Leuchtmittel', 'Akku/Batterie', 'Funktionsprüfung', 'Kabel und Stecker', 'Kennzeichnung'] },
+      ],
+    },
+    {
+      name: 'Arbeitsgeräte',
+      sortOrder: 4,
+      subclasses: [
+        { name: 'Geräte & Werkzeuge', sortOrder: 1, criteria: ['Zustand', 'Vollständigkeit', 'Funktionsprüfung', 'Kennzeichnung'] },
+        { name: 'Pumpen', sortOrder: 2, criteria: ['Zustand Gehäuse', 'Dichtungen', 'Funktionsprüfung', 'Ölstand', 'Kraftstoff', 'Kennzeichnung'] },
+      ],
+    },
+    {
+      name: 'Löschgeräte',
+      sortOrder: 5,
+      subclasses: [
+        { name: 'Schläuche', sortOrder: 1, criteria: ['Zustand Schlauch', 'Kupplungen', 'Dichtungen', 'Druckprüfung', 'Kennzeichnung'] },
+        { name: 'Löschgeräte', sortOrder: 2, criteria: ['Zustand', 'Vollständigkeit', 'Funktionsprüfung', 'Kennzeichnung'] },
+        { name: 'Tragbare Feuerlöscher', sortOrder: 3, criteria: ['Zustand Behälter', 'Schlauch/Düse', 'Manometer/Druck', 'Plombierung', 'Prüfdatum', 'Kennzeichnung'] },
+        { name: 'Wasserführende Armaturen', sortOrder: 4, criteria: ['Zustand', 'Kupplungen', 'Dichtungen', 'Funktionsprüfung', 'Kennzeichnung'] },
+      ],
+    },
+    {
+      name: 'Rettungsgeräte',
+      sortOrder: 6,
+      subclasses: [
+        { name: 'Feuerwehrhaltegurte', sortOrder: 1, criteria: ['Zustand Gurt', 'Karabiner', 'Nähte', 'Kennzeichnung'] },
+        { name: 'Feuerwehrleinen', sortOrder: 2, criteria: ['Zustand Leine', 'Karabiner', 'Leinenbeutel', 'Kennzeichnung'] },
+        { name: 'Rettungsgeräte', sortOrder: 3, criteria: ['Zustand', 'Vollständigkeit', 'Funktionsprüfung', 'Kennzeichnung'] },
+        { name: 'Spanngurte & Seile', sortOrder: 4, criteria: ['Zustand', 'Verschlüsse/Haken', 'Kennzeichnung'] },
+        { name: 'Tragbare Leitern', sortOrder: 5, criteria: ['Zustand Holme', 'Sprossen', 'Gelenke/Verschlüsse', 'Standfüße', 'Kennzeichnung'] },
+      ],
+    },
+    {
+      name: 'Elektrische Geräte',
+      sortOrder: 7,
+      subclasses: [
+        { name: 'Elektrische Geräte', sortOrder: 1, criteria: ['Zustand Gehäuse', 'Einspannfutter', 'Werkzeug', 'Ersatztrennscheiben', 'Kabel und Stecker', 'elektr. Prüfung'] },
+      ],
+    },
+    {
+      name: 'Geräte & Fahrzeuge im GH',
+      sortOrder: 8,
+      subclasses: [
+        { name: 'Geräte & Fahrzeuge', sortOrder: 1, criteria: ['Zustand', 'Vollständigkeit', 'Funktionsprüfung', 'Kennzeichnung'] },
+      ],
+    },
+  ];
+
+  for (const dc of deviceClassesData) {
+    const deviceClass = await prisma.deviceClass.upsert({
+      where: { name: dc.name },
+      update: { sortOrder: dc.sortOrder },
+      create: { name: dc.name, sortOrder: dc.sortOrder },
+    });
+
+    for (const sc of dc.subclasses) {
+      const subclass = await prisma.deviceSubclass.upsert({
+        where: { deviceClassId_name: { deviceClassId: deviceClass.id, name: sc.name } },
+        update: { sortOrder: sc.sortOrder },
+        create: { deviceClassId: deviceClass.id, name: sc.name, sortOrder: sc.sortOrder },
+      });
+
+      for (let i = 0; i < sc.criteria.length; i++) {
+        const criterionName = sc.criteria[i];
+        const existing = await prisma.inspectionCriterion.findFirst({
+          where: { deviceSubclassId: subclass.id, name: criterionName },
+        });
+        if (!existing) {
+          await prisma.inspectionCriterion.create({
+            data: { deviceSubclassId: subclass.id, name: criterionName, sortOrder: i + 1 },
+          });
+        }
+      }
+    }
+  }
+  console.log('Device classes with subclasses and criteria created');
+
+>>>>>>> a9dc7840 (Added New FW Management system)
   console.log('\nSeed completed successfully!');
   console.log('Default admin credentials:');
   console.log('  Username: admin');

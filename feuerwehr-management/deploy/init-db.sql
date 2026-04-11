@@ -346,6 +346,10 @@ CREATE TABLE IF NOT EXISTS `logbook_entries` (
   `startMileage` INT          NOT NULL,
   `endMileage`   INT          NOT NULL,
   `purpose`      VARCHAR(500) NOT NULL,
+<<<<<<< HEAD
+=======
+  `destination`  VARCHAR(500) NULL,
+>>>>>>> a9dc7840 (Added New FW Management system)
   `notes`        TEXT         NULL,
   PRIMARY KEY (`id`),
   CONSTRAINT `logbook_entries_vehicleId_fkey`
@@ -371,6 +375,52 @@ CREATE TABLE IF NOT EXISTS `equipment_inspections` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- -----------------------------------------------------------------------------
+<<<<<<< HEAD
+=======
+-- Geräteklassen
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `device_classes` (
+  `id`        INT          NOT NULL AUTO_INCREMENT,
+  `name`      VARCHAR(255) NOT NULL,
+  `sortOrder` INT          NOT NULL DEFAULT 0,
+  `createdAt` DATETIME(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `device_classes_name_key` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------------------------
+-- Geräte-Unterklassen
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `device_subclasses` (
+  `id`            INT          NOT NULL AUTO_INCREMENT,
+  `deviceClassId` INT          NOT NULL,
+  `name`          VARCHAR(255) NOT NULL,
+  `sortOrder`     INT          NOT NULL DEFAULT 0,
+  `createdAt`     DATETIME(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `device_subclasses_deviceClassId_name_key` (`deviceClassId`, `name`),
+  CONSTRAINT `device_subclasses_deviceClassId_fkey`
+    FOREIGN KEY (`deviceClassId`) REFERENCES `device_classes` (`id`)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------------------------
+-- Prüfkriterien (je Unterklasse)
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `inspection_criteria` (
+  `id`               INT          NOT NULL AUTO_INCREMENT,
+  `deviceSubclassId` INT          NOT NULL,
+  `name`             VARCHAR(255) NOT NULL,
+  `sortOrder`        INT          NOT NULL DEFAULT 0,
+  `createdAt`        DATETIME(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (`id`),
+  CONSTRAINT `inspection_criteria_deviceSubclassId_fkey`
+    FOREIGN KEY (`deviceSubclassId`) REFERENCES `device_subclasses` (`id`)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------------------------
+>>>>>>> a9dc7840 (Added New FW Management system)
 -- Lager
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `warehouses` (
@@ -401,12 +451,27 @@ CREATE TABLE IF NOT EXISTS `articles` (
   `isExtinguisher`     TINYINT(1)     NOT NULL DEFAULT 0,
   `inventoryNumber`    VARCHAR(100)   NULL,
   `warehouseId`        INT            NULL,
+<<<<<<< HEAD
+=======
+  `deviceSubclassId`   INT            NULL,
+  `manufacturingDate`  DATETIME(3)    NULL,
+  `specification`      VARCHAR(500)   NULL,
+  `serialNumber`       VARCHAR(255)   NULL,
+  `din`                VARCHAR(100)   NULL,
+  `isDecommissioned`   TINYINT(1)     NOT NULL DEFAULT 0,
+>>>>>>> a9dc7840 (Added New FW Management system)
   `createdAt`          DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updatedAt`          DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `articles_inventoryNumber_key` (`inventoryNumber`),
   CONSTRAINT `articles_warehouseId_fkey`
     FOREIGN KEY (`warehouseId`) REFERENCES `warehouses` (`id`)
+<<<<<<< HEAD
+=======
+    ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `articles_deviceSubclassId_fkey`
+    FOREIGN KEY (`deviceSubclassId`) REFERENCES `device_subclasses` (`id`)
+>>>>>>> a9dc7840 (Added New FW Management system)
     ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -453,6 +518,27 @@ CREATE TABLE IF NOT EXISTS `article_inspections` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- -----------------------------------------------------------------------------
+<<<<<<< HEAD
+=======
+-- Prüfkriterien-Einzelergebnisse (io/nio je Kriterium pro Prüfung)
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `inspection_criterion_results` (
+  `id`           INT         NOT NULL AUTO_INCREMENT,
+  `inspectionId` INT         NOT NULL,
+  `criterionId`  INT         NOT NULL,
+  `result`       VARCHAR(10) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `inspection_criterion_results_inspId_critId_key` (`inspectionId`, `criterionId`),
+  CONSTRAINT `inspection_criterion_results_inspectionId_fkey`
+    FOREIGN KEY (`inspectionId`) REFERENCES `article_inspections` (`id`)
+    ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `inspection_criterion_results_criterionId_fkey`
+    FOREIGN KEY (`criterionId`) REFERENCES `inspection_criteria` (`id`)
+    ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------------------------
+>>>>>>> a9dc7840 (Added New FW Management system)
 -- Einsätze
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `operations` (
@@ -515,6 +601,27 @@ CREATE TABLE IF NOT EXISTS `operation_reports` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- -----------------------------------------------------------------------------
+<<<<<<< HEAD
+=======
+-- Einsätze - Dokumente (PDF-Uploads)
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `operation_documents` (
+  `id`          INT          NOT NULL AUTO_INCREMENT,
+  `operationId` INT          NOT NULL,
+  `fileName`    VARCHAR(255) NOT NULL,
+  `filePath`    VARCHAR(500) NOT NULL,
+  `fileSize`    INT          NOT NULL,
+  `mimeType`    VARCHAR(100) NOT NULL,
+  `uploadedBy`  VARCHAR(100) NOT NULL,
+  `createdAt`   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `operation_documents_operationId_fkey`
+    FOREIGN KEY (`operationId`) REFERENCES `operations` (`id`)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------------------------
+>>>>>>> a9dc7840 (Added New FW Management system)
 -- Veranstaltungen / Dienstabende
 -- (category: 1=Einsatz, 2=Dienstabend, 3=BSW, 4=Sonstige, 5=Übung)
 -- -----------------------------------------------------------------------------
@@ -572,6 +679,59 @@ CREATE TABLE IF NOT EXISTS `absences` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- -----------------------------------------------------------------------------
+<<<<<<< HEAD
+=======
+-- Veranstaltungen - Dokumente
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `event_documents` (
+  `id`          INT          NOT NULL AUTO_INCREMENT,
+  `eventId`     INT          NOT NULL,
+  `fileName`    VARCHAR(255) NOT NULL,
+  `filePath`    VARCHAR(500) NOT NULL,
+  `fileSize`    INT          NOT NULL,
+  `mimeType`    VARCHAR(100) NOT NULL,
+  `uploadedBy`  VARCHAR(100) NOT NULL,
+  `createdAt`   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `event_documents_eventId_fkey`
+    FOREIGN KEY (`eventId`) REFERENCES `events` (`id`)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------------------------
+-- Templates (Dokument-Vorlagen)
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `templates` (
+  `id`        INT          NOT NULL AUTO_INCREMENT,
+  `name`      VARCHAR(255) NOT NULL,
+  `filePath`  VARCHAR(500) NOT NULL,
+  `fileSize`  INT          NOT NULL,
+  `mimeType`  VARCHAR(100) NOT NULL,
+  `createdBy` VARCHAR(100) NOT NULL,
+  `updatedBy` VARCHAR(100) NULL,
+  `createdAt` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updatedAt` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `templates_name_key` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------------------------
+-- Template-Änderungshistorie
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `template_history` (
+  `id`         INT          NOT NULL AUTO_INCREMENT,
+  `templateId` INT          NOT NULL,
+  `action`     VARCHAR(50)  NOT NULL,
+  `changedBy`  VARCHAR(100) NOT NULL,
+  `changedAt`  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `template_history_templateId_fkey`
+    FOREIGN KEY (`templateId`) REFERENCES `templates` (`id`)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------------------------
+>>>>>>> a9dc7840 (Added New FW Management system)
 -- Brandsicherheitswachen
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `fire_watches` (
@@ -609,9 +769,16 @@ CREATE TABLE IF NOT EXISTS `courses` (
   `startDate`  DATETIME     NULL,
   `endDate`    DATETIME     NULL,
   `location`   VARCHAR(255) NULL,
+<<<<<<< HEAD
   `notes`      TEXT         NULL,
   `createdAt`  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updatedAt`  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+=======
+  `notes`           TEXT         NULL,
+  `certificatePath` VARCHAR(500) NULL,
+  `createdAt`       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updatedAt`       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+>>>>>>> a9dc7840 (Added New FW Management system)
   PRIMARY KEY (`id`),
   CONSTRAINT `courses_memberId_fkey`
     FOREIGN KEY (`memberId`) REFERENCES `members` (`id`)
@@ -684,12 +851,17 @@ INSERT IGNORE INTO `permission_groups`
    `br60`,`br61`,`br62`,`br63`,`br64`,`br65`,`br66`,`br67`,`br68`,`br69`,
    `br70`,`br71`,`br72`,`br73`,`br74`,`br75`)
 VALUES
+<<<<<<< HEAD
   -- Administrator: alle Berechtigungen
+=======
+  -- Administrator: Vollzugriff
+>>>>>>> a9dc7840 (Added New FW Management system)
   (1, 'Administrator', 'Vollzugriff auf alle Funktionen',
    1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,
    1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,
    1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,
    1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1),
+<<<<<<< HEAD
   -- Benutzer: Lesezugriff
   (2, 'Benutzer', 'Standardbenutzer mit Lesezugriff',
    1,1,1,1,1,0,0,0,0,0, 1,1,0,0,0,0,0,0,0,0,
@@ -699,6 +871,29 @@ VALUES
   -- Gast: nur Ansicht
   (3, 'Gast', 'Eingeschränkter Lesezugriff',
    1,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
+=======
+  -- Gerätewarte: Fahrzeuge, Bestandsliste, Prüfbuch (kein Personal/Einsätze/Veranstaltungen/Ausbildung)
+  (2, 'Gerätewarte', 'Zugriff auf Fahrzeuge, Bestandsliste und Prüfbuch',
+   0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
+   0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
+   0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
+   0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0),
+  -- Benutzer: Personal (eigene), Veranstaltungen, Ausbildung (kein Fahrzeuge/Bestandsliste/Prüfbuch/Einsätze)
+  (3, 'Benutzer', 'Zugriff auf eigene Daten, Veranstaltungen und Ausbildung',
+   0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
+   0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
+   0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
+   0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0),
+  -- Maschinisten: wie Benutzer + Fahrzeuge/Fahrtenbuch
+  (4, 'Maschinisten', 'Wie Benutzer, zusätzlich Fahrzeuge und Fahrtenbuch',
+   0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
+   0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
+   0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
+   0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0),
+  -- Gruppenführer: wie Benutzer + Einsätze/Veranstaltungen (Berichte anlegen)
+  (5, 'Gruppenführer', 'Wie Benutzer, zusätzlich Berichte bei Einsätzen und Veranstaltungen',
+   0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
+>>>>>>> a9dc7840 (Added New FW Management system)
    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0);
@@ -709,17 +904,27 @@ VALUES
 -- Dieser Eintrag ist ein Platzhalter. Nach dem Seed-Schritt ist das
 -- Passwort "Admin123!" (muss nach erster Anmeldung geändert werden).
 -- -----------------------------------------------------------------------------
+<<<<<<< HEAD
 INSERT IGNORE INTO `users`
   (`id`, `username`, `email`, `password`, `name`, `isAdmin`, `isActive`, `groupId`)
 VALUES
   (1, 'admin', 'admin@feuerwehr.local',
    'PENDING_BCRYPT_HASH_SET_BY_SEED',
    'Administrator', 1, 1, 1);
+=======
+-- INSERT IGNORE INTO `users`
+--  (`id`, `username`, `email`, `password`, `name`, `isAdmin`, `isActive`, `groupId`)
+-- VALUES
+--  (1, 'admin', 'admin@feuerwehr.local',
+--   'PENDING_BCRYPT_HASH_SET_BY_SEED',
+--   'Administrator', 1, 1, 1);
+>>>>>>> a9dc7840 (Added New FW Management system)
 
 -- -----------------------------------------------------------------------------
 -- Dienstgrade
 -- -----------------------------------------------------------------------------
 INSERT IGNORE INTO `ranks` (`id`, `name`, `abbreviation`, `sortOrder`) VALUES
+<<<<<<< HEAD
   (1,  'Feuerwehrmann-Anwärter', 'FwA', 1),
   (2,  'Feuerwehrmann',          'Fw',  2),
   (3,  'Oberfeuerwehrmann',      'OFw', 3),
@@ -733,6 +938,19 @@ INSERT IGNORE INTO `ranks` (`id`, `name`, `abbreviation`, `sortOrder`) VALUES
   (11, 'Brandamtmann',           'BAM', 11),
   (12, 'Brandamtsrat',           'BAR', 12),
   (13, 'Branddirektor',          'BD',  13);
+=======
+  (1,  'Feuerwehrmann-Anwärter', 'FMA', 1),
+  (2,  'Feuerwehrmann',          'FM',  2),
+  (3,  'Oberfeuerwehrmann',      'OFM', 3),
+  (4,  'Hauptfeuerwehrmann',     'HFM', 4),
+  (5,  'Löschmeister',           'LM',  5),
+  (6,  'Oberlöschmeister',       'OLM', 6),
+  (7,  'Hauptlöschmeister',      'HLM', 7),
+  (8,  'Brandmeister',           'BM',  8),
+  (9,  'Oberbrandmeister',       'OBM', 9),
+  (10, 'Hauptbrandmeister',      'HBM', 10),
+  (11, 'Brandinspektor',         'BI',  11);
+>>>>>>> a9dc7840 (Added New FW Management system)
 
 -- -----------------------------------------------------------------------------
 -- Ausbildungs-Kategorien
@@ -755,7 +973,13 @@ INSERT IGNORE INTO `course_categories` (`id`, `name`, `description`) VALUES
   (15, 'Sonstiges',                          'Sonstige Ausbildungen'),
   (16, 'G26.3 Untersuchung',                 'Arbeitsmedizinische Vorsorgeuntersuchung G26.3 für Atemschutzgeräteträger'),
   (17, 'LKW-Führerschein Folgeuntersuchung', 'Ärztliche Untersuchung zur Verlängerung der Fahrerlaubnis Klasse C/CE'),
+<<<<<<< HEAD
   (18, 'TM2',                                'Truppmann Lehrgang Teil 2');
+=======
+  (18, 'TM2',                                'Truppmann Lehrgang Teil 2'),
+  (19, 'TH 1/2',                             'Technische Hilfe Ausbildung'),
+  (20, 'Patientengerechtes Retten',          'Patientengerechtes Retten Ausbildung');
+>>>>>>> a9dc7840 (Added New FW Management system)
 
 -- -----------------------------------------------------------------------------
 -- Feste Lagerorte
@@ -763,7 +987,12 @@ INSERT IGNORE INTO `course_categories` (`id`, `name`, `description`) VALUES
 INSERT IGNORE INTO `warehouses` (`id`, `name`) VALUES
   (1, 'Gerätehalle'),
   (2, 'Werkstatt'),
+<<<<<<< HEAD
   (3, 'Schulungsraum');
+=======
+  (3, 'Schulungsraum'),
+  (4, 'LBF Büro');
+>>>>>>> a9dc7840 (Added New FW Management system)
 
 -- -----------------------------------------------------------------------------
 -- Abwesenheitsgründe
@@ -795,15 +1024,111 @@ INSERT IGNORE INTO `years` (`year`, `isActive`)
 -- Standard-Einstellungen
 -- -----------------------------------------------------------------------------
 INSERT IGNORE INTO `settings` (`key`, `value`, `description`) VALUES
+<<<<<<< HEAD
   ('fireStationName',        'Freiwillige Feuerwehr', 'Name der Feuerwehr'),
   ('fireStationCity',        'Musterstadt',           'Stadt'),
   ('fireStationZip',         '12345',                 'PLZ'),
   ('fireStationStreet',      'Feuerwehrstr. 1',       'Straße'),
+=======
+  ('fireStationName',        'FFW Heusweiler - LB Wahlschied', 'Name der Feuerwehr'),
+  ('fireStationCity',        'Heusweiler',            'Stadt'),
+  ('fireStationZip',         '66265',                 'PLZ'),
+  ('fireStationStreet',      'Im Dorf 13',            'Straße'),
+>>>>>>> a9dc7840 (Added New FW Management system)
   ('fireStationPhone',       '',                      'Telefon'),
   ('fireStationEmail',       '',                      'E-Mail'),
   ('inspectionReminderDays', '30',                    'Erinnerung vor Prüfung (Tage)'),
   ('medicalExamReminderDays','60',                    'Erinnerung vor Untersuchung (Tage)');
 
+<<<<<<< HEAD
+=======
+-- -----------------------------------------------------------------------------
+-- Geräteklassen mit Unterklassen und Prüfkriterien
+-- -----------------------------------------------------------------------------
+
+-- PSA
+INSERT IGNORE INTO `device_classes` (`id`, `name`, `sortOrder`) VALUES (1, 'PSA', 1);
+INSERT IGNORE INTO `device_subclasses` (`id`, `deviceClassId`, `name`, `sortOrder`) VALUES
+  (1, 1, 'Helme', 1),
+  (2, 1, 'Schutzkleidung TH', 2),
+  (3, 1, 'Schutzkleidung Brandbekämpfung', 3),
+  (4, 1, 'Schutzkleidung sonstige', 4);
+INSERT IGNORE INTO `inspection_criteria` (`deviceSubclassId`, `name`, `sortOrder`) VALUES
+  (1, 'Zustand Helmschale', 1), (1, 'Innenausstattung', 2), (1, 'Visier/Gesichtsschutz', 3), (1, 'Nackenschutz', 4), (1, 'Kennzeichnung', 5),
+  (2, 'Zustand Obermaterial', 1), (2, 'Nähte', 2), (2, 'Verschlüsse', 3), (2, 'Reflexstreifen', 4), (2, 'Kennzeichnung', 5),
+  (3, 'Zustand Obermaterial', 1), (3, 'Nähte', 2), (3, 'Verschlüsse', 3), (3, 'Reflexstreifen', 4), (3, 'Feuchtesperre', 5), (3, 'Kennzeichnung', 6),
+  (4, 'Zustand Obermaterial', 1), (4, 'Nähte', 2), (4, 'Verschlüsse', 3), (4, 'Kennzeichnung', 4);
+
+-- Erste Hilfe & Hygiene
+INSERT IGNORE INTO `device_classes` (`id`, `name`, `sortOrder`) VALUES (2, 'Erste Hilfe & Hygiene', 2);
+INSERT IGNORE INTO `device_subclasses` (`id`, `deviceClassId`, `name`, `sortOrder`) VALUES
+  (5, 2, 'Sanitäts- & Wiederbelebungsgeräte', 1);
+INSERT IGNORE INTO `inspection_criteria` (`deviceSubclassId`, `name`, `sortOrder`) VALUES
+  (5, 'Vollständigkeit', 1), (5, 'Zustand Geräte', 2), (5, 'Verfallsdaten', 3), (5, 'Funktionsprüfung', 4), (5, 'Kennzeichnung', 5);
+
+-- Signal- & Beleuchtungsgeräte
+INSERT IGNORE INTO `device_classes` (`id`, `name`, `sortOrder`) VALUES (3, 'Signal- & Beleuchtungsgeräte', 3);
+INSERT IGNORE INTO `device_subclasses` (`id`, `deviceClassId`, `name`, `sortOrder`) VALUES
+  (6, 3, 'Funkgeräte & Melder', 1),
+  (7, 3, 'Geräte Verkehrssicherung', 2),
+  (8, 3, 'Signal- & Beleuchtungsgeräte', 3);
+INSERT IGNORE INTO `inspection_criteria` (`deviceSubclassId`, `name`, `sortOrder`) VALUES
+  (6, 'Zustand Gehäuse', 1), (6, 'Akku/Batterie', 2), (6, 'Funktionsprüfung', 3), (6, 'Antenne', 4), (6, 'Kennzeichnung', 5),
+  (7, 'Zustand', 1), (7, 'Leuchtmittel', 2), (7, 'Funktionsprüfung', 3), (7, 'Kennzeichnung', 4),
+  (8, 'Zustand Gehäuse', 1), (8, 'Leuchtmittel', 2), (8, 'Akku/Batterie', 3), (8, 'Funktionsprüfung', 4), (8, 'Kabel und Stecker', 5), (8, 'Kennzeichnung', 6);
+
+-- Arbeitsgeräte
+INSERT IGNORE INTO `device_classes` (`id`, `name`, `sortOrder`) VALUES (4, 'Arbeitsgeräte', 4);
+INSERT IGNORE INTO `device_subclasses` (`id`, `deviceClassId`, `name`, `sortOrder`) VALUES
+  (9,  4, 'Geräte & Werkzeuge', 1),
+  (10, 4, 'Pumpen', 2);
+INSERT IGNORE INTO `inspection_criteria` (`deviceSubclassId`, `name`, `sortOrder`) VALUES
+  (9, 'Zustand', 1), (9, 'Vollständigkeit', 2), (9, 'Funktionsprüfung', 3), (9, 'Kennzeichnung', 4),
+  (10, 'Zustand Gehäuse', 1), (10, 'Dichtungen', 2), (10, 'Funktionsprüfung', 3), (10, 'Ölstand', 4), (10, 'Kraftstoff', 5), (10, 'Kennzeichnung', 6);
+
+-- Löschgeräte
+INSERT IGNORE INTO `device_classes` (`id`, `name`, `sortOrder`) VALUES (5, 'Löschgeräte', 5);
+INSERT IGNORE INTO `device_subclasses` (`id`, `deviceClassId`, `name`, `sortOrder`) VALUES
+  (11, 5, 'Schläuche', 1),
+  (12, 5, 'Löschgeräte', 2),
+  (13, 5, 'Tragbare Feuerlöscher', 3),
+  (14, 5, 'Wasserführende Armaturen', 4);
+INSERT IGNORE INTO `inspection_criteria` (`deviceSubclassId`, `name`, `sortOrder`) VALUES
+  (11, 'Zustand Schlauch', 1), (11, 'Kupplungen', 2), (11, 'Dichtungen', 3), (11, 'Druckprüfung', 4), (11, 'Kennzeichnung', 5),
+  (12, 'Zustand', 1), (12, 'Vollständigkeit', 2), (12, 'Funktionsprüfung', 3), (12, 'Kennzeichnung', 4),
+  (13, 'Zustand Behälter', 1), (13, 'Schlauch/Düse', 2), (13, 'Manometer/Druck', 3), (13, 'Plombierung', 4), (13, 'Prüfdatum', 5), (13, 'Kennzeichnung', 6),
+  (14, 'Zustand', 1), (14, 'Kupplungen', 2), (14, 'Dichtungen', 3), (14, 'Funktionsprüfung', 4), (14, 'Kennzeichnung', 5);
+
+-- Rettungsgeräte
+INSERT IGNORE INTO `device_classes` (`id`, `name`, `sortOrder`) VALUES (6, 'Rettungsgeräte', 6);
+INSERT IGNORE INTO `device_subclasses` (`id`, `deviceClassId`, `name`, `sortOrder`) VALUES
+  (15, 6, 'Feuerwehrhaltegurte', 1),
+  (16, 6, 'Feuerwehrleinen', 2),
+  (17, 6, 'Rettungsgeräte', 3),
+  (18, 6, 'Spanngurte & Seile', 4),
+  (19, 6, 'Tragbare Leitern', 5);
+INSERT IGNORE INTO `inspection_criteria` (`deviceSubclassId`, `name`, `sortOrder`) VALUES
+  (15, 'Zustand Gurt', 1), (15, 'Karabiner', 2), (15, 'Nähte', 3), (15, 'Kennzeichnung', 4),
+  (16, 'Zustand Leine', 1), (16, 'Karabiner', 2), (16, 'Leinenbeutel', 3), (16, 'Kennzeichnung', 4),
+  (17, 'Zustand', 1), (17, 'Vollständigkeit', 2), (17, 'Funktionsprüfung', 3), (17, 'Kennzeichnung', 4),
+  (18, 'Zustand', 1), (18, 'Verschlüsse/Haken', 2), (18, 'Kennzeichnung', 3),
+  (19, 'Zustand Holme', 1), (19, 'Sprossen', 2), (19, 'Gelenke/Verschlüsse', 3), (19, 'Standfüße', 4), (19, 'Kennzeichnung', 5);
+
+-- Elektrische Geräte
+INSERT IGNORE INTO `device_classes` (`id`, `name`, `sortOrder`) VALUES (7, 'Elektrische Geräte', 7);
+INSERT IGNORE INTO `device_subclasses` (`id`, `deviceClassId`, `name`, `sortOrder`) VALUES
+  (20, 7, 'Elektrische Geräte', 1);
+INSERT IGNORE INTO `inspection_criteria` (`deviceSubclassId`, `name`, `sortOrder`) VALUES
+  (20, 'Zustand Gehäuse', 1), (20, 'Einspannfutter', 2), (20, 'Werkzeug', 3), (20, 'Ersatztrennscheiben', 4), (20, 'Kabel und Stecker', 5), (20, 'elektr. Prüfung', 6);
+
+-- Geräte & Fahrzeuge im GH
+INSERT IGNORE INTO `device_classes` (`id`, `name`, `sortOrder`) VALUES (8, 'Geräte & Fahrzeuge im GH', 8);
+INSERT IGNORE INTO `device_subclasses` (`id`, `deviceClassId`, `name`, `sortOrder`) VALUES
+  (21, 8, 'Geräte & Fahrzeuge', 1);
+INSERT IGNORE INTO `inspection_criteria` (`deviceSubclassId`, `name`, `sortOrder`) VALUES
+  (21, 'Zustand', 1), (21, 'Vollständigkeit', 2), (21, 'Funktionsprüfung', 3), (21, 'Kennzeichnung', 4);
+
+>>>>>>> a9dc7840 (Added New FW Management system)
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- =============================================================================
@@ -830,9 +1155,21 @@ SET FOREIGN_KEY_CHECKS = 1;
 --    logbook_entries     - Fahrtenbuch
 --    equipment_inspections - Geräteprüfungen
 --
+<<<<<<< HEAD
 --  Bestandsliste:
 --    warehouses          - Lager (auch fahrzeuggebunden)
 --    articles            - Artikel / Ausrüstung (mit Inventarnummer + Lagerort)
+=======
+--  Geräteprüfung:
+--    device_classes               - Geräteklassen (PSA, Löschgeräte, etc.)
+--    device_subclasses            - Unterklassen (Helme, Schläuche, etc.)
+--    inspection_criteria          - Prüfkriterien je Unterklasse
+--    inspection_criterion_results - io/nio Einzelergebnisse je Prüfung
+--
+--  Bestandsliste:
+--    warehouses          - Lager (auch fahrzeuggebunden)
+--    articles            - Artikel / Ausrüstung (inkl. Geräteklasse, DIN, Seriennr.)
+>>>>>>> a9dc7840 (Added New FW Management system)
 --    article_assignments - Zuweisung Artikel → Lager/Fahrzeug
 --    article_inspections - Prüfbuch (Prüfungen je Artikel)
 --
@@ -840,13 +1177,27 @@ SET FOREIGN_KEY_CHECKS = 1;
 --    operations          - Einsätze
 --    operation_times     - Fahrzeugzeiten je Einsatz
 --    operation_reports   - Einsatzberichte
+<<<<<<< HEAD
+=======
+--    operation_documents - Dokumente (PDF-Uploads)
+>>>>>>> a9dc7840 (Added New FW Management system)
 --
 --  Veranstaltungen:
 --    events              - Dienstabende, BSW, Sonstiges
 --    attendances         - Anwesenheitsliste
 --    absences            - Abwesenheiten
+<<<<<<< HEAD
 --    fire_watches        - Brandsicherheitswachen
 --
+=======
+--    event_documents     - Dokumente (PDF-Uploads)
+--    fire_watches        - Brandsicherheitswachen
+--
+--  Templates:
+--    templates           - Dokument-Vorlagen
+--    template_history    - Änderungshistorie
+--
+>>>>>>> a9dc7840 (Added New FW Management system)
 --  Ausbildung:
 --    course_categories   - Lehrgang-Typen
 --    courses             - Lehrgänge je Mitglied

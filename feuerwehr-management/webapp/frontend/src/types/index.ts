@@ -156,6 +156,40 @@ export interface EquipmentInspection {
   notifyDue: boolean;
 }
 
+<<<<<<< HEAD
+=======
+export interface DeviceClass {
+  id: number;
+  name: string;
+  sortOrder: number;
+  subclasses?: DeviceSubclass[];
+}
+
+export interface DeviceSubclass {
+  id: number;
+  deviceClassId: number;
+  name: string;
+  sortOrder: number;
+  deviceClass?: DeviceClass;
+  criteria?: InspectionCriterion[];
+}
+
+export interface InspectionCriterion {
+  id: number;
+  deviceSubclassId: number;
+  name: string;
+  sortOrder: number;
+}
+
+export interface InspectionCriterionResult {
+  id: number;
+  inspectionId: number;
+  criterionId: number;
+  result: 'io' | 'nio';
+  criterion?: InspectionCriterion;
+}
+
+>>>>>>> a9dc7840 (Added New FW Management system)
 export interface ArticleInspection {
   id: number;
   articleId: number;
@@ -166,6 +200,10 @@ export interface ArticleInspection {
   nextDueDate: string | null;
   createdAt: string;
   article?: Article;
+<<<<<<< HEAD
+=======
+  criterionResults?: InspectionCriterionResult[];
+>>>>>>> a9dc7840 (Added New FW Management system)
 }
 
 export interface LogbookEntry {
@@ -176,6 +214,10 @@ export interface LogbookEntry {
   startMileage: number;
   endMileage: number;
   purpose: string;
+<<<<<<< HEAD
+=======
+  destination: string | null;
+>>>>>>> a9dc7840 (Added New FW Management system)
   notes: string | null;
 }
 
@@ -199,6 +241,16 @@ export interface Article {
   isExtinguisher: boolean;
   inventoryNumber: string | null;
   warehouseId: number | null;
+<<<<<<< HEAD
+=======
+  deviceSubclassId: number | null;
+  deviceSubclass?: DeviceSubclass | null;
+  manufacturingDate: string | null;
+  specification: string | null;
+  serialNumber: string | null;
+  din: string | null;
+  isDecommissioned: boolean;
+>>>>>>> a9dc7840 (Added New FW Management system)
   warehouse?: Warehouse | null;
   assignments?: ArticleAssignment[];
 }
@@ -244,6 +296,20 @@ export interface OperationTime {
   returnTime: string | null;
 }
 
+<<<<<<< HEAD
+=======
+export interface OperationDocument {
+  id: number;
+  operationId: number;
+  fileName: string;
+  filePath: string;
+  fileSize: number;
+  mimeType: string;
+  uploadedBy: string;
+  createdAt: string;
+}
+
+>>>>>>> a9dc7840 (Added New FW Management system)
 export interface OperationReport {
   id: number;
   operationId: number;
@@ -266,6 +332,40 @@ export interface Event {
   attendances?: EventAttendance[];
 }
 
+<<<<<<< HEAD
+=======
+export interface EventDocument {
+  id: number;
+  eventId: number;
+  fileName: string;
+  filePath: string;
+  fileSize: number;
+  mimeType: string;
+  uploadedBy: string;
+  createdAt: string;
+}
+
+export interface Template {
+  id: number;
+  name: string;
+  filePath: string;
+  fileSize: number;
+  mimeType: string;
+  createdBy: string;
+  updatedBy: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TemplateHistory {
+  id: number;
+  templateId: number;
+  action: string;
+  changedBy: string;
+  changedAt: string;
+}
+
+>>>>>>> a9dc7840 (Added New FW Management system)
 export interface EventAttendance {
   memberId: number;
   member: Pick<Member, 'id' | 'firstName' | 'lastName' | 'rank'>;
@@ -297,6 +397,10 @@ export interface Course {
   endDate: string | null;
   location: string | null;
   notes: string | null;
+<<<<<<< HEAD
+=======
+  certificatePath: string | null;
+>>>>>>> a9dc7840 (Added New FW Management system)
   category?: CourseCategory;
   member?: Pick<Member, 'id' | 'firstName' | 'lastName' | 'rank'>;
 }

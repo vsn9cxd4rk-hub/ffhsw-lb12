@@ -1,0 +1,36 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const auth_middleware_1 = require("../middleware/auth.middleware");
+const permission_middleware_1 = require("../middleware/permission.middleware");
+const settings_controller_1 = require("../controllers/settings.controller");
+const router = (0, express_1.Router)();
+router.use(auth_middleware_1.authenticate);
+router.get('/', settings_controller_1.getSettings);
+router.put('/', permission_middleware_1.requireAdmin, settings_controller_1.updateSettings);
+router.get('/ranks', settings_controller_1.getRanks);
+router.post('/ranks', permission_middleware_1.requireAdmin, settings_controller_1.createRank);
+router.put('/ranks/:id', permission_middleware_1.requireAdmin, settings_controller_1.updateRank);
+router.delete('/ranks/:id', permission_middleware_1.requireAdmin, settings_controller_1.deleteRank);
+router.get('/years', settings_controller_1.getYears);
+router.post('/years', permission_middleware_1.requireAdmin, settings_controller_1.createYear);
+router.put('/years/:id', permission_middleware_1.requireAdmin, settings_controller_1.updateYear);
+router.get('/templates', settings_controller_1.getTemplates);
+router.post('/templates', permission_middleware_1.requireAdmin, settings_controller_1.templateUpload, settings_controller_1.uploadTemplate);
+router.put('/templates/:id', permission_middleware_1.requireAdmin, settings_controller_1.templateUpload, settings_controller_1.updateTemplate);
+router.get('/templates/:id/download', settings_controller_1.downloadTemplate);
+router.delete('/templates/:id', permission_middleware_1.requireAdmin, settings_controller_1.deleteTemplate);
+router.get('/templates/:id/history', settings_controller_1.getTemplateHistory);
+// Device Classes / Geräteklassen
+router.get('/device-classes', settings_controller_1.getDeviceClasses);
+router.post('/device-classes', permission_middleware_1.requireAdmin, settings_controller_1.createDeviceClass);
+router.put('/device-classes/:id', permission_middleware_1.requireAdmin, settings_controller_1.updateDeviceClass);
+router.delete('/device-classes/:id', permission_middleware_1.requireAdmin, settings_controller_1.deleteDeviceClass);
+router.post('/device-classes/:classId/subclasses', permission_middleware_1.requireAdmin, settings_controller_1.createSubclass);
+router.put('/device-subclasses/:id', permission_middleware_1.requireAdmin, settings_controller_1.updateSubclass);
+router.delete('/device-subclasses/:id', permission_middleware_1.requireAdmin, settings_controller_1.deleteSubclass);
+router.post('/device-subclasses/:subclassId/criteria', permission_middleware_1.requireAdmin, settings_controller_1.createCriterion);
+router.put('/inspection-criteria/:id', permission_middleware_1.requireAdmin, settings_controller_1.updateCriterion);
+router.delete('/inspection-criteria/:id', permission_middleware_1.requireAdmin, settings_controller_1.deleteCriterion);
+exports.default = router;
+//# sourceMappingURL=settings.routes.js.map

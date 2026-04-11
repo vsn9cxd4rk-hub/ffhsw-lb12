@@ -1,8 +1,45 @@
 import { Request, Response } from 'express';
+<<<<<<< HEAD
+=======
+import path from 'path';
+import fs from 'fs';
+import multer from 'multer';
+>>>>>>> a9dc7840 (Added New FW Management system)
 import { prisma } from '../config/database';
 import { sendSuccess, sendError, sendPaginated } from '../utils/response';
 import { getPagination } from '../utils/pagination';
 
+<<<<<<< HEAD
+=======
+// Multer configuration for document uploads
+const uploadDir = process.env.UPLOAD_PATH || './uploads';
+
+const storage = multer.diskStorage({
+  destination: (req, _file, cb) => {
+    const dir = path.join(uploadDir, 'operations', req.params.id);
+    fs.mkdirSync(dir, { recursive: true });
+    cb(null, dir);
+  },
+  filename: (_req, file, cb) => {
+    const uniqueName = `${Date.now()}-${file.originalname}`;
+    cb(null, uniqueName);
+  },
+});
+
+export const uploadMiddleware = multer({
+  storage,
+  limits: { fileSize: 20 * 1024 * 1024 }, // 20MB
+  fileFilter: (_req, file, cb) => {
+    const allowed = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    if (allowed.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Nur PDF- und Word-Dateien sind erlaubt'));
+    }
+  },
+}).single('file');
+
+>>>>>>> a9dc7840 (Added New FW Management system)
 export async function getOperations(req: Request, res: Response): Promise<void> {
   try {
     const { skip, take, page, limit } = getPagination(req);
@@ -140,3 +177,82 @@ export async function upsertOperationReport(req: Request, res: Response): Promis
     sendError(res, (err as Error).message);
   }
 }
+<<<<<<< HEAD
+=======
+
+// Documents
+export async function getDocuments(req: Request, res: Response): Promise<void> {
+  try {
+    const operationId = parseInt(req.params.id);
+    const documents = await prisma.operationDocument.findMany({
+      where: { operationId },
+      orderBy: { createdAt: 'desc' },
+    });
+    sendSuccess(res, documents);
+  } catch (err) {
+    sendError(res, (err as Error).message);
+  }
+}
+
+export async function uploadDocument(req: Request, res: Response): Promise<void> {
+  try {
+    const operationId = parseInt(req.params.id);
+    if (!req.file) {
+      sendError(res, 'Keine Datei hochgeladen', 400);
+      return;
+    }
+
+    const doc = await prisma.operationDocument.create({
+      data: {
+        operationId,
+        fileName: req.file.originalname,
+        filePath: req.file.path,
+        fileSize: req.file.size,
+        mimeType: req.file.mimetype,
+        uploadedBy: req.user?.username || 'System',
+      },
+    });
+    sendSuccess(res, doc, 201);
+  } catch (err) {
+    sendError(res, (err as Error).message);
+  }
+}
+
+export async function downloadDocument(req: Request, res: Response): Promise<void> {
+  try {
+    const doc = await prisma.operationDocument.findUnique({
+      where: { id: parseInt(req.params.docId) },
+    });
+    if (!doc) { sendError(res, 'Dokument nicht gefunden', 404); return; }
+
+    if (!fs.existsSync(doc.filePath)) {
+      sendError(res, 'Datei nicht gefunden', 404);
+      return;
+    }
+
+    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(doc.fileName)}"`);
+    res.setHeader('Content-Type', doc.mimeType);
+    fs.createReadStream(doc.filePath).pipe(res);
+  } catch (err) {
+    sendError(res, (err as Error).message);
+  }
+}
+
+export async function deleteDocument(req: Request, res: Response): Promise<void> {
+  try {
+    const doc = await prisma.operationDocument.findUnique({
+      where: { id: parseInt(req.params.docId) },
+    });
+    if (!doc) { sendError(res, 'Dokument nicht gefunden', 404); return; }
+
+    if (fs.existsSync(doc.filePath)) {
+      fs.unlinkSync(doc.filePath);
+    }
+
+    await prisma.operationDocument.delete({ where: { id: doc.id } });
+    sendSuccess(res, { message: 'Dokument gelöscht' });
+  } catch (err) {
+    sendError(res, (err as Error).message);
+  }
+}
+>>>>>>> a9dc7840 (Added New FW Management system)

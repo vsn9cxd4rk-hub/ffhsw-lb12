@@ -12,6 +12,20 @@ export const eventsApi = {
   updateAttendance: (id: number, records: Array<{ memberId: number; status: string }>) =>
     client.post(`/events/${id}/attendance`, { records }),
 
+<<<<<<< HEAD
+=======
+  getDocuments: (id: number) => client.get(`/events/${id}/documents`),
+  uploadDocument: (id: number, file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return client.post(`/events/${id}/documents`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+  },
+  downloadDocument: (eventId: number, docId: number) =>
+    client.get(`/events/${eventId}/documents/${docId}/download`, { responseType: 'blob' }),
+  deleteDocument: (eventId: number, docId: number) =>
+    client.delete(`/events/${eventId}/documents/${docId}`),
+
+>>>>>>> a9dc7840 (Added New FW Management system)
   getFireWatches: (params?: Record<string, unknown>) => client.get('/events/firewatches', { params }),
   createFireWatch: (data: Partial<FireWatch>) => client.post('/events/firewatches', data),
   getFireWatch: (id: number) => client.get<{ data: FireWatch }>(`/events/firewatches/${id}`),

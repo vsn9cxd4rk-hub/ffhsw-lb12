@@ -343,6 +343,10 @@ model LogbookEntry {
   startMileage Int
   endMileage   Int
   purpose      String   @db.VarChar(500)
+<<<<<<< HEAD
+=======
+  destination  String?  @db.VarChar(500)
+>>>>>>> a9dc7840 (Added New FW Management system)
   notes        String?  @db.Text
 
   vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
@@ -364,6 +368,63 @@ model EquipmentInspection {
   @@map("equipment_inspections")
 }
 
+<<<<<<< HEAD
+=======
+// ==================== DEVICE CLASSES / GERÄTEKLASSEN ====================
+
+model DeviceClass {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique @db.VarChar(255)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  subclasses DeviceSubclass[]
+
+  @@map("device_classes")
+}
+
+model DeviceSubclass {
+  id            Int      @id @default(autoincrement())
+  deviceClassId Int
+  name          String   @db.VarChar(255)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+
+  deviceClass DeviceClass           @relation(fields: [deviceClassId], references: [id], onDelete: Cascade)
+  criteria    InspectionCriterion[]
+  articles    Article[]
+
+  @@unique([deviceClassId, name])
+  @@map("device_subclasses")
+}
+
+model InspectionCriterion {
+  id               Int      @id @default(autoincrement())
+  deviceSubclassId Int
+  name             String   @db.VarChar(255)
+  sortOrder        Int      @default(0)
+  createdAt        DateTime @default(now())
+
+  deviceSubclass DeviceSubclass              @relation(fields: [deviceSubclassId], references: [id], onDelete: Cascade)
+  results        InspectionCriterionResult[]
+
+  @@map("inspection_criteria")
+}
+
+model InspectionCriterionResult {
+  id           Int    @id @default(autoincrement())
+  inspectionId Int
+  criterionId  Int
+  result       String @db.VarChar(10)
+
+  inspection ArticleInspection   @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+  criterion  InspectionCriterion @relation(fields: [criterionId], references: [id], onDelete: Restrict)
+
+  @@unique([inspectionId, criterionId])
+  @@map("inspection_criterion_results")
+}
+
+>>>>>>> a9dc7840 (Added New FW Management system)
 // ==================== INVENTORY / BESTANDSLISTE ====================
 
 model Warehouse {
@@ -381,6 +442,7 @@ model Warehouse {
 }
 
 model Article {
+<<<<<<< HEAD
   id                 Int      @id @default(autoincrement())
   name               String   @db.VarChar(255)
   manufacturer       String?  @db.VarChar(255)
@@ -399,6 +461,33 @@ model Article {
   warehouse   Warehouse?          @relation(fields: [warehouseId], references: [id], onDelete: SetNull)
   assignments ArticleAssignment[]
   inspections ArticleInspection[]
+=======
+  id                 Int       @id @default(autoincrement())
+  name               String    @db.VarChar(255)
+  manufacturer       String?   @db.VarChar(255)
+  articleType        String?   @db.VarChar(100)
+  description        String?   @db.Text
+  inspectionInterval Int?
+  imagePath          String?   @db.VarChar(500)
+  value              Decimal?  @db.Decimal(10, 2)
+  ean                String?   @db.VarChar(50)
+  isExtinguisher     Boolean   @default(false)
+  inventoryNumber    String?   @unique @db.VarChar(100)
+  warehouseId        Int?
+  deviceSubclassId   Int?
+  manufacturingDate  DateTime?
+  specification      String?   @db.VarChar(500)
+  serialNumber       String?   @db.VarChar(255)
+  din                String?   @db.VarChar(100)
+  isDecommissioned   Boolean   @default(false)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  warehouse      Warehouse?       @relation(fields: [warehouseId], references: [id], onDelete: SetNull)
+  deviceSubclass DeviceSubclass?  @relation(fields: [deviceSubclassId], references: [id], onDelete: SetNull)
+  assignments    ArticleAssignment[]
+  inspections    ArticleInspection[]
+>>>>>>> a9dc7840 (Added New FW Management system)
 
   @@map("articles")
 }
@@ -413,7 +502,12 @@ model ArticleInspection {
   nextDueDate   DateTime?
   createdAt     DateTime  @default(now())
 
+<<<<<<< HEAD
   article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+=======
+  article          Article                     @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  criterionResults InspectionCriterionResult[]
+>>>>>>> a9dc7840 (Added New FW Management system)
 
   @@map("article_inspections")
 }
@@ -460,8 +554,14 @@ model Operation {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
+<<<<<<< HEAD
   times   OperationTime[]
   reports OperationReport[]
+=======
+  times     OperationTime[]
+  reports   OperationReport[]
+  documents OperationDocument[]
+>>>>>>> a9dc7840 (Added New FW Management system)
 
   @@map("operations")
 }
@@ -494,6 +594,24 @@ model OperationReport {
   @@map("operation_reports")
 }
 
+<<<<<<< HEAD
+=======
+model OperationDocument {
+  id          Int      @id @default(autoincrement())
+  operationId Int
+  fileName    String   @db.VarChar(255)
+  filePath    String   @db.VarChar(500)
+  fileSize    Int
+  mimeType    String   @db.VarChar(100)
+  uploadedBy  String   @db.VarChar(100)
+  createdAt   DateTime @default(now())
+
+  operation Operation @relation(fields: [operationId], references: [id], onDelete: Cascade)
+
+  @@map("operation_documents")
+}
+
+>>>>>>> a9dc7840 (Added New FW Management system)
 // ==================== EVENTS / VERANSTALTUNGEN ====================
 
 model Event {
@@ -511,6 +629,10 @@ model Event {
   createdAt           DateTime  @default(now())
 
   attendances Attendance[]
+<<<<<<< HEAD
+=======
+  documents   EventDocument[]
+>>>>>>> a9dc7840 (Added New FW Management system)
 
   @@map("events")
 }
@@ -570,6 +692,7 @@ model CourseCategory {
 }
 
 model Course {
+<<<<<<< HEAD
   id         Int       @id @default(autoincrement())
   memberId   Int
   categoryId Int
@@ -580,6 +703,19 @@ model Course {
   notes      String?   @db.Text
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
+=======
+  id              Int       @id @default(autoincrement())
+  memberId        Int
+  categoryId      Int
+  status          String    @default("pending") @db.VarChar(50) // pending, active, completed, failed
+  startDate       DateTime?
+  endDate         DateTime?
+  location        String?   @db.VarChar(255)
+  notes           String?   @db.Text
+  certificatePath String?   @db.VarChar(500)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+>>>>>>> a9dc7840 (Added New FW Management system)
 
   member   Member         @relation(fields: [memberId], references: [id], onDelete: Cascade)
   category CourseCategory @relation(fields: [categoryId], references: [id])
@@ -587,6 +723,54 @@ model Course {
   @@map("courses")
 }
 
+<<<<<<< HEAD
+=======
+model EventDocument {
+  id          Int      @id @default(autoincrement())
+  eventId     Int
+  fileName    String   @db.VarChar(255)
+  filePath    String   @db.VarChar(500)
+  fileSize    Int
+  mimeType    String   @db.VarChar(100)
+  uploadedBy  String   @db.VarChar(100)
+  createdAt   DateTime @default(now())
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@map("event_documents")
+}
+
+// ==================== TEMPLATES ====================
+
+model Template {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique @db.VarChar(255)
+  filePath  String   @db.VarChar(500)
+  fileSize  Int
+  mimeType  String   @db.VarChar(100)
+  createdBy String   @db.VarChar(100)
+  updatedBy String?  @db.VarChar(100)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  history TemplateHistory[]
+
+  @@map("templates")
+}
+
+model TemplateHistory {
+  id         Int      @id @default(autoincrement())
+  templateId Int
+  action     String   @db.VarChar(50)
+  changedBy  String   @db.VarChar(100)
+  changedAt  DateTime @default(now())
+
+  template Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@map("template_history")
+}
+
+>>>>>>> a9dc7840 (Added New FW Management system)
 // ==================== REFERENCE DATA ====================
 
 model Rank {

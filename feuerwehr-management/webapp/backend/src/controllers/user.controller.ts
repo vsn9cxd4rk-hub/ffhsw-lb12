@@ -54,6 +54,14 @@ export async function createUser(req: Request, res: Response): Promise<void> {
       return;
     }
 
+<<<<<<< HEAD
+=======
+    if (!groupId) {
+      sendError(res, 'Berechtigungsgruppe ist erforderlich', 400);
+      return;
+    }
+
+>>>>>>> a9dc7840 (Added New FW Management system)
     const hashed = await authService.hashPassword(password);
     const user = await prisma.user.create({
       data: {
@@ -63,7 +71,11 @@ export async function createUser(req: Request, res: Response): Promise<void> {
         name: name || null,
         isAdmin: isAdmin ?? false,
         isActive: isActive ?? true,
+<<<<<<< HEAD
         groupId: groupId || null,
+=======
+        groupId,
+>>>>>>> a9dc7840 (Added New FW Management system)
       },
       select: {
         id: true, username: true, email: true, name: true,
@@ -104,7 +116,14 @@ export async function updateUser(req: Request, res: Response): Promise<void> {
     if (name !== undefined) data.name = name;
     if (isAdmin !== undefined) data.isAdmin = isAdmin;
     if (isActive !== undefined) data.isActive = isActive;
+<<<<<<< HEAD
     if (groupId !== undefined) data.groupId = groupId;
+=======
+    if (groupId !== undefined) {
+      if (!groupId) { sendError(res, 'Berechtigungsgruppe ist erforderlich', 400); return; }
+      data.groupId = groupId;
+    }
+>>>>>>> a9dc7840 (Added New FW Management system)
     if (password) data.password = await authService.hashPassword(password);
 
     const user = await prisma.user.update({

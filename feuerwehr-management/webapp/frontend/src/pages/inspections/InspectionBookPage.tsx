@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+<<<<<<< HEAD
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import { Article, ArticleInspection } from '../../types';
@@ -133,6 +134,40 @@ function DueTab({ onInspect }: { onInspect: (article: Article) => void }) {
   const { data: dueArticles, isLoading } = useQuery({
     queryKey: ['inspections-due'],
     queryFn: () => inspectionApi.getDue().then(r => r.data.data),
+=======
+import { useQuery } from '@tanstack/react-query';
+import { PlusIcon } from '@heroicons/react/24/outline';
+import { Article, ArticleInspection, DeviceClass } from '../../types';
+import { Table } from '../../components/ui/Table';
+import { Button } from '../../components/ui/Button';
+import { Badge } from '../../components/ui/Badge';
+import { Pagination } from '../../components/ui/Pagination';
+import { formatDate } from '../../utils/format';
+import { inspectionsApi } from '../../api/inspections';
+import { settingsApi } from '../../api/settings';
+import { CriteriaInspectionModal } from '../../components/inspections/CriteriaInspectionModal';
+import { ReportTab } from '../../components/inspections/ReportTab';
+
+type Tab = 'due' | 'history' | 'report';
+
+function DueTab({ onInspect }: { onInspect: (article: Article) => void }) {
+  const [deviceClassId, setDeviceClassId] = useState<number | ''>('');
+  const [deviceSubclassId, setDeviceSubclassId] = useState<number | ''>('');
+
+  const { data: classesRes } = useQuery({
+    queryKey: ['device-classes'],
+    queryFn: () => settingsApi.getDeviceClasses(),
+  });
+  const deviceClasses: DeviceClass[] = classesRes?.data?.data || [];
+  const selectedClass = deviceClasses.find(dc => dc.id === deviceClassId);
+
+  const { data: dueArticles, isLoading } = useQuery({
+    queryKey: ['due-inspections', deviceClassId, deviceSubclassId],
+    queryFn: () => inspectionsApi.getDue({
+      deviceClassId: deviceClassId || undefined,
+      deviceSubclassId: deviceSubclassId || undefined,
+    }).then(r => r.data.data),
+>>>>>>> a9dc7840 (Added New FW Management system)
   });
 
   const columns = [
@@ -140,8 +175,16 @@ function DueTab({ onInspect }: { onInspect: (article: Article) => void }) {
     { key: 'name', header: 'Artikel', render: (a: Article) => (
       <div><p className="font-medium">{a.name}</p>{a.manufacturer && <p className="text-xs text-gray-500">{a.manufacturer}</p>}</div>
     )},
+<<<<<<< HEAD
     { key: 'warehouse', header: 'Lagerort', render: (a: Article) => a.warehouse?.name || '-' },
     { key: 'interval', header: 'Intervall', render: (a: Article) => a.inspectionInterval ? `${a.inspectionInterval} Monate` : '-' },
+=======
+    { key: 'deviceClass', header: 'Geräteklasse', render: (a: Article) =>
+      a.deviceSubclass?.deviceClass?.name || '-'
+    },
+    { key: 'warehouse', header: 'Lagerort', render: (a: Article) => a.warehouse?.name || '-' },
+    { key: 'interval', header: 'Intervall', render: (a: Article) => a.inspectionInterval ? `${a.inspectionInterval} Mon.` : '-' },
+>>>>>>> a9dc7840 (Added New FW Management system)
     { key: 'lastInspection', header: 'Letzte Prüfung', render: (a: Article) => {
       const inspections = (a as Article & { inspections?: ArticleInspection[] }).inspections;
       return inspections && inspections.length > 0 ? formatDate(inspections[0].inspectedAt) : 'Nie';
@@ -161,6 +204,7 @@ function DueTab({ onInspect }: { onInspect: (article: Article) => void }) {
   ];
 
   return (
+<<<<<<< HEAD
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
       <Table
         columns={columns}
@@ -169,6 +213,41 @@ function DueTab({ onInspect }: { onInspect: (article: Article) => void }) {
         emptyMessage="Keine fälligen Prüfungen."
         keyExtractor={(a) => a.id}
       />
+=======
+    <div className="space-y-4">
+      {/* Filter bar */}
+      <div className="flex items-end gap-4 bg-white p-4 rounded-lg border border-gray-200">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Geräteklasse</label>
+          <select value={deviceClassId}
+            onChange={(e) => { setDeviceClassId(e.target.value ? parseInt(e.target.value) : ''); setDeviceSubclassId(''); }}
+            className="block w-56 px-3 py-2 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none bg-white">
+            <option value="">Alle Geräteklassen</option>
+            {deviceClasses.map(dc => <option key={dc.id} value={dc.id}>{dc.name}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Unterklasse</label>
+          <select value={deviceSubclassId}
+            onChange={(e) => setDeviceSubclassId(e.target.value ? parseInt(e.target.value) : '')}
+            disabled={!deviceClassId}
+            className="block w-56 px-3 py-2 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none bg-white disabled:bg-gray-100">
+            <option value="">Alle Unterklassen</option>
+            {selectedClass?.subclasses?.map(sc => <option key={sc.id} value={sc.id}>{sc.name}</option>)}
+          </select>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <Table
+          columns={columns}
+          data={dueArticles || []}
+          loading={isLoading}
+          emptyMessage="Keine fälligen Prüfungen."
+          keyExtractor={(a) => a.id}
+        />
+      </div>
+>>>>>>> a9dc7840 (Added New FW Management system)
     </div>
   );
 }
@@ -178,7 +257,11 @@ function HistoryTab() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['inspections-history', page],
+<<<<<<< HEAD
     queryFn: () => inspectionApi.getAll({ page, limit: 20 }).then(r => r.data),
+=======
+    queryFn: () => inspectionsApi.getAll({ page, limit: 20 }).then(r => r.data),
+>>>>>>> a9dc7840 (Added New FW Management system)
   });
 
   const columns = [
@@ -189,6 +272,12 @@ function HistoryTab() {
         {i.article?.inventoryNumber && <p className="text-xs text-gray-500">{i.article.inventoryNumber}</p>}
       </div>
     )},
+<<<<<<< HEAD
+=======
+    { key: 'deviceClass', header: 'Geräteklasse', render: (i: ArticleInspection) =>
+      i.article?.deviceSubclass?.deviceClass?.name || '-'
+    },
+>>>>>>> a9dc7840 (Added New FW Management system)
     { key: 'warehouse', header: 'Lagerort', render: (i: ArticleInspection) => i.article?.warehouse?.name || '-' },
     { key: 'inspectedBy', header: 'Prüfer' },
     { key: 'result', header: 'Ergebnis', render: (i: ArticleInspection) => (
@@ -222,8 +311,13 @@ export function InspectionBookPage() {
   const [selectedArticle, setSelectedArticle] = useState<Article | undefined>();
 
   const { data: dueArticles } = useQuery({
+<<<<<<< HEAD
     queryKey: ['inspections-due'],
     queryFn: () => inspectionApi.getDue().then(r => r.data.data as Article[]),
+=======
+    queryKey: ['due-inspections'],
+    queryFn: () => inspectionsApi.getDue().then(r => r.data.data),
+>>>>>>> a9dc7840 (Added New FW Management system)
   });
 
   const openInspect = (article?: Article) => {
@@ -239,6 +333,10 @@ export function InspectionBookPage() {
   const tabs = [
     { id: 'due' as const, label: 'Fällige Prüfungen' },
     { id: 'history' as const, label: 'Prüfhistorie' },
+<<<<<<< HEAD
+=======
+    { id: 'report' as const, label: 'Berichte' },
+>>>>>>> a9dc7840 (Added New FW Management system)
   ];
 
   return (
@@ -254,19 +352,37 @@ export function InspectionBookPage() {
             ))}
           </nav>
         </div>
+<<<<<<< HEAD
         <Button variant="primary" icon={<PlusIcon />} onClick={() => openInspect()}>
           Prüfung dokumentieren
         </Button>
+=======
+        {tab !== 'report' && (
+          <Button variant="primary" icon={<PlusIcon />} onClick={() => openInspect()}>
+            Prüfung dokumentieren
+          </Button>
+        )}
+>>>>>>> a9dc7840 (Added New FW Management system)
       </div>
 
       {tab === 'due' && <DueTab onInspect={openInspect} />}
       {tab === 'history' && <HistoryTab />}
+<<<<<<< HEAD
 
       <InspectionModal
         isOpen={showModal}
         onClose={closeModal}
         preselectedArticle={selectedArticle}
         dueArticles={dueArticles || []}
+=======
+      {tab === 'report' && <ReportTab />}
+
+      <CriteriaInspectionModal
+        isOpen={showModal}
+        onClose={closeModal}
+        preselectedArticle={selectedArticle}
+        articles={dueArticles || []}
+>>>>>>> a9dc7840 (Added New FW Management system)
       />
     </div>
   );

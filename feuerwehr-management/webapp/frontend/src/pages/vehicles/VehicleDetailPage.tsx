@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+<<<<<<< HEAD
 import { ArrowLeftIcon, PlusIcon } from '@heroicons/react/24/outline';
+=======
+import { ArrowLeftIcon, PlusIcon, PrinterIcon } from '@heroicons/react/24/outline';
+>>>>>>> a9dc7840 (Added New FW Management system)
 import { vehiclesApi } from '../../api/vehicles';
 import { Vehicle, LogbookEntry } from '../../types';
 import { Button } from '../../components/ui/Button';
@@ -75,7 +79,11 @@ export function VehicleDetailPage() {
       {tab === 'pruefungen' && (
         <PruefungenTab vehicle={vehicle} onSave={(data) => updateInspectionMutation.mutate(data)} saving={updateInspectionMutation.isPending} />
       )}
+<<<<<<< HEAD
       {tab === 'fahrtenbuch' && <FahrtenbuchTab vehicleId={parseInt(id!)} />}
+=======
+      {tab === 'fahrtenbuch' && <FahrtenbuchTab vehicleId={parseInt(id!)} vehicleName={vehicle.name} />}
+>>>>>>> a9dc7840 (Added New FW Management system)
     </div>
   );
 }
@@ -159,6 +167,10 @@ function LogbookFormModal({ isOpen, onClose, vehicleId, entry }: { isOpen: boole
     date: entry?.date?.substring(0, 10) || '',
     driver: entry?.driver || '',
     purpose: entry?.purpose || '',
+<<<<<<< HEAD
+=======
+    destination: entry?.destination || '',
+>>>>>>> a9dc7840 (Added New FW Management system)
     startMileage: entry?.startMileage?.toString() || '',
     endMileage: entry?.endMileage?.toString() || '',
     notes: entry?.notes || '',
@@ -171,6 +183,10 @@ function LogbookFormModal({ isOpen, onClose, vehicleId, entry }: { isOpen: boole
         date: form.date ? new Date(form.date).toISOString() : undefined,
         driver: form.driver,
         purpose: form.purpose,
+<<<<<<< HEAD
+=======
+        destination: form.destination || undefined,
+>>>>>>> a9dc7840 (Added New FW Management system)
         startMileage: form.startMileage ? parseInt(form.startMileage) : undefined,
         endMileage: form.endMileage ? parseInt(form.endMileage) : undefined,
         notes: form.notes || undefined,
@@ -211,6 +227,10 @@ function LogbookFormModal({ isOpen, onClose, vehicleId, entry }: { isOpen: boole
         <Input label="Datum" value={form.date} onChange={(e) => update('date', e.target.value)} type="date" required />
         <Input label="Fahrer" value={form.driver} onChange={(e) => update('driver', e.target.value)} required />
         <Input label="Zweck" value={form.purpose} onChange={(e) => update('purpose', e.target.value)} required />
+<<<<<<< HEAD
+=======
+        <Input label="Ziel der Fahrt" value={form.destination} onChange={(e) => update('destination', e.target.value)} />
+>>>>>>> a9dc7840 (Added New FW Management system)
         <div className="grid grid-cols-2 gap-3">
           <Input label="km-Stand Start" value={form.startMileage} onChange={(e) => update('startMileage', e.target.value)} type="number" required />
           <Input label="km-Stand Ende" value={form.endMileage} onChange={(e) => update('endMileage', e.target.value)} type="number" required />
@@ -221,7 +241,11 @@ function LogbookFormModal({ isOpen, onClose, vehicleId, entry }: { isOpen: boole
   );
 }
 
+<<<<<<< HEAD
 function FahrtenbuchTab({ vehicleId }: { vehicleId: number }) {
+=======
+function FahrtenbuchTab({ vehicleId, vehicleName }: { vehicleId: number; vehicleName: string }) {
+>>>>>>> a9dc7840 (Added New FW Management system)
   const [showModal, setShowModal] = useState(false);
   const [editEntry, setEditEntry] = useState<LogbookEntry | undefined>();
 
@@ -234,16 +258,88 @@ function FahrtenbuchTab({ vehicleId }: { vehicleId: number }) {
   const openEdit = (entry: LogbookEntry) => { setEditEntry(entry); setShowModal(true); };
   const closeModal = () => { setShowModal(false); setEditEntry(undefined); };
 
+<<<<<<< HEAD
   return (
     <Card title="Fahrtenbuch"
       actions={<Button variant="primary" icon={<PlusIcon />} onClick={openCreate}>Neuer Eintrag</Button>}
+=======
+  const handlePrint = () => {
+    const entries = (data?.data || []) as LogbookEntry[];
+    if (entries.length === 0) return;
+
+    const totalKm = entries.reduce((sum, e) => sum + (e.endMileage - e.startMileage), 0);
+    const rows = entries.map(e => `
+      <tr>
+        <td>${new Date(e.date).toLocaleDateString('de-DE')}</td>
+        <td>${e.driver}</td>
+        <td>${e.purpose}</td>
+        <td>${e.destination || ''}</td>
+        <td style="text-align:right">${e.startMileage.toLocaleString('de-DE')}</td>
+        <td style="text-align:right">${e.endMileage.toLocaleString('de-DE')}</td>
+        <td style="text-align:right">${(e.endMileage - e.startMileage).toLocaleString('de-DE')}</td>
+        <td>${e.notes || ''}</td>
+      </tr>`).join('');
+
+    const html = `<!DOCTYPE html>
+<html><head><title>Fahrtenbuch ${vehicleName}</title>
+<style>
+  body { font-family: Arial, sans-serif; font-size: 12px; margin: 20px; }
+  h1 { font-size: 18px; margin-bottom: 4px; }
+  h2 { font-size: 13px; font-weight: normal; color: #666; margin-top: 0; }
+  table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+  th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; }
+  th { background: #f3f4f6; font-size: 11px; text-transform: uppercase; }
+  tfoot td { font-weight: bold; background: #f9fafb; }
+  @media print { body { margin: 0; } }
+</style></head><body>
+<h1>Fahrtenbuch: ${vehicleName}</h1>
+<h2>Erstellt am ${new Date().toLocaleDateString('de-DE')} &mdash; ${entries.length} Eintr\u00e4ge</h2>
+<table>
+  <thead><tr>
+    <th>Datum</th><th>Fahrer</th><th>Zweck</th><th>Ziel</th>
+    <th style="text-align:right">km Start</th><th style="text-align:right">km Ende</th>
+    <th style="text-align:right">Gefahren</th><th>Bemerkungen</th>
+  </tr></thead>
+  <tbody>${rows}</tbody>
+  <tfoot><tr>
+    <td colspan="6" style="text-align:right">Gesamt:</td>
+    <td style="text-align:right">${totalKm.toLocaleString('de-DE')} km</td>
+    <td></td>
+  </tr></tfoot>
+</table>
+</body></html>`;
+
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(html);
+      printWindow.document.close();
+      printWindow.onload = () => { printWindow.print(); };
+    }
+  };
+
+  return (
+    <Card title="Fahrtenbuch"
+      actions={
+        <div className="flex gap-2">
+          <Button variant="secondary" icon={<PrinterIcon />} onClick={handlePrint} disabled={!(data?.data?.length)}>Drucken</Button>
+          <Button variant="primary" icon={<PlusIcon />} onClick={openCreate}>Neuer Eintrag</Button>
+        </div>
+      }
+>>>>>>> a9dc7840 (Added New FW Management system)
     >
       <Table
         columns={[
           { key: 'date', header: 'Datum', render: (r) => formatDate((r as { date: string }).date) },
           { key: 'driver', header: 'Fahrer' },
           { key: 'purpose', header: 'Zweck' },
+<<<<<<< HEAD
           { key: 'km', header: 'km', render: (r) => { const e = r as { endMileage: number; startMileage: number }; return `${e.endMileage - e.startMileage} km`; } },
+=======
+          { key: 'destination', header: 'Ziel', render: (r) => (r as LogbookEntry).destination || '-' },
+          { key: 'startMileage', header: 'km Start', render: (r) => (r as LogbookEntry).startMileage.toLocaleString('de-DE') },
+          { key: 'endMileage', header: 'km Ende', render: (r) => (r as LogbookEntry).endMileage.toLocaleString('de-DE') },
+          { key: 'km', header: 'Gefahren', render: (r) => { const e = r as LogbookEntry; return `${(e.endMileage - e.startMileage).toLocaleString('de-DE')} km`; } },
+>>>>>>> a9dc7840 (Added New FW Management system)
         ]}
         data={data?.data || []}
         emptyMessage="Keine Fahrteneinträge vorhanden."

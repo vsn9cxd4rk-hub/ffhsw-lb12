@@ -6,7 +6,11 @@ const client: AxiosInstance = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
+<<<<<<< HEAD
 // Request interceptor: attach access token
+=======
+// Request interceptor: attach access token, but skip if already logged out
+>>>>>>> a9dc7840 (Added New FW Management system)
 client.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const token = localStorage.getItem('accessToken');
   if (token) {
@@ -16,6 +20,10 @@ client.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 });
 
 let isRefreshing = false;
+<<<<<<< HEAD
+=======
+let isLoggedOut = false;
+>>>>>>> a9dc7840 (Added New FW Management system)
 let failedQueue: Array<{ resolve: (value: string) => void; reject: (error: unknown) => void }> = [];
 
 function processQueue(error: unknown, token: string | null = null) {
@@ -26,12 +34,32 @@ function processQueue(error: unknown, token: string | null = null) {
   failedQueue = [];
 }
 
+<<<<<<< HEAD
+=======
+function forceLogout() {
+  if (isLoggedOut) return;
+  isLoggedOut = true;
+  localStorage.removeItem('accessToken');
+  // Clear the persisted zustand auth store
+  localStorage.removeItem('fuerwehr-auth');
+  window.location.href = '/login';
+}
+
+>>>>>>> a9dc7840 (Added New FW Management system)
 // Response interceptor: handle 401 and refresh
 client.interceptors.response.use(
   (response: AxiosResponse) => response,
   async (error) => {
     const originalRequest = error.config;
 
+<<<<<<< HEAD
+=======
+    // Already logged out — reject immediately, don't retry
+    if (isLoggedOut) {
+      return Promise.reject(error);
+    }
+
+>>>>>>> a9dc7840 (Added New FW Management system)
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
         return new Promise<string>((resolve, reject) => {
@@ -56,8 +84,12 @@ client.interceptors.response.use(
         return client(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
+<<<<<<< HEAD
         localStorage.removeItem('accessToken');
         window.location.href = '/login';
+=======
+        forceLogout();
+>>>>>>> a9dc7840 (Added New FW Management system)
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

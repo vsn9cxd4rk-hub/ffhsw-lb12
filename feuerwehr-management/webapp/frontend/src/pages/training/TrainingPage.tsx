@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PlusIcon } from '@heroicons/react/24/outline';
@@ -6,6 +7,17 @@ import { membersApi } from '../../api/members';
 import { Course, Member } from '../../types';
 import { Table } from '../../components/ui/Table';
 import { Button } from '../../components/ui/Button';
+=======
+import React, { useState, useRef, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { PlusIcon, ArrowDownTrayIcon, TrashIcon, DocumentIcon } from '@heroicons/react/24/outline';
+import { trainingApi } from '../../api/training';
+import { membersApi } from '../../api/members';
+import { Course, Member, CourseCategory } from '../../types';
+import { Table } from '../../components/ui/Table';
+import { Button } from '../../components/ui/Button';
+import { Badge } from '../../components/ui/Badge';
+>>>>>>> a9dc7840 (Added New FW Management system)
 import { SearchInput } from '../../components/ui/SearchInput';
 import { Pagination } from '../../components/ui/Pagination';
 import { Modal } from '../../components/ui/Modal';
@@ -14,6 +26,7 @@ import { Select } from '../../components/ui/Select';
 import { Textarea } from '../../components/ui/Textarea';
 import { formatDate, getCourseStatusLabel, getCourseStatusColor } from '../../utils/format';
 
+<<<<<<< HEAD
 function CourseCreateModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const queryClient = useQueryClient();
   const [form, setForm] = useState({ memberId: '', categoryId: '', status: 'pending', startDate: '', endDate: '', location: '', notes: '' });
@@ -41,12 +54,176 @@ function CourseCreateModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
           placeholder="Bitte wählen" />
         <Select label="Status" value={form.status} onChange={(e) => u('status', e.target.value)}
           options={[{ value: 'pending', label: 'Geplant' }, { value: 'active', label: 'Laufend' }, { value: 'completed', label: 'Abgeschlossen' }, { value: 'failed', label: 'Nicht bestanden' }]} />
+=======
+const STATUS_OPTIONS = [
+  { value: 'pending', label: 'Geplant' },
+  { value: 'active', label: 'Laufend' },
+  { value: 'completed', label: 'Abgeschlossen' },
+  { value: 'failed', label: 'Nicht bestanden' },
+];
+
+function CourseFormModal({ isOpen, onClose, editCourse }: { isOpen: boolean; onClose: () => void; editCourse?: Course | null }) {
+  const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [form, setForm] = useState({
+    memberId: editCourse?.memberId ? String(editCourse.memberId) : '',
+    categoryId: editCourse?.categoryId ? String(editCourse.categoryId) : '',
+    status: editCourse?.status || 'pending',
+    startDate: editCourse?.startDate?.substring(0, 10) || '',
+    endDate: editCourse?.endDate?.substring(0, 10) || '',
+    location: editCourse?.location || '',
+    notes: editCourse?.notes || '',
+  });
+  const [error, setError] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  // Load certificate preview for images
+  useEffect(() => {
+    if (!editCourse?.certificatePath) return;
+    const isImage = /\.(jpe?g|png)$/i.test(editCourse.certificatePath);
+    if (!isImage) return;
+    let url: string | null = null;
+    trainingApi.downloadCertificate(editCourse.id).then(res => {
+      url = window.URL.createObjectURL(new Blob([res.data]));
+      setPreviewUrl(url);
+    }).catch(() => {});
+    return () => { if (url) window.URL.revokeObjectURL(url); };
+  }, [editCourse?.id, editCourse?.certificatePath]);
+
+  const { data: categories } = useQuery({ queryKey: ['course-categories'], queryFn: () => trainingApi.getCategories().then(r => r.data.data as CourseCategory[]) });
+  const { data: membersData } = useQuery({ queryKey: ['members-search', ''], queryFn: () => membersApi.getAll({ isInactive: false, limit: 200 }).then(r => r.data.data) });
+
+  const mutation = useMutation({
+    mutationFn: () => {
+      const data = {
+        ...form,
+        memberId: parseInt(form.memberId),
+        categoryId: parseInt(form.categoryId),
+        startDate: form.startDate || null,
+        endDate: form.endDate || null,
+        notes: form.notes || null,
+        location: form.location || null,
+      };
+      return editCourse
+        ? trainingApi.update(editCourse.id, data)
+        : trainingApi.create(data);
+    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['courses'] }); setError(''); onClose(); },
+    onError: (err: unknown) => {
+      setError((err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Speichern fehlgeschlagen');
+    },
+  });
+
+  const handleCertificateUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !editCourse) return;
+    setUploading(true);
+    setError('');
+    try {
+      await trainingApi.uploadCertificate(editCourse.id, file);
+      queryClient.invalidateQueries({ queryKey: ['courses'] });
+    } catch (err: unknown) {
+      setError((err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Upload fehlgeschlagen');
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleCertificateDownload = async () => {
+    if (!editCourse) return;
+    try {
+      const response = await trainingApi.downloadCertificate(editCourse.id);
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Urkunde_${editCourse.category?.name || editCourse.id}.pdf`;
+      link.click();
+      window.URL.revokeObjectURL(url);
+    } catch {
+      setError('Download fehlgeschlagen');
+    }
+  };
+
+  const deleteCertMutation = useMutation({
+    mutationFn: () => trainingApi.deleteCertificate(editCourse!.id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['courses'] }),
+  });
+
+  const u = (f: string, v: string) => setForm(p => ({ ...p, [f]: v }));
+  const isValid = form.memberId && form.categoryId;
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title={editCourse ? 'Lehrgang bearbeiten' : 'Neuer Lehrgang'} size="lg"
+      footer={<><Button variant="secondary" onClick={onClose}>Abbrechen</Button><Button variant="primary" onClick={() => mutation.mutate()} loading={mutation.isPending} disabled={!isValid}>Speichern</Button></>}
+    >
+      <div className="space-y-3">
+        {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-md">{error}</div>}
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">Mitglied <span className="text-red-500">*</span></label>
+          <select value={form.memberId} onChange={(e) => u('memberId', e.target.value)} disabled={!!editCourse}
+            className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none bg-white disabled:bg-gray-100">
+            <option value="">-- Bitte wählen --</option>
+            {(membersData || []).map((m: Member) => <option key={m.id} value={m.id}>{m.lastName}, {m.firstName}</option>)}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">Lehrgang <span className="text-red-500">*</span></label>
+          <select value={form.categoryId} onChange={(e) => u('categoryId', e.target.value)}
+            className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none bg-white">
+            <option value="">-- Bitte wählen --</option>
+            {(categories || []).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        </div>
+
+        <Select label="Status" value={form.status} onChange={(e) => u('status', e.target.value)} options={STATUS_OPTIONS} />
+
+>>>>>>> a9dc7840 (Added New FW Management system)
         <div className="grid grid-cols-2 gap-3">
           <Input label="Beginn" value={form.startDate} onChange={(e) => u('startDate', e.target.value)} type="date" />
           <Input label="Ende" value={form.endDate} onChange={(e) => u('endDate', e.target.value)} type="date" />
         </div>
         <Input label="Ort" value={form.location} onChange={(e) => u('location', e.target.value)} />
         <Textarea label="Notizen" value={form.notes} onChange={(e) => u('notes', e.target.value)} rows={2} />
+<<<<<<< HEAD
+=======
+
+        {/* Certificate section - only for existing courses */}
+        {editCourse && (
+          <div className="border-t border-gray-200 pt-4 mt-2">
+            <h4 className="text-sm font-semibold text-gray-700 mb-2">Urkunde / Zertifikat</h4>
+            {editCourse.certificatePath ? (
+              <div className="p-3 bg-green-50 border border-green-200 rounded-md space-y-3">
+                <div className="flex items-center gap-3">
+                  {previewUrl ? (
+                    <img src={previewUrl} alt="Urkunde" className="h-16 w-16 object-cover rounded border border-green-300" />
+                  ) : (
+                    <DocumentIcon className="h-5 w-5 text-green-600 flex-shrink-0" />
+                  )}
+                  <span className="text-sm text-green-700 flex-1">Urkunde vorhanden</span>
+                  <Button variant="secondary" size="sm" icon={<ArrowDownTrayIcon />} onClick={handleCertificateDownload}>
+                    Herunterladen
+                  </Button>
+                  <Button variant="danger" size="sm" icon={<TrashIcon />} onClick={() => deleteCertMutation.mutate()} loading={deleteCertMutation.isPending}>
+                    Entfernen
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <input ref={fileInputRef} type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={handleCertificateUpload} className="hidden" />
+                <Button variant="secondary" size="sm" icon={<PlusIcon />} onClick={() => fileInputRef.current?.click()} loading={uploading}>
+                  Urkunde hochladen
+                </Button>
+                <span className="text-xs text-gray-400">PDF oder Bild (max. 20 MB)</span>
+              </div>
+            )}
+          </div>
+        )}
+>>>>>>> a9dc7840 (Added New FW Management system)
       </div>
     </Modal>
   );
@@ -57,7 +234,12 @@ export function TrainingPage() {
   const [categoryId, setCategoryId] = useState('');
   const [status, setStatus] = useState('');
   const [page, setPage] = useState(1);
+<<<<<<< HEAD
   const [showCreate, setShowCreate] = useState(false);
+=======
+  const [showForm, setShowForm] = useState(false);
+  const [editCourse, setEditCourse] = useState<Course | null>(null);
+>>>>>>> a9dc7840 (Added New FW Management system)
 
   const { data: categories } = useQuery({ queryKey: ['course-categories'], queryFn: () => trainingApi.getCategories().then(r => r.data.data) });
 
@@ -66,6 +248,13 @@ export function TrainingPage() {
     queryFn: () => trainingApi.getCourses({ search: search || undefined, categoryId: categoryId || undefined, status: status || undefined, page, limit: 20 }).then(r => r.data),
   });
 
+<<<<<<< HEAD
+=======
+  const openCreate = () => { setEditCourse(null); setShowForm(true); };
+  const openEdit = (course: Course) => { setEditCourse(course); setShowForm(true); };
+  const closeForm = () => { setShowForm(false); setEditCourse(null); };
+
+>>>>>>> a9dc7840 (Added New FW Management system)
   const columns = [
     { key: 'member', header: 'Mitglied', render: (c: Course) => c.member ? `${c.member.lastName}, ${c.member.firstName}` : '-' },
     { key: 'category', header: 'Lehrgang', render: (c: Course) => c.category?.name || '-' },
@@ -78,6 +267,12 @@ export function TrainingPage() {
       c.startDate || c.endDate ? `${c.startDate ? formatDate(c.startDate) : '?'} - ${c.endDate ? formatDate(c.endDate) : '?'}` : '-'
     },
     { key: 'location', header: 'Ort', render: (c: Course) => c.location || '-' },
+<<<<<<< HEAD
+=======
+    { key: 'certificate', header: 'Urkunde', render: (c: Course) => c.certificatePath ? (
+      <Badge variant="success">Vorhanden</Badge>
+    ) : null },
+>>>>>>> a9dc7840 (Added New FW Management system)
   ];
 
   return (
@@ -93,6 +288,7 @@ export function TrainingPage() {
           <select value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }}
             className="border border-gray-300 rounded-md px-3 py-2 text-sm">
             <option value="">Alle Status</option>
+<<<<<<< HEAD
             <option value="pending">Geplant</option>
             <option value="active">Laufend</option>
             <option value="completed">Abgeschlossen</option>
@@ -108,6 +304,23 @@ export function TrainingPage() {
       </div>
 
       <CourseCreateModal isOpen={showCreate} onClose={() => setShowCreate(false)} />
+=======
+            {STATUS_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+          </select>
+        </div>
+        <Button variant="primary" icon={<PlusIcon />} onClick={openCreate}>Neuer Lehrgang</Button>
+      </div>
+
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <Table columns={columns} data={data?.data || []} loading={isLoading} emptyMessage="Keine Lehrgänge gefunden."
+          keyExtractor={(c) => c.id} onRowClick={(c) => openEdit(c as Course)} />
+        {data?.pagination && <Pagination {...data.pagination} onPageChange={setPage} />}
+      </div>
+
+      {showForm && (
+        <CourseFormModal key={editCourse?.id || 'new'} isOpen={showForm} onClose={closeForm} editCourse={editCourse} />
+      )}
+>>>>>>> a9dc7840 (Added New FW Management system)
     </div>
   );
 }
