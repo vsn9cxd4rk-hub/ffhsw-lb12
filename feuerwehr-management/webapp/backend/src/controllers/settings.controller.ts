@@ -334,6 +334,43 @@ export async function deleteCriterion(req: Request, res: Response): Promise<void
   }
 }
 
+// Inspection Types / Prüfungsarten
+export async function getInspectionTypes(_req: Request, res: Response): Promise<void> {
+  try {
+    const types = await prisma.inspectionType.findMany({ orderBy: { name: 'asc' } });
+    sendSuccess(res, types);
+  } catch (err) {
+    sendError(res, (err as Error).message);
+  }
+}
+
+export async function createInspectionType(req: Request, res: Response): Promise<void> {
+  try {
+    const t = await prisma.inspectionType.create({ data: { name: req.body.name, description: req.body.description || null } });
+    sendSuccess(res, t, 201);
+  } catch (err) {
+    sendError(res, (err as Error).message);
+  }
+}
+
+export async function updateInspectionType(req: Request, res: Response): Promise<void> {
+  try {
+    const t = await prisma.inspectionType.update({ where: { id: parseInt(req.params.id) }, data: req.body });
+    sendSuccess(res, t);
+  } catch (err) {
+    sendError(res, (err as Error).message);
+  }
+}
+
+export async function deleteInspectionType(req: Request, res: Response): Promise<void> {
+  try {
+    await prisma.inspectionType.delete({ where: { id: parseInt(req.params.id) } });
+    sendSuccess(res, { message: 'Prüfungsart gelöscht' });
+  } catch (err) {
+    sendError(res, (err as Error).message);
+  }
+}
+
 // CSV Import - Articles
 export async function importArticles(req: Request, res: Response): Promise<void> {
   try {
@@ -345,9 +382,13 @@ export async function importArticles(req: Request, res: Response): Promise<void>
 
     // Pre-load lookup tables
     const warehouses = await prisma.warehouse.findMany();
-    const subclasses = await prisma.deviceSubclass.findMany();
+    const deviceClasses = await prisma.deviceClass.findMany();
+    const subclasses = await prisma.deviceSubclass.findMany({ include: { deviceClass: true } });
     const warehouseMap = new Map(warehouses.map(w => [w.name.toLowerCase(), w.id]));
+    const classMap = new Map(deviceClasses.map(c => [c.name.toLowerCase(), c.id]));
+    // Map: "classId:subclassName" -> subclassId for exact match, plus plain name fallback
     const subclassMap = new Map(subclasses.map(s => [s.name.toLowerCase(), s.id]));
+    const subclassWithClassMap = new Map(subclasses.map(s => [`${s.deviceClassId}:${s.name.toLowerCase()}`, s.id]));
 
     const errors: Array<{ row: number; message: string }> = [];
     let imported = 0;
@@ -372,25 +413,56 @@ export async function importArticles(req: Request, res: Response): Promise<void>
           }
         }
 
-        // Resolve device subclass by name
+        // Resolve device class + subclass by name
         let deviceSubclassId: number | null = null;
-        if (row.deviceSubclass?.trim()) {
-          deviceSubclassId = subclassMap.get(row.deviceSubclass.trim().toLowerCase()) ?? null;
-          if (!deviceSubclassId) {
-            errors.push({ row: rowNum, message: `Unterklasse "${row.deviceSubclass}" nicht gefunden` });
-            continue;
+        const classNameLower = row.deviceClass?.trim().toLowerCase();
+        const subclassNameLower = row.deviceSubclass?.trim().toLowerCase();
+
+        if (subclassNameLower) {
+          // If both class and subclass given, use precise lookup
+          if (classNameLower) {
+            const classId = classMap.get(classNameLower);
+            if (!classId) {
+              errors.push({ row: rowNum, message: `Geräteklasse "${row.deviceClass}" nicht gefunden` });
+              continue;
+            }
+            deviceSubclassId = subclassWithClassMap.get(`${classId}:${subclassNameLower}`) ?? null;
+            if (!deviceSubclassId) {
+              errors.push({ row: rowNum, message: `Unterklasse "${row.deviceSubclass}" nicht in Geräteklasse "${row.deviceClass}" gefunden` });
+              continue;
+            }
+          } else {
+            // Only subclass name given - fallback to plain name lookup
+            deviceSubclassId = subclassMap.get(subclassNameLower) ?? null;
+            if (!deviceSubclassId) {
+              errors.push({ row: rowNum, message: `Unterklasse "${row.deviceSubclass}" nicht gefunden` });
+              continue;
+            }
           }
+        } else if (classNameLower) {
+          errors.push({ row: rowNum, message: `Geräteklasse "${row.deviceClass}" angegeben, aber keine Unterklasse` });
+          continue;
         }
 
-        // Validate date
-        let manufacturingDate: Date | null = null;
-        if (row.manufacturingDate?.trim()) {
-          manufacturingDate = new Date(row.manufacturingDate.trim());
-          if (isNaN(manufacturingDate.getTime())) {
-            errors.push({ row: rowNum, message: `Ungültiges Herstellerdatum "${row.manufacturingDate}"` });
-            continue;
+        // Validate dates
+        const parseDateField = (val: string | undefined, label: string): Date | null | 'error' => {
+          if (!val?.trim()) return null;
+          const d = new Date(val.trim());
+          if (isNaN(d.getTime())) {
+            errors.push({ row: rowNum, message: `Ungültiges Datum für ${label}: "${val}"` });
+            return 'error';
           }
-        }
+          return d;
+        };
+
+        const manufacturingDate = parseDateField(row.manufacturingDate, 'Herstellerdatum');
+        if (manufacturingDate === 'error') continue;
+
+        const commissionedDate = parseDateField(row.commissionedDate, 'Indienststellung');
+        if (commissionedDate === 'error') continue;
+
+        const decommissionedDate = parseDateField(row.decommissionedDate, 'Außerdienststellung');
+        if (decommissionedDate === 'error') continue;
 
         try {
           await tx.article.create({
@@ -409,7 +481,13 @@ export async function importArticles(req: Request, res: Response): Promise<void>
               manufacturingDate,
               warehouseId,
               deviceSubclassId,
-              isDecommissioned: false,
+              designationLB: row.designationLB?.trim() || 'LB12',
+              commissionedDate,
+              decommissionedDate,
+              communityInventoryNumber: row.communityInventoryNumber?.trim() || null,
+              mpFeuerInventoryNumber: row.mpFeuerInventoryNumber?.trim() || null,
+              retirementPeriodMonths: row.retirementPeriodMonths ? parseInt(row.retirementPeriodMonths) || null : null,
+              isDecommissioned: !!decommissionedDate,
             },
           });
           imported++;
@@ -440,12 +518,15 @@ export async function importInspections(req: Request, res: Response): Promise<vo
     const errors: Array<{ row: number; message: string }> = [];
     let imported = 0;
 
-    // Pre-load articles by inventory number
+    // Pre-load lookup tables
     const articles = await prisma.article.findMany({
       where: { inventoryNumber: { not: null } },
       select: { id: true, inventoryNumber: true, inspectionInterval: true },
     });
     const articleMap = new Map(articles.filter(a => a.inventoryNumber).map(a => [a.inventoryNumber!, a]));
+
+    const inspectionTypes = await prisma.inspectionType.findMany();
+    const inspTypeMap = new Map(inspectionTypes.map(t => [t.name.toLowerCase(), t.id]));
 
     await prisma.$transaction(async (tx) => {
       for (let i = 0; i < rows.length; i++) {
@@ -477,6 +558,16 @@ export async function importInspections(req: Request, res: Response): Promise<vo
           continue;
         }
 
+        // Resolve inspection type by name
+        let inspectionTypeId: number | null = null;
+        if (row.inspectionType?.trim()) {
+          inspectionTypeId = inspTypeMap.get(row.inspectionType.trim().toLowerCase()) ?? null;
+          if (!inspectionTypeId) {
+            errors.push({ row: rowNum, message: `Prüfart "${row.inspectionType}" nicht gefunden` });
+            continue;
+          }
+        }
+
         // Validate date
         const inspectedAt = new Date(row.inspectedAt.trim());
         if (isNaN(inspectedAt.getTime())) {
@@ -495,6 +586,7 @@ export async function importInspections(req: Request, res: Response): Promise<vo
           await tx.articleInspection.create({
             data: {
               articleId: article.id,
+              inspectionTypeId,
               inspectedAt,
               inspectedBy: row.inspectedBy.trim(),
               result: row.result.trim().toLowerCase(),

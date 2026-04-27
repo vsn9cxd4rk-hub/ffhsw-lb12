@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+
+# Build output (wird durch npm run build neu erzeugt)
+webapp/backend/dist/
+webapp/frontend/dist/
+
+# Environment / Secrets
+.env
+.env.local
+.env.production
+
+# Uploads (Laufzeitdaten, nicht Teil des Codes)
+webapp/backend/uploads/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Prisma (generiert)
+webapp/backend/node_modules/.prisma/
+
+# Playwright
+webapp/frontend/test-results/
+webapp/frontend/playwright-report/
+webapp/frontend/tests/.auth/

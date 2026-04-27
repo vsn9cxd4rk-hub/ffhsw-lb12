@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import { Article, Warehouse, DeviceClass } from '../../types';
@@ -42,6 +43,12 @@ function ArticleFormModal({ isOpen, onClose, warehouses, article, deviceClasses 
     serialNumber: '',
     din: '',
     isDecommissioned: false,
+    designationLB: 'LB12',
+    commissionedDate: '',
+    decommissionedDate: '',
+    communityInventoryNumber: '',
+    mpFeuerInventoryNumber: '',
+    retirementPeriodMonths: '',
   });
   const [error, setError] = useState('');
 
@@ -64,6 +71,12 @@ function ArticleFormModal({ isOpen, onClose, warehouses, article, deviceClasses 
         serialNumber: article?.serialNumber || '',
         din: article?.din || '',
         isDecommissioned: article?.isDecommissioned || false,
+        designationLB: article?.designationLB || 'LB12',
+        commissionedDate: article?.commissionedDate ? article.commissionedDate.split('T')[0] : '',
+        decommissionedDate: article?.decommissionedDate ? article.decommissionedDate.split('T')[0] : '',
+        communityInventoryNumber: article?.communityInventoryNumber || '',
+        mpFeuerInventoryNumber: article?.mpFeuerInventoryNumber || '',
+        retirementPeriodMonths: article?.retirementPeriodMonths?.toString() || '',
       });
       setError('');
     }
@@ -86,6 +99,12 @@ function ArticleFormModal({ isOpen, onClose, warehouses, article, deviceClasses 
         serialNumber: form.serialNumber || null,
         din: form.din || null,
         isDecommissioned: form.isDecommissioned,
+        designationLB: form.designationLB || 'LB12',
+        commissionedDate: form.commissionedDate || null,
+        decommissionedDate: form.decommissionedDate || null,
+        communityInventoryNumber: form.communityInventoryNumber || null,
+        mpFeuerInventoryNumber: form.mpFeuerInventoryNumber || null,
+        retirementPeriodMonths: form.retirementPeriodMonths ? parseInt(form.retirementPeriodMonths) : null,
       };
       return article
         ? inventoryApiWrapper.updateArticle(article.id, data)
@@ -169,23 +188,28 @@ function ArticleFormModal({ isOpen, onClose, warehouses, article, deviceClasses 
           <Input label="DIN" value={form.din} onChange={(e) => u('din', e.target.value)} />
         </div>
         <div className="grid grid-cols-3 gap-3">
+          <Input label="Bezeichnung LB" value={form.designationLB} onChange={(e) => u('designationLB', e.target.value)} />
+          <Input label="Inv.-Nr. Gemeinde (DOPPIK)" value={form.communityInventoryNumber} onChange={(e) => u('communityInventoryNumber', e.target.value)} />
+          <Input label="Inv.-Nr. MP Feuer" value={form.mpFeuerInventoryNumber} onChange={(e) => u('mpFeuerInventoryNumber', e.target.value)} />
+        </div>
+        <div className="grid grid-cols-3 gap-3">
+          <Input label="Indienststellung" value={form.commissionedDate} onChange={(e) => u('commissionedDate', e.target.value)} type="date" />
+          <Input label="Außerdienststellung" value={form.decommissionedDate} onChange={(e) => u('decommissionedDate', e.target.value)} type="date" />
+          <Input label="Aussonderungsfrist (Monate)" value={form.retirementPeriodMonths} onChange={(e) => u('retirementPeriodMonths', e.target.value)} type="number" />
+        </div>
+        <div className="grid grid-cols-3 gap-3">
           <Input label="Prüfintervall (Monate)" value={form.inspectionInterval} onChange={(e) => u('inspectionInterval', e.target.value)} type="number" />
           <Input label="Wert (€)" value={form.value} onChange={(e) => u('value', e.target.value)} type="number" step="0.01" />
           <Input label="Spezifikation" value={form.specification} onChange={(e) => u('specification', e.target.value)} />
         </div>
         <Textarea label="Beschreibung" value={form.description} onChange={(e) => u('description', e.target.value)} rows={2} />
-        <div className="flex items-center gap-2 pt-1">
-          <input type="checkbox" id="isDecommissioned" checked={form.isDecommissioned}
-            onChange={(e) => u('isDecommissioned', e.target.checked)}
-            className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded" />
-          <label htmlFor="isDecommissioned" className="text-sm text-gray-700">Außer Dienst gestellt / Ausgesondert</label>
-        </div>
       </div>
     </Modal>
   );
 }
 
 export function InventoryPage() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [selectedWarehouse, setSelectedWarehouse] = useState<number | null>(null);
   const [selectedDeviceClass, setSelectedDeviceClass] = useState<number | null>(null);

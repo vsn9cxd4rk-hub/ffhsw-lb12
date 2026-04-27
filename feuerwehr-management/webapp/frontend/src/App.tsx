@@ -9,7 +9,9 @@ import { MemberFormPage } from './pages/members/MemberFormPage';
 import { VehiclesPage } from './pages/vehicles/VehiclesPage';
 import { VehicleDetailPage } from './pages/vehicles/VehicleDetailPage';
 import { InventoryPage } from './pages/inventory/InventoryPage';
+import { ArticleDetailPage } from './pages/inventory/ArticleDetailPage';
 import { InspectionBookPage } from './pages/inspections/InspectionBookPage';
+import { DefectsPage } from './pages/defects/DefectsPage';
 import { OperationsPage } from './pages/operations/OperationsPage';
 import { OperationDetailPage } from './pages/operations/OperationDetailPage';
 import { EventsPage } from './pages/events/EventsPage';
@@ -18,6 +20,7 @@ import { AttendancePage } from './pages/events/AttendancePage';
 import { TrainingPage } from './pages/training/TrainingPage';
 import { SettingsPage } from './pages/settings/SettingsPage';
 import { ChangePasswordPage } from './pages/auth/ChangePasswordPage';
+import { HelpPage } from './pages/help/HelpPage';
 import { UsersPage } from './pages/users/UsersPage';
 
 export default function App() {
@@ -43,9 +46,13 @@ export default function App() {
 
           {/* Inventory */}
           <Route path="/inventory" element={<InventoryPage />} />
+          <Route path="/inventory/:id" element={<ArticleDetailPage />} />
 
           {/* Inspection Book */}
           <Route path="/inspections" element={<InspectionBookPage />} />
+
+          {/* Defects & Repairs */}
+          <Route path="/defects" element={<DefectsPage />} />
 
           {/* Operations */}
           <Route path="/operations" element={<OperationsPage />} />
@@ -61,6 +68,9 @@ export default function App() {
 
           {/* Settings */}
           <Route path="/settings" element={<SettingsPage />} />
+
+          {/* Help */}
+          <Route path="/help" element={<HelpPage />} />
 
           {/* Password change - accessible for all authenticated users */}
           <Route path="/password" element={<ChangePasswordPage />} />

@@ -15,5 +15,15 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          query: ['@tanstack/react-query', 'axios', 'zustand'],
+          ui: ['@headlessui/react', '@heroicons/react/24/outline', '@heroicons/react/24/solid'],
+          pdf: ['jspdf', 'jspdf-autotable'],
+        },
+      },
+    },
   },
 });

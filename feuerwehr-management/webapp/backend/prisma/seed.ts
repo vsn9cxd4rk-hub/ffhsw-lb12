@@ -210,10 +210,25 @@ async function main() {
   }
   console.log('Default settings created');
 
-  // Create device classes with subclasses and inspection criteria
+  // Create inspection types
+  const inspectionTypesData = [
+    { name: 'Sicht- und Funktionsprüfung', description: 'Visuelle und funktionale Überprüfung' },
+    { name: 'Belastungsprüfung', description: 'Prüfung unter Last gemäß Vorgaben' },
+    { name: 'Elektroprüfung', description: 'Elektrische Sicherheitsprüfung' },
+  ];
+  for (const it of inspectionTypesData) {
+    await prisma.inspectionType.upsert({
+      where: { name: it.name },
+      update: { description: it.description },
+      create: it,
+    });
+  }
+  console.log('Inspection types created');
+
+  // Create device classes (DGUV 305-002) with subclasses and inspection criteria
   const deviceClassesData = [
     {
-      name: 'PSA',
+      name: 'Schutzkleidung und Schutzgerät',
       sortOrder: 1,
       subclasses: [
         { name: 'Helme', sortOrder: 1, criteria: ['Zustand Helmschale', 'Innenausstattung', 'Visier/Gesichtsschutz', 'Nackenschutz', 'Kennzeichnung'] },
@@ -223,42 +238,24 @@ async function main() {
       ],
     },
     {
-      name: 'Erste Hilfe & Hygiene',
+      name: 'Löschgerät',
       sortOrder: 2,
       subclasses: [
-        { name: 'Sanitäts- & Wiederbelebungsgeräte', sortOrder: 1, criteria: ['Vollständigkeit', 'Zustand Geräte', 'Verfallsdaten', 'Funktionsprüfung', 'Kennzeichnung'] },
+        { name: 'Löschgeräte', sortOrder: 1, criteria: ['Zustand', 'Vollständigkeit', 'Funktionsprüfung', 'Kennzeichnung'] },
+        { name: 'Tragbare Feuerlöscher', sortOrder: 2, criteria: ['Zustand Behälter', 'Schlauch/Düse', 'Manometer/Druck', 'Plombierung', 'Prüfdatum', 'Kennzeichnung'] },
       ],
     },
     {
-      name: 'Signal- & Beleuchtungsgeräte',
+      name: 'Schläuche, Armaturen und Zubehör',
       sortOrder: 3,
       subclasses: [
-        { name: 'Funkgeräte & Melder', sortOrder: 1, criteria: ['Zustand Gehäuse', 'Akku/Batterie', 'Funktionsprüfung', 'Antenne', 'Kennzeichnung'] },
-        { name: 'Geräte Verkehrssicherung', sortOrder: 2, criteria: ['Zustand', 'Leuchtmittel', 'Funktionsprüfung', 'Kennzeichnung'] },
-        { name: 'Signal- & Beleuchtungsgeräte', sortOrder: 3, criteria: ['Zustand Gehäuse', 'Leuchtmittel', 'Akku/Batterie', 'Funktionsprüfung', 'Kabel und Stecker', 'Kennzeichnung'] },
-      ],
-    },
-    {
-      name: 'Arbeitsgeräte',
-      sortOrder: 4,
-      subclasses: [
-        { name: 'Geräte & Werkzeuge', sortOrder: 1, criteria: ['Zustand', 'Vollständigkeit', 'Funktionsprüfung', 'Kennzeichnung'] },
-        { name: 'Pumpen', sortOrder: 2, criteria: ['Zustand Gehäuse', 'Dichtungen', 'Funktionsprüfung', 'Ölstand', 'Kraftstoff', 'Kennzeichnung'] },
-      ],
-    },
-    {
-      name: 'Löschgeräte',
-      sortOrder: 5,
-      subclasses: [
         { name: 'Schläuche', sortOrder: 1, criteria: ['Zustand Schlauch', 'Kupplungen', 'Dichtungen', 'Druckprüfung', 'Kennzeichnung'] },
-        { name: 'Löschgeräte', sortOrder: 2, criteria: ['Zustand', 'Vollständigkeit', 'Funktionsprüfung', 'Kennzeichnung'] },
-        { name: 'Tragbare Feuerlöscher', sortOrder: 3, criteria: ['Zustand Behälter', 'Schlauch/Düse', 'Manometer/Druck', 'Plombierung', 'Prüfdatum', 'Kennzeichnung'] },
-        { name: 'Wasserführende Armaturen', sortOrder: 4, criteria: ['Zustand', 'Kupplungen', 'Dichtungen', 'Funktionsprüfung', 'Kennzeichnung'] },
+        { name: 'Wasserführende Armaturen', sortOrder: 2, criteria: ['Zustand', 'Kupplungen', 'Dichtungen', 'Funktionsprüfung', 'Kennzeichnung'] },
       ],
     },
     {
-      name: 'Rettungsgeräte',
-      sortOrder: 6,
+      name: 'Rettungsgerät',
+      sortOrder: 4,
       subclasses: [
         { name: 'Feuerwehrhaltegurte', sortOrder: 1, criteria: ['Zustand Gurt', 'Karabiner', 'Nähte', 'Kennzeichnung'] },
         { name: 'Feuerwehrleinen', sortOrder: 2, criteria: ['Zustand Leine', 'Karabiner', 'Leinenbeutel', 'Kennzeichnung'] },
@@ -268,17 +265,53 @@ async function main() {
       ],
     },
     {
-      name: 'Elektrische Geräte',
+      name: 'Sanitäts- und Wiederbelebungsgerät',
+      sortOrder: 5,
+      subclasses: [
+        { name: 'Sanitäts- & Wiederbelebungsgeräte', sortOrder: 1, criteria: ['Vollständigkeit', 'Zustand Geräte', 'Verfallsdaten', 'Funktionsprüfung', 'Kennzeichnung'] },
+      ],
+    },
+    {
+      name: 'Beleuchtungs-, Signal- und Fernmeldegerät',
+      sortOrder: 6,
+      subclasses: [
+        { name: 'Funkgeräte & Melder', sortOrder: 1, criteria: ['Zustand Gehäuse', 'Akku/Batterie', 'Funktionsprüfung', 'Antenne', 'Kennzeichnung'] },
+        { name: 'Geräte Verkehrssicherung', sortOrder: 2, criteria: ['Zustand', 'Leuchtmittel', 'Funktionsprüfung', 'Kennzeichnung'] },
+        { name: 'Signal- & Beleuchtungsgeräte', sortOrder: 3, criteria: ['Zustand Gehäuse', 'Leuchtmittel', 'Akku/Batterie', 'Funktionsprüfung', 'Kabel und Stecker', 'Kennzeichnung'] },
+      ],
+    },
+    {
+      name: 'Arbeitsgerät',
       sortOrder: 7,
+      subclasses: [
+        { name: 'Geräte & Werkzeuge', sortOrder: 1, criteria: ['Zustand', 'Vollständigkeit', 'Funktionsprüfung', 'Kennzeichnung'] },
+        { name: 'Geräte & Fahrzeuge', sortOrder: 2, criteria: ['Zustand', 'Vollständigkeit', 'Funktionsprüfung', 'Kennzeichnung'] },
+      ],
+    },
+    {
+      name: 'Handwerkzeug und Messgerät',
+      sortOrder: 8,
+      subclasses: [],
+    },
+    {
+      name: 'Sondergerät',
+      sortOrder: 9,
       subclasses: [
         { name: 'Elektrische Geräte', sortOrder: 1, criteria: ['Zustand Gehäuse', 'Einspannfutter', 'Werkzeug', 'Ersatztrennscheiben', 'Kabel und Stecker', 'elektr. Prüfung'] },
       ],
     },
     {
-      name: 'Geräte & Fahrzeuge im GH',
-      sortOrder: 8,
+      name: 'Pumpen',
+      sortOrder: 10,
       subclasses: [
-        { name: 'Geräte & Fahrzeuge', sortOrder: 1, criteria: ['Zustand', 'Vollständigkeit', 'Funktionsprüfung', 'Kennzeichnung'] },
+        { name: 'Pumpen', sortOrder: 1, criteria: ['Zustand Gehäuse', 'Dichtungen', 'Funktionsprüfung', 'Ölstand', 'Kraftstoff', 'Kennzeichnung'] },
+      ],
+    },
+    {
+      name: 'Atemschutz',
+      sortOrder: 11,
+      subclasses: [
+        { name: 'Atemschutzgeräte', sortOrder: 1, criteria: ['Zustand Gehäuse', 'Atemanschluss', 'Lungenautomat', 'Druckluftflasche', 'Manometer', 'Funktionsprüfung', 'Kennzeichnung'] },
       ],
     },
   ];

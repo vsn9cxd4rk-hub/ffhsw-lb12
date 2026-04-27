@@ -415,6 +415,18 @@ CREATE TABLE IF NOT EXISTS `inspection_criteria` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- -----------------------------------------------------------------------------
+-- Prüfungsarten (Sicht-/Belastungs-/Elektroprüfung)
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `inspection_types` (
+  `id`          INT          NOT NULL AUTO_INCREMENT,
+  `name`        VARCHAR(255) NOT NULL,
+  `description` TEXT         NULL,
+  `createdAt`   DATETIME(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `inspection_types_name_key` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------------------------
 -- Lager
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `warehouses` (
@@ -450,9 +462,15 @@ CREATE TABLE IF NOT EXISTS `articles` (
   `specification`      VARCHAR(500)   NULL,
   `serialNumber`       VARCHAR(255)   NULL,
   `din`                VARCHAR(100)   NULL,
-  `isDecommissioned`   TINYINT(1)     NOT NULL DEFAULT 0,
-  `createdAt`          DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updatedAt`          DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `isDecommissioned`        TINYINT(1)     NOT NULL DEFAULT 0,
+  `designationLB`           VARCHAR(100)   NULL DEFAULT 'LB12',
+  `commissionedDate`        DATETIME(3)    NULL,
+  `decommissionedDate`      DATETIME(3)    NULL,
+  `communityInventoryNumber` VARCHAR(100)  NULL,
+  `mpFeuerInventoryNumber`  VARCHAR(100)   NULL,
+  `retirementPeriodMonths`  INT            NULL,
+  `createdAt`               DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updatedAt`               DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `articles_inventoryNumber_key` (`inventoryNumber`),
   CONSTRAINT `articles_warehouseId_fkey`
@@ -491,18 +509,22 @@ CREATE TABLE IF NOT EXISTS `article_assignments` (
 -- Artikel - Prüfbuch (Prüfungen je Artikel)
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `article_inspections` (
-  `id`            INT          NOT NULL AUTO_INCREMENT,
-  `articleId`     INT          NOT NULL,
-  `inspectedAt`   DATETIME     NOT NULL,
-  `inspectedBy`   VARCHAR(255) NOT NULL,
-  `result`        VARCHAR(50)  NOT NULL,
-  `notes`         TEXT         NULL,
-  `nextDueDate`   DATETIME     NULL,
-  `createdAt`     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `id`               INT          NOT NULL AUTO_INCREMENT,
+  `articleId`        INT          NOT NULL,
+  `inspectionTypeId` INT          NULL,
+  `inspectedAt`      DATETIME     NOT NULL,
+  `inspectedBy`      VARCHAR(255) NOT NULL,
+  `result`           VARCHAR(50)  NOT NULL,
+  `notes`            TEXT         NULL,
+  `nextDueDate`      DATETIME     NULL,
+  `createdAt`        DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   CONSTRAINT `article_inspections_articleId_fkey`
     FOREIGN KEY (`articleId`) REFERENCES `articles` (`id`)
-    ON DELETE CASCADE ON UPDATE CASCADE
+    ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `article_inspections_inspectionTypeId_fkey`
+    FOREIGN KEY (`inspectionTypeId`) REFERENCES `inspection_types` (`id`)
+    ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- -----------------------------------------------------------------------------
@@ -521,6 +543,118 @@ CREATE TABLE IF NOT EXISTS `inspection_criterion_results` (
   CONSTRAINT `inspection_criterion_results_criterionId_fkey`
     FOREIGN KEY (`criterionId`) REFERENCES `inspection_criteria` (`id`)
     ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------------------------
+-- Artikel-Dokumente (PDF-Anhänge je Artikel)
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `article_documents` (
+  `id`         INT          NOT NULL AUTO_INCREMENT,
+  `articleId`  INT          NOT NULL,
+  `fileName`   VARCHAR(255) NOT NULL,
+  `filePath`   VARCHAR(500) NOT NULL,
+  `fileSize`   INT          NOT NULL,
+  `mimeType`   VARCHAR(100) NOT NULL,
+  `uploadedBy` VARCHAR(100) NOT NULL,
+  `createdAt`  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `article_documents_articleId_fkey`
+    FOREIGN KEY (`articleId`) REFERENCES `articles` (`id`)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------------------------
+-- Prüfungsdokumente (PDF-Anhänge je Prüfung)
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `inspection_documents` (
+  `id`           INT          NOT NULL AUTO_INCREMENT,
+  `inspectionId` INT          NOT NULL,
+  `fileName`     VARCHAR(255) NOT NULL,
+  `filePath`     VARCHAR(500) NOT NULL,
+  `fileSize`     INT          NOT NULL,
+  `mimeType`     VARCHAR(100) NOT NULL,
+  `uploadedBy`   VARCHAR(100) NOT NULL,
+  `createdAt`    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `inspection_documents_inspectionId_fkey`
+    FOREIGN KEY (`inspectionId`) REFERENCES `article_inspections` (`id`)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------------------------
+-- Prüfgrundsätze je Artikel
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `article_inspection_standards` (
+  `id`          INT          NOT NULL AUTO_INCREMENT,
+  `articleId`   INT          NOT NULL,
+  `name`        VARCHAR(255) NOT NULL,
+  `description` TEXT         NULL,
+  `createdAt`   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `article_inspection_standards_articleId_fkey`
+    FOREIGN KEY (`articleId`) REFERENCES `articles` (`id`)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------------------------
+-- Prüfintervalle je Artikel und Prüfart
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `article_inspection_schedules` (
+  `id`               INT NOT NULL AUTO_INCREMENT,
+  `articleId`        INT NOT NULL,
+  `inspectionTypeId` INT NOT NULL,
+  `intervalMonths`   INT NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `article_inspection_schedules_art_type_key` (`articleId`, `inspectionTypeId`),
+  CONSTRAINT `article_inspection_schedules_articleId_fkey`
+    FOREIGN KEY (`articleId`) REFERENCES `articles` (`id`)
+    ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `article_inspection_schedules_inspTypeId_fkey`
+    FOREIGN KEY (`inspectionTypeId`) REFERENCES `inspection_types` (`id`)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------------------------
+-- Mängelmeldesystem
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `article_defects` (
+  `id`          INT          NOT NULL AUTO_INCREMENT,
+  `articleId`   INT          NOT NULL,
+  `reportedBy`  VARCHAR(255) NOT NULL,
+  `reportedAt`  DATETIME     NOT NULL,
+  `description` TEXT         NOT NULL,
+  `severity`    VARCHAR(20)  NOT NULL,
+  `status`      VARCHAR(20)  NOT NULL DEFAULT 'open',
+  `resolvedAt`  DATETIME     NULL,
+  `resolvedBy`  VARCHAR(255) NULL,
+  `notes`       TEXT         NULL,
+  `createdAt`   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `article_defects_articleId_fkey`
+    FOREIGN KEY (`articleId`) REFERENCES `articles` (`id`)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------------------------
+-- Reparaturdokumentation
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `article_repairs` (
+  `id`          INT            NOT NULL AUTO_INCREMENT,
+  `articleId`   INT            NOT NULL,
+  `defectId`    INT            NULL,
+  `repairedAt`  DATETIME       NOT NULL,
+  `repairedBy`  VARCHAR(255)   NOT NULL,
+  `description` TEXT           NOT NULL,
+  `cost`        DECIMAL(10,2)  NULL,
+  `notes`       TEXT           NULL,
+  `createdAt`   DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `article_repairs_articleId_fkey`
+    FOREIGN KEY (`articleId`) REFERENCES `articles` (`id`)
+    ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `article_repairs_defectId_fkey`
+    FOREIGN KEY (`defectId`) REFERENCES `article_defects` (`id`)
+    ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- -----------------------------------------------------------------------------
@@ -958,11 +1092,19 @@ INSERT IGNORE INTO `settings` (`key`, `value`, `description`) VALUES
   ('medicalExamReminderDays','60',                    'Erinnerung vor Untersuchung (Tage)');
 
 -- -----------------------------------------------------------------------------
--- Geräteklassen mit Unterklassen und Prüfkriterien
+-- Prüfungsarten (DGUV 305-002)
+-- -----------------------------------------------------------------------------
+INSERT IGNORE INTO `inspection_types` (`id`, `name`, `description`) VALUES
+  (1, 'Sicht- und Funktionsprüfung', 'Visuelle und funktionale Überprüfung'),
+  (2, 'Belastungsprüfung', 'Prüfung unter Last gemäß Vorgaben'),
+  (3, 'Elektroprüfung', 'Elektrische Sicherheitsprüfung');
+
+-- -----------------------------------------------------------------------------
+-- Geräteklassen gemäß DGUV 305-002 mit Unterklassen und Prüfkriterien
 -- -----------------------------------------------------------------------------
 
--- PSA
-INSERT IGNORE INTO `device_classes` (`id`, `name`, `sortOrder`) VALUES (1, 'PSA', 1);
+-- 1. Schutzkleidung und Schutzgerät
+INSERT IGNORE INTO `device_classes` (`id`, `name`, `sortOrder`) VALUES (1, 'Schutzkleidung und Schutzgerät', 1);
 INSERT IGNORE INTO `device_subclasses` (`id`, `deviceClassId`, `name`, `sortOrder`) VALUES
   (1, 1, 'Helme', 1),
   (2, 1, 'Schutzkleidung TH', 2),
@@ -974,74 +1116,89 @@ INSERT IGNORE INTO `inspection_criteria` (`deviceSubclassId`, `name`, `sortOrder
   (3, 'Zustand Obermaterial', 1), (3, 'Nähte', 2), (3, 'Verschlüsse', 3), (3, 'Reflexstreifen', 4), (3, 'Feuchtesperre', 5), (3, 'Kennzeichnung', 6),
   (4, 'Zustand Obermaterial', 1), (4, 'Nähte', 2), (4, 'Verschlüsse', 3), (4, 'Kennzeichnung', 4);
 
--- Erste Hilfe & Hygiene
-INSERT IGNORE INTO `device_classes` (`id`, `name`, `sortOrder`) VALUES (2, 'Erste Hilfe & Hygiene', 2);
+-- 2. Löschgerät
+INSERT IGNORE INTO `device_classes` (`id`, `name`, `sortOrder`) VALUES (2, 'Löschgerät', 2);
 INSERT IGNORE INTO `device_subclasses` (`id`, `deviceClassId`, `name`, `sortOrder`) VALUES
-  (5, 2, 'Sanitäts- & Wiederbelebungsgeräte', 1);
+  (5, 2, 'Löschgeräte', 1),
+  (6, 2, 'Tragbare Feuerlöscher', 2);
 INSERT IGNORE INTO `inspection_criteria` (`deviceSubclassId`, `name`, `sortOrder`) VALUES
-  (5, 'Vollständigkeit', 1), (5, 'Zustand Geräte', 2), (5, 'Verfallsdaten', 3), (5, 'Funktionsprüfung', 4), (5, 'Kennzeichnung', 5);
+  (5, 'Zustand', 1), (5, 'Vollständigkeit', 2), (5, 'Funktionsprüfung', 3), (5, 'Kennzeichnung', 4),
+  (6, 'Zustand Behälter', 1), (6, 'Schlauch/Düse', 2), (6, 'Manometer/Druck', 3), (6, 'Plombierung', 4), (6, 'Prüfdatum', 5), (6, 'Kennzeichnung', 6);
 
--- Signal- & Beleuchtungsgeräte
-INSERT IGNORE INTO `device_classes` (`id`, `name`, `sortOrder`) VALUES (3, 'Signal- & Beleuchtungsgeräte', 3);
+-- 3. Schläuche, Armaturen und Zubehör
+INSERT IGNORE INTO `device_classes` (`id`, `name`, `sortOrder`) VALUES (3, 'Schläuche, Armaturen und Zubehör', 3);
 INSERT IGNORE INTO `device_subclasses` (`id`, `deviceClassId`, `name`, `sortOrder`) VALUES
-  (6, 3, 'Funkgeräte & Melder', 1),
-  (7, 3, 'Geräte Verkehrssicherung', 2),
-  (8, 3, 'Signal- & Beleuchtungsgeräte', 3);
+  (7, 3, 'Schläuche', 1),
+  (8, 3, 'Wasserführende Armaturen', 2);
 INSERT IGNORE INTO `inspection_criteria` (`deviceSubclassId`, `name`, `sortOrder`) VALUES
-  (6, 'Zustand Gehäuse', 1), (6, 'Akku/Batterie', 2), (6, 'Funktionsprüfung', 3), (6, 'Antenne', 4), (6, 'Kennzeichnung', 5),
-  (7, 'Zustand', 1), (7, 'Leuchtmittel', 2), (7, 'Funktionsprüfung', 3), (7, 'Kennzeichnung', 4),
-  (8, 'Zustand Gehäuse', 1), (8, 'Leuchtmittel', 2), (8, 'Akku/Batterie', 3), (8, 'Funktionsprüfung', 4), (8, 'Kabel und Stecker', 5), (8, 'Kennzeichnung', 6);
+  (7, 'Zustand Schlauch', 1), (7, 'Kupplungen', 2), (7, 'Dichtungen', 3), (7, 'Druckprüfung', 4), (7, 'Kennzeichnung', 5),
+  (8, 'Zustand', 1), (8, 'Kupplungen', 2), (8, 'Dichtungen', 3), (8, 'Funktionsprüfung', 4), (8, 'Kennzeichnung', 5);
 
--- Arbeitsgeräte
-INSERT IGNORE INTO `device_classes` (`id`, `name`, `sortOrder`) VALUES (4, 'Arbeitsgeräte', 4);
+-- 4. Rettungsgerät
+INSERT IGNORE INTO `device_classes` (`id`, `name`, `sortOrder`) VALUES (4, 'Rettungsgerät', 4);
 INSERT IGNORE INTO `device_subclasses` (`id`, `deviceClassId`, `name`, `sortOrder`) VALUES
-  (9,  4, 'Geräte & Werkzeuge', 1),
-  (10, 4, 'Pumpen', 2);
+  (9, 4, 'Feuerwehrhaltegurte', 1),
+  (10, 4, 'Feuerwehrleinen', 2),
+  (11, 4, 'Rettungsgeräte', 3),
+  (12, 4, 'Spanngurte & Seile', 4),
+  (13, 4, 'Tragbare Leitern', 5);
 INSERT IGNORE INTO `inspection_criteria` (`deviceSubclassId`, `name`, `sortOrder`) VALUES
-  (9, 'Zustand', 1), (9, 'Vollständigkeit', 2), (9, 'Funktionsprüfung', 3), (9, 'Kennzeichnung', 4),
-  (10, 'Zustand Gehäuse', 1), (10, 'Dichtungen', 2), (10, 'Funktionsprüfung', 3), (10, 'Ölstand', 4), (10, 'Kraftstoff', 5), (10, 'Kennzeichnung', 6);
+  (9, 'Zustand Gurt', 1), (9, 'Karabiner', 2), (9, 'Nähte', 3), (9, 'Kennzeichnung', 4),
+  (10, 'Zustand Leine', 1), (10, 'Karabiner', 2), (10, 'Leinenbeutel', 3), (10, 'Kennzeichnung', 4),
+  (11, 'Zustand', 1), (11, 'Vollständigkeit', 2), (11, 'Funktionsprüfung', 3), (11, 'Kennzeichnung', 4),
+  (12, 'Zustand', 1), (12, 'Verschlüsse/Haken', 2), (12, 'Kennzeichnung', 3),
+  (13, 'Zustand Holme', 1), (13, 'Sprossen', 2), (13, 'Gelenke/Verschlüsse', 3), (13, 'Standfüße', 4), (13, 'Kennzeichnung', 5);
 
--- Löschgeräte
-INSERT IGNORE INTO `device_classes` (`id`, `name`, `sortOrder`) VALUES (5, 'Löschgeräte', 5);
+-- 5. Sanitäts- und Wiederbelebungsgerät
+INSERT IGNORE INTO `device_classes` (`id`, `name`, `sortOrder`) VALUES (5, 'Sanitäts- und Wiederbelebungsgerät', 5);
 INSERT IGNORE INTO `device_subclasses` (`id`, `deviceClassId`, `name`, `sortOrder`) VALUES
-  (11, 5, 'Schläuche', 1),
-  (12, 5, 'Löschgeräte', 2),
-  (13, 5, 'Tragbare Feuerlöscher', 3),
-  (14, 5, 'Wasserführende Armaturen', 4);
+  (14, 5, 'Sanitäts- & Wiederbelebungsgeräte', 1);
 INSERT IGNORE INTO `inspection_criteria` (`deviceSubclassId`, `name`, `sortOrder`) VALUES
-  (11, 'Zustand Schlauch', 1), (11, 'Kupplungen', 2), (11, 'Dichtungen', 3), (11, 'Druckprüfung', 4), (11, 'Kennzeichnung', 5),
-  (12, 'Zustand', 1), (12, 'Vollständigkeit', 2), (12, 'Funktionsprüfung', 3), (12, 'Kennzeichnung', 4),
-  (13, 'Zustand Behälter', 1), (13, 'Schlauch/Düse', 2), (13, 'Manometer/Druck', 3), (13, 'Plombierung', 4), (13, 'Prüfdatum', 5), (13, 'Kennzeichnung', 6),
-  (14, 'Zustand', 1), (14, 'Kupplungen', 2), (14, 'Dichtungen', 3), (14, 'Funktionsprüfung', 4), (14, 'Kennzeichnung', 5);
+  (14, 'Vollständigkeit', 1), (14, 'Zustand Geräte', 2), (14, 'Verfallsdaten', 3), (14, 'Funktionsprüfung', 4), (14, 'Kennzeichnung', 5);
 
--- Rettungsgeräte
-INSERT IGNORE INTO `device_classes` (`id`, `name`, `sortOrder`) VALUES (6, 'Rettungsgeräte', 6);
+-- 6. Beleuchtungs-, Signal- und Fernmeldegerät
+INSERT IGNORE INTO `device_classes` (`id`, `name`, `sortOrder`) VALUES (6, 'Beleuchtungs-, Signal- und Fernmeldegerät', 6);
 INSERT IGNORE INTO `device_subclasses` (`id`, `deviceClassId`, `name`, `sortOrder`) VALUES
-  (15, 6, 'Feuerwehrhaltegurte', 1),
-  (16, 6, 'Feuerwehrleinen', 2),
-  (17, 6, 'Rettungsgeräte', 3),
-  (18, 6, 'Spanngurte & Seile', 4),
-  (19, 6, 'Tragbare Leitern', 5);
+  (15, 6, 'Funkgeräte & Melder', 1),
+  (16, 6, 'Geräte Verkehrssicherung', 2),
+  (17, 6, 'Signal- & Beleuchtungsgeräte', 3);
 INSERT IGNORE INTO `inspection_criteria` (`deviceSubclassId`, `name`, `sortOrder`) VALUES
-  (15, 'Zustand Gurt', 1), (15, 'Karabiner', 2), (15, 'Nähte', 3), (15, 'Kennzeichnung', 4),
-  (16, 'Zustand Leine', 1), (16, 'Karabiner', 2), (16, 'Leinenbeutel', 3), (16, 'Kennzeichnung', 4),
-  (17, 'Zustand', 1), (17, 'Vollständigkeit', 2), (17, 'Funktionsprüfung', 3), (17, 'Kennzeichnung', 4),
-  (18, 'Zustand', 1), (18, 'Verschlüsse/Haken', 2), (18, 'Kennzeichnung', 3),
-  (19, 'Zustand Holme', 1), (19, 'Sprossen', 2), (19, 'Gelenke/Verschlüsse', 3), (19, 'Standfüße', 4), (19, 'Kennzeichnung', 5);
+  (15, 'Zustand Gehäuse', 1), (15, 'Akku/Batterie', 2), (15, 'Funktionsprüfung', 3), (15, 'Antenne', 4), (15, 'Kennzeichnung', 5),
+  (16, 'Zustand', 1), (16, 'Leuchtmittel', 2), (16, 'Funktionsprüfung', 3), (16, 'Kennzeichnung', 4),
+  (17, 'Zustand Gehäuse', 1), (17, 'Leuchtmittel', 2), (17, 'Akku/Batterie', 3), (17, 'Funktionsprüfung', 4), (17, 'Kabel und Stecker', 5), (17, 'Kennzeichnung', 6);
 
--- Elektrische Geräte
-INSERT IGNORE INTO `device_classes` (`id`, `name`, `sortOrder`) VALUES (7, 'Elektrische Geräte', 7);
+-- 7. Arbeitsgerät
+INSERT IGNORE INTO `device_classes` (`id`, `name`, `sortOrder`) VALUES (7, 'Arbeitsgerät', 7);
 INSERT IGNORE INTO `device_subclasses` (`id`, `deviceClassId`, `name`, `sortOrder`) VALUES
-  (20, 7, 'Elektrische Geräte', 1);
+  (18, 7, 'Geräte & Werkzeuge', 1),
+  (19, 7, 'Geräte & Fahrzeuge', 2);
+INSERT IGNORE INTO `inspection_criteria` (`deviceSubclassId`, `name`, `sortOrder`) VALUES
+  (18, 'Zustand', 1), (18, 'Vollständigkeit', 2), (18, 'Funktionsprüfung', 3), (18, 'Kennzeichnung', 4),
+  (19, 'Zustand', 1), (19, 'Vollständigkeit', 2), (19, 'Funktionsprüfung', 3), (19, 'Kennzeichnung', 4);
+
+-- 8. Handwerkzeug und Messgerät
+INSERT IGNORE INTO `device_classes` (`id`, `name`, `sortOrder`) VALUES (8, 'Handwerkzeug und Messgerät', 8);
+
+-- 9. Sondergerät
+INSERT IGNORE INTO `device_classes` (`id`, `name`, `sortOrder`) VALUES (9, 'Sondergerät', 9);
+INSERT IGNORE INTO `device_subclasses` (`id`, `deviceClassId`, `name`, `sortOrder`) VALUES
+  (20, 9, 'Elektrische Geräte', 1);
 INSERT IGNORE INTO `inspection_criteria` (`deviceSubclassId`, `name`, `sortOrder`) VALUES
   (20, 'Zustand Gehäuse', 1), (20, 'Einspannfutter', 2), (20, 'Werkzeug', 3), (20, 'Ersatztrennscheiben', 4), (20, 'Kabel und Stecker', 5), (20, 'elektr. Prüfung', 6);
 
--- Geräte & Fahrzeuge im GH
-INSERT IGNORE INTO `device_classes` (`id`, `name`, `sortOrder`) VALUES (8, 'Geräte & Fahrzeuge im GH', 8);
+-- 10. Pumpen
+INSERT IGNORE INTO `device_classes` (`id`, `name`, `sortOrder`) VALUES (10, 'Pumpen', 10);
 INSERT IGNORE INTO `device_subclasses` (`id`, `deviceClassId`, `name`, `sortOrder`) VALUES
-  (21, 8, 'Geräte & Fahrzeuge', 1);
+  (21, 10, 'Pumpen', 1);
 INSERT IGNORE INTO `inspection_criteria` (`deviceSubclassId`, `name`, `sortOrder`) VALUES
-  (21, 'Zustand', 1), (21, 'Vollständigkeit', 2), (21, 'Funktionsprüfung', 3), (21, 'Kennzeichnung', 4);
+  (21, 'Zustand Gehäuse', 1), (21, 'Dichtungen', 2), (21, 'Funktionsprüfung', 3), (21, 'Ölstand', 4), (21, 'Kraftstoff', 5), (21, 'Kennzeichnung', 6);
+
+-- 11. Atemschutz
+INSERT IGNORE INTO `device_classes` (`id`, `name`, `sortOrder`) VALUES (11, 'Atemschutz', 11);
+INSERT IGNORE INTO `device_subclasses` (`id`, `deviceClassId`, `name`, `sortOrder`) VALUES
+  (22, 11, 'Atemschutzgeräte', 1);
+INSERT IGNORE INTO `inspection_criteria` (`deviceSubclassId`, `name`, `sortOrder`) VALUES
+  (22, 'Zustand Gehäuse', 1), (22, 'Atemanschluss', 2), (22, 'Lungenautomat', 3), (22, 'Druckluftflasche', 4), (22, 'Manometer', 5), (22, 'Funktionsprüfung', 6), (22, 'Kennzeichnung', 7);
 
 SET FOREIGN_KEY_CHECKS = 1;
 
@@ -1069,17 +1226,24 @@ SET FOREIGN_KEY_CHECKS = 1;
 --    logbook_entries     - Fahrtenbuch
 --    equipment_inspections - Geräteprüfungen
 --
---  Geräteprüfung:
---    device_classes               - Geräteklassen (PSA, Löschgeräte, etc.)
---    device_subclasses            - Unterklassen (Helme, Schläuche, etc.)
+--  Geräteprüfung (DGUV 305-002):
+--    device_classes               - 11 Geräteklassen gemäß DGUV
+--    device_subclasses            - Unterklassen je Geräteklasse
 --    inspection_criteria          - Prüfkriterien je Unterklasse
 --    inspection_criterion_results - io/nio Einzelergebnisse je Prüfung
+--    inspection_types             - Prüfungsarten (Sicht-, Belastungs-, Elektroprüfung)
 --
 --  Bestandsliste:
---    warehouses          - Lager (auch fahrzeuggebunden)
---    articles            - Artikel / Ausrüstung (inkl. Geräteklasse, DIN, Seriennr.)
---    article_assignments - Zuweisung Artikel → Lager/Fahrzeug
---    article_inspections - Prüfbuch (Prüfungen je Artikel)
+--    warehouses                   - Lager (auch fahrzeuggebunden)
+--    articles                     - Artikel (inkl. LB12, DOPPIK, MP Feuer Nummern)
+--    article_assignments          - Zuweisung Artikel → Lager/Fahrzeug
+--    article_inspections          - Prüfbuch (mit Prüfart)
+--    article_documents            - PDF-Anhänge je Artikel
+--    inspection_documents         - PDF-Anhänge je Prüfung
+--    article_inspection_standards - Prüfgrundsätze je Gerät
+--    article_inspection_schedules - Prüfintervalle je Prüfart
+--    article_defects              - Mängelmeldesystem
+--    article_repairs              - Reparaturdokumentation
 --
 --  Einsätze:
 --    operations          - Einsätze

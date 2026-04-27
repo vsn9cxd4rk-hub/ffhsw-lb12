@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { PlusIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, PencilIcon } from '@heroicons/react/24/outline';
 import { Article, ArticleInspection, DeviceClass } from '../../types';
 import { Table } from '../../components/ui/Table';
 import { Button } from '../../components/ui/Button';
@@ -11,10 +11,12 @@ import { inspectionsApi } from '../../api/inspections';
 import { settingsApi } from '../../api/settings';
 import { CriteriaInspectionModal } from '../../components/inspections/CriteriaInspectionModal';
 import { ReportTab } from '../../components/inspections/ReportTab';
+import { SearchInput } from '../../components/ui/SearchInput';
+import client from '../../api/client';
 
 type Tab = 'due' | 'history' | 'report';
 
-function DueTab({ onInspect }: { onInspect: (article: Article) => void }) {
+function DueTab({ onInspect, search }: { onInspect: (article: Article) => void; search: string }) {
   const [deviceClassId, setDeviceClassId] = useState<number | ''>('');
   const [deviceSubclassId, setDeviceSubclassId] = useState<number | ''>('');
 
@@ -26,10 +28,11 @@ function DueTab({ onInspect }: { onInspect: (article: Article) => void }) {
   const selectedClass = deviceClasses.find(dc => dc.id === deviceClassId);
 
   const { data: dueArticles, isLoading } = useQuery({
-    queryKey: ['due-inspections', deviceClassId, deviceSubclassId],
+    queryKey: ['due-inspections', deviceClassId, deviceSubclassId, search],
     queryFn: () => inspectionsApi.getDue({
       deviceClassId: deviceClassId || undefined,
       deviceSubclassId: deviceSubclassId || undefined,
+      search: search || undefined,
     }).then(r => r.data.data),
   });
 
@@ -63,7 +66,6 @@ function DueTab({ onInspect }: { onInspect: (article: Article) => void }) {
 
   return (
     <div className="space-y-4">
-      {/* Filter bar */}
       <div className="flex items-end gap-4 bg-white p-4 rounded-lg border border-gray-200">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Geräteklasse</label>
@@ -99,12 +101,12 @@ function DueTab({ onInspect }: { onInspect: (article: Article) => void }) {
   );
 }
 
-function HistoryTab() {
+function HistoryTab({ search, onEdit }: { search: string; onEdit: (inspection: ArticleInspection) => void }) {
   const [page, setPage] = useState(1);
 
   const { data, isLoading } = useQuery({
-    queryKey: ['inspections-history', page],
-    queryFn: () => inspectionsApi.getAll({ page, limit: 20 }).then(r => r.data),
+    queryKey: ['inspections-history', page, search],
+    queryFn: () => inspectionsApi.getAll({ page, limit: 20, search: search || undefined }).then(r => r.data),
   });
 
   const columns = [
@@ -115,10 +117,10 @@ function HistoryTab() {
         {i.article?.inventoryNumber && <p className="text-xs text-gray-500">{i.article.inventoryNumber}</p>}
       </div>
     )},
+    { key: 'inspectionType', header: 'Prüfart', render: (i: ArticleInspection) => i.inspectionType?.name || '-' },
     { key: 'deviceClass', header: 'Geräteklasse', render: (i: ArticleInspection) =>
       i.article?.deviceSubclass?.deviceClass?.name || '-'
     },
-    { key: 'warehouse', header: 'Lagerort', render: (i: ArticleInspection) => i.article?.warehouse?.name || '-' },
     { key: 'inspectedBy', header: 'Prüfer' },
     { key: 'result', header: 'Ergebnis', render: (i: ArticleInspection) => (
       <Badge variant={i.result === 'passed' ? 'success' : 'danger'}>
@@ -129,6 +131,12 @@ function HistoryTab() {
       <span className="text-gray-500 text-sm truncate max-w-[200px] block">{i.notes || '-'}</span>
     )},
     { key: 'nextDueDate', header: 'Nächste Prüfung', render: (i: ArticleInspection) => i.nextDueDate ? formatDate(i.nextDueDate) : '-' },
+    { key: 'actions', header: '', render: (i: ArticleInspection) => (
+      <button onClick={(e) => { e.stopPropagation(); onEdit(i); }}
+        className="p-1.5 text-gray-400 hover:text-primary-600 rounded hover:bg-gray-100" title="Prüfung bearbeiten">
+        <PencilIcon className="h-4 w-4" />
+      </button>
+    )},
   ];
 
   return (
@@ -147,23 +155,45 @@ function HistoryTab() {
 
 export function InspectionBookPage() {
   const [tab, setTab] = useState<Tab>('due');
+  const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState<Article | undefined>();
+  const [editInspection, setEditInspection] = useState<ArticleInspection | undefined>();
 
   const { data: dueArticles } = useQuery({
     queryKey: ['due-inspections'],
     queryFn: () => inspectionsApi.getDue().then(r => r.data.data),
   });
 
+  // Also load all articles for the edit modal (it needs the article in the list)
+  const { data: allArticlesRes } = useQuery({
+    queryKey: ['all-articles-for-inspection'],
+    queryFn: () =>
+      client.get('/inventory/articles', { params: { limit: 1000 } }).then(r => r.data.data as Article[]),
+  });
+
   const openInspect = (article?: Article) => {
     setSelectedArticle(article);
+    setEditInspection(undefined);
+    setShowModal(true);
+  };
+
+  const openEdit = (inspection: ArticleInspection) => {
+    setEditInspection(inspection);
+    setSelectedArticle(undefined);
     setShowModal(true);
   };
 
   const closeModal = () => {
     setShowModal(false);
     setSelectedArticle(undefined);
+    setEditInspection(undefined);
   };
+
+  // Combine due articles and all articles for the modal
+  const articlesForModal = editInspection
+    ? (allArticlesRes || dueArticles || [])
+    : (dueArticles || []);
 
   const tabs = [
     { id: 'due' as const, label: 'Fällige Prüfungen' },
@@ -184,22 +214,31 @@ export function InspectionBookPage() {
             ))}
           </nav>
         </div>
-        {tab !== 'report' && (
-          <Button variant="primary" icon={<PlusIcon />} onClick={() => openInspect()}>
-            Prüfung dokumentieren
-          </Button>
-        )}
+        <div className="flex items-center gap-3">
+          <SearchInput
+            value={search}
+            onChange={setSearch}
+            placeholder="Nach Inv.-Nr., Gemeinde-Nr., MP-Feuer-Nr. suchen..."
+            className="w-80"
+          />
+          {tab !== 'report' && (
+            <Button variant="primary" icon={<PlusIcon />} onClick={() => openInspect()}>
+              Prüfung dokumentieren
+            </Button>
+          )}
+        </div>
       </div>
 
-      {tab === 'due' && <DueTab onInspect={openInspect} />}
-      {tab === 'history' && <HistoryTab />}
+      {tab === 'due' && <DueTab onInspect={openInspect} search={search} />}
+      {tab === 'history' && <HistoryTab search={search} onEdit={openEdit} />}
       {tab === 'report' && <ReportTab />}
 
       <CriteriaInspectionModal
         isOpen={showModal}
         onClose={closeModal}
         preselectedArticle={selectedArticle}
-        articles={dueArticles || []}
+        editInspection={editInspection}
+        articles={articlesForModal}
       />
     </div>
   );

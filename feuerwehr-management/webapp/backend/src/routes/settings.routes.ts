@@ -10,6 +10,7 @@ import {
   createSubclass, updateSubclass, deleteSubclass,
   createCriterion, updateCriterion, deleteCriterion,
   importArticles, importInspections,
+  getInspectionTypes, createInspectionType, updateInspectionType, deleteInspectionType,
 } from '../controllers/settings.controller';
 
 const router = Router();
@@ -45,6 +46,12 @@ router.delete('/device-subclasses/:id', requireAdmin, deleteSubclass);
 router.post('/device-subclasses/:subclassId/criteria', requireAdmin, createCriterion);
 router.put('/inspection-criteria/:id', requireAdmin, updateCriterion);
 router.delete('/inspection-criteria/:id', requireAdmin, deleteCriterion);
+
+// Inspection Types / Prüfungsarten
+router.get('/inspection-types', getInspectionTypes);
+router.post('/inspection-types', requireAdmin, createInspectionType);
+router.put('/inspection-types/:id', requireAdmin, updateInspectionType);
+router.delete('/inspection-types/:id', requireAdmin, deleteInspectionType);
 
 // CSV Import
 router.post('/import/articles', requireAdmin, importArticles);

@@ -1,5 +1,5 @@
 import client from './client';
-import { Rank, Template, TemplateHistory, DeviceClass } from '../types';
+import { Rank, Template, TemplateHistory, DeviceClass, InspectionType } from '../types';
 
 export const settingsApi = {
   get: () => client.get<{ data: Record<string, string> }>('/settings'),
@@ -42,6 +42,12 @@ export const settingsApi = {
   createCriterion: (subclassId: number, data: { name: string; sortOrder?: number }) => client.post(`/settings/device-subclasses/${subclassId}/criteria`, data),
   updateCriterion: (id: number, data: { name?: string; sortOrder?: number }) => client.put(`/settings/inspection-criteria/${id}`, data),
   deleteCriterion: (id: number) => client.delete(`/settings/inspection-criteria/${id}`),
+
+  // Inspection Types / Prüfungsarten
+  getInspectionTypes: () => client.get<{ data: InspectionType[] }>('/settings/inspection-types'),
+  createInspectionType: (data: { name: string; description?: string }) => client.post('/settings/inspection-types', data),
+  updateInspectionType: (id: number, data: { name?: string; description?: string }) => client.put(`/settings/inspection-types/${id}`, data),
+  deleteInspectionType: (id: number) => client.delete(`/settings/inspection-types/${id}`),
 
   // CSV Import
   importArticles: (articles: Array<Record<string, string>>) =>

@@ -11,6 +11,7 @@ import {
   AcademicCapIcon,
   Cog6ToothIcon,
   ShieldCheckIcon,
+  ExclamationTriangleIcon,
   Bars3Icon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
@@ -30,6 +31,7 @@ const navigation = [
   { name: 'Fahrzeuge', href: '/vehicles', icon: TruckIcon, groups: [GROUP_ADMIN, GROUP_GERAETEWARTE, GROUP_MASCHINISTEN] },
   { name: 'Bestandsliste', href: '/inventory', icon: ArchiveBoxIcon, groups: [GROUP_ADMIN, GROUP_GERAETEWARTE] },
   { name: 'Prüfbuch', href: '/inspections', icon: ClipboardDocumentCheckIcon, groups: [GROUP_ADMIN, GROUP_GERAETEWARTE] },
+  { name: 'Mängel', href: '/defects', icon: ExclamationTriangleIcon, groups: [GROUP_ADMIN, GROUP_GERAETEWARTE] },
   { name: 'Einsätze', href: '/operations', icon: FireIcon, groups: [GROUP_ADMIN, GROUP_BENUTZER, GROUP_MASCHINISTEN, GROUP_GRUPPENFUEHRER] },
   { name: 'Veranstaltungen', href: '/events', icon: CalendarIcon, groups: [GROUP_ADMIN, GROUP_BENUTZER, GROUP_MASCHINISTEN, GROUP_GRUPPENFUEHRER] },
   { name: 'Ausbildung', href: '/training', icon: AcademicCapIcon, groups: [GROUP_ADMIN, GROUP_BENUTZER, GROUP_MASCHINISTEN, GROUP_GRUPPENFUEHRER] },

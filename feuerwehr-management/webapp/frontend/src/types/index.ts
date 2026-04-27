@@ -187,9 +187,16 @@ export interface InspectionCriterionResult {
   criterion?: InspectionCriterion;
 }
 
+export interface InspectionType {
+  id: number;
+  name: string;
+  description: string | null;
+}
+
 export interface ArticleInspection {
   id: number;
   articleId: number;
+  inspectionTypeId: number | null;
   inspectedAt: string;
   inspectedBy: string;
   result: string;
@@ -197,7 +204,76 @@ export interface ArticleInspection {
   nextDueDate: string | null;
   createdAt: string;
   article?: Article;
+  inspectionType?: InspectionType;
   criterionResults?: InspectionCriterionResult[];
+  documents?: InspectionDocument[];
+}
+
+export interface InspectionDocument {
+  id: number;
+  inspectionId: number;
+  fileName: string;
+  filePath: string;
+  fileSize: number;
+  mimeType: string;
+  uploadedBy: string;
+  createdAt: string;
+}
+
+export interface ArticleDocument {
+  id: number;
+  articleId: number;
+  fileName: string;
+  filePath: string;
+  fileSize: number;
+  mimeType: string;
+  uploadedBy: string;
+  createdAt: string;
+}
+
+export interface ArticleInspectionStandard {
+  id: number;
+  articleId: number;
+  name: string;
+  description: string | null;
+}
+
+export interface ArticleInspectionSchedule {
+  id: number;
+  articleId: number;
+  inspectionTypeId: number;
+  intervalMonths: number;
+  inspectionType?: InspectionType;
+}
+
+export interface ArticleDefect {
+  id: number;
+  articleId: number;
+  reportedBy: string;
+  reportedAt: string;
+  description: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  status: 'open' | 'in_progress' | 'resolved' | 'closed';
+  resolvedAt: string | null;
+  resolvedBy: string | null;
+  notes: string | null;
+  createdAt: string;
+  article?: Article;
+  repairs?: ArticleRepair[];
+}
+
+export interface ArticleRepair {
+  id: number;
+  articleId: number;
+  defectId: number | null;
+  repairedAt: string;
+  repairedBy: string;
+  description: string;
+  cost: number | null;
+  notes: string | null;
+  createdAt: string;
+  article?: Article;
+  defect?: ArticleDefect;
 }
 
 export interface LogbookEntry {
@@ -239,8 +315,19 @@ export interface Article {
   serialNumber: string | null;
   din: string | null;
   isDecommissioned: boolean;
+  designationLB: string | null;
+  commissionedDate: string | null;
+  decommissionedDate: string | null;
+  communityInventoryNumber: string | null;
+  mpFeuerInventoryNumber: string | null;
+  retirementPeriodMonths: number | null;
   warehouse?: Warehouse | null;
   assignments?: ArticleAssignment[];
+  documents?: ArticleDocument[];
+  inspectionStandards?: ArticleInspectionStandard[];
+  inspectionSchedules?: ArticleInspectionSchedule[];
+  defects?: ArticleDefect[];
+  repairs?: ArticleRepair[];
 }
 
 export interface ArticleAssignment {
@@ -396,7 +483,7 @@ export interface DashboardStats {
   vehicles: number;
   operationsThisYear: number;
   recentOperations: Array<{ id: number; date: string; location: string; keyword: string | null; leaderCount: number; memberCount: number }>;
-  upcomingInspections: Array<{ type: string; entityName: string; dueDate: string }>;
+  upcomingInspections: Array<{ type: string; entityName: string; dueDate: string; status: 'green' | 'yellow' | 'red'; articleId?: number }>;
   upcomingMedicalExams: Array<{ memberName: string; examType: string; dueDate: string }>;
 }
 

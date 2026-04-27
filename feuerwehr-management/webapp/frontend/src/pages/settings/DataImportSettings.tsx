@@ -27,7 +27,14 @@ const ARTICLE_COLUMNS = [
   { name: 'specification', label: 'Spezifikation', required: false, example: 'EN 136 Klasse 3' },
   { name: 'manufacturingDate', label: 'Herstellerdatum (YYYY-MM-DD)', required: false, example: '2023-06-15' },
   { name: 'warehouse', label: 'Lagerort (Name)', required: false, example: 'Gerätehalle' },
+  { name: 'deviceClass', label: 'Geräteklasse (Name)', required: false, example: 'Sondergerät' },
   { name: 'deviceSubclass', label: 'Unterklasse (Name)', required: false, example: 'Elektrische Geräte' },
+  { name: 'designationLB', label: 'Bezeichnung LB', required: false, example: 'LB12' },
+  { name: 'commissionedDate', label: 'Indienststellung (YYYY-MM-DD)', required: false, example: '2020-01-15' },
+  { name: 'decommissionedDate', label: 'Außerdienststellung (YYYY-MM-DD)', required: false, example: '' },
+  { name: 'communityInventoryNumber', label: 'Inv.-Nr. Gemeinde (DOPPIK)', required: false, example: 'GEM-2024-001' },
+  { name: 'mpFeuerInventoryNumber', label: 'Inv.-Nr. MP Feuer', required: false, example: 'MPF-001' },
+  { name: 'retirementPeriodMonths', label: 'Aussonderungsfrist (Monate)', required: false, example: '180' },
 ];
 
 const INSPECTION_COLUMNS = [
@@ -35,6 +42,7 @@ const INSPECTION_COLUMNS = [
   { name: 'inspectedAt', label: 'Prüfdatum (YYYY-MM-DD)', required: true, example: '2024-03-15' },
   { name: 'inspectedBy', label: 'Prüfer', required: true, example: 'Max Mustermann' },
   { name: 'result', label: 'Ergebnis (passed/failed)', required: true, example: 'passed' },
+  { name: 'inspectionType', label: 'Prüfart (Name)', required: false, example: 'Sicht- und Funktionsprüfung' },
   { name: 'notes', label: 'Bemerkungen', required: false, example: 'Keine Mängel' },
 ];
 

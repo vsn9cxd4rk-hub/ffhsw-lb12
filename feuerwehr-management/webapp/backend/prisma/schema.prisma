@@ -419,6 +419,20 @@ model InspectionCriterionResult {
   @@map("inspection_criterion_results")
 }
 
+// ==================== PRÜFUNGSARTEN ====================
+
+model InspectionType {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique @db.VarChar(255)
+  description String?  @db.Text
+  createdAt   DateTime @default(now())
+
+  inspections ArticleInspection[]
+  schedules   ArticleInspectionSchedule[]
+
+  @@map("inspection_types")
+}
+
 // ==================== INVENTORY / BESTANDSLISTE ====================
 
 model Warehouse {
@@ -452,31 +466,45 @@ model Article {
   manufacturingDate  DateTime?
   specification      String?   @db.VarChar(500)
   serialNumber       String?   @db.VarChar(255)
-  din                String?   @db.VarChar(100)
-  isDecommissioned   Boolean   @default(false)
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
+  din                     String?   @db.VarChar(100)
+  isDecommissioned        Boolean   @default(false)
+  designationLB           String?   @default("LB12") @db.VarChar(100)
+  commissionedDate        DateTime?
+  decommissionedDate      DateTime?
+  communityInventoryNumber String?  @db.VarChar(100)
+  mpFeuerInventoryNumber  String?   @db.VarChar(100)
+  retirementPeriodMonths  Int?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
 
-  warehouse      Warehouse?       @relation(fields: [warehouseId], references: [id], onDelete: SetNull)
-  deviceSubclass DeviceSubclass?  @relation(fields: [deviceSubclassId], references: [id], onDelete: SetNull)
-  assignments    ArticleAssignment[]
-  inspections    ArticleInspection[]
+  warehouse           Warehouse?                  @relation(fields: [warehouseId], references: [id], onDelete: SetNull)
+  deviceSubclass      DeviceSubclass?             @relation(fields: [deviceSubclassId], references: [id], onDelete: SetNull)
+  assignments         ArticleAssignment[]
+  inspections         ArticleInspection[]
+  documents           ArticleDocument[]
+  inspectionStandards ArticleInspectionStandard[]
+  inspectionSchedules ArticleInspectionSchedule[]
+  defects             ArticleDefect[]
+  repairs             ArticleRepair[]
 
   @@map("articles")
 }
 
 model ArticleInspection {
-  id            Int       @id @default(autoincrement())
-  articleId     Int
-  inspectedAt   DateTime
-  inspectedBy   String    @db.VarChar(255)
-  result        String    @db.VarChar(50)
-  notes         String?   @db.Text
-  nextDueDate   DateTime?
-  createdAt     DateTime  @default(now())
+  id               Int       @id @default(autoincrement())
+  articleId        Int
+  inspectionTypeId Int?
+  inspectedAt      DateTime
+  inspectedBy      String    @db.VarChar(255)
+  result           String    @db.VarChar(50)
+  notes            String?   @db.Text
+  nextDueDate      DateTime?
+  createdAt        DateTime  @default(now())
 
   article          Article                     @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  inspectionType   InspectionType?             @relation(fields: [inspectionTypeId], references: [id], onDelete: SetNull)
   criterionResults InspectionCriterionResult[]
+  documents        InspectionDocument[]
 
   @@map("article_inspections")
 }
@@ -496,6 +524,97 @@ model ArticleAssignment {
   vehicle   Vehicle?  @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
 
   @@map("article_assignments")
+}
+
+model ArticleDocument {
+  id         Int      @id @default(autoincrement())
+  articleId  Int
+  fileName   String   @db.VarChar(255)
+  filePath   String   @db.VarChar(500)
+  fileSize   Int
+  mimeType   String   @db.VarChar(100)
+  uploadedBy String   @db.VarChar(100)
+  createdAt  DateTime @default(now())
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@map("article_documents")
+}
+
+model InspectionDocument {
+  id           Int      @id @default(autoincrement())
+  inspectionId Int
+  fileName     String   @db.VarChar(255)
+  filePath     String   @db.VarChar(500)
+  fileSize     Int
+  mimeType     String   @db.VarChar(100)
+  uploadedBy   String   @db.VarChar(100)
+  createdAt    DateTime @default(now())
+
+  inspection ArticleInspection @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+
+  @@map("inspection_documents")
+}
+
+model ArticleInspectionStandard {
+  id          Int      @id @default(autoincrement())
+  articleId   Int
+  name        String   @db.VarChar(255)
+  description String?  @db.Text
+  createdAt   DateTime @default(now())
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@map("article_inspection_standards")
+}
+
+model ArticleInspectionSchedule {
+  id               Int @id @default(autoincrement())
+  articleId        Int
+  inspectionTypeId Int
+  intervalMonths   Int
+
+  article        Article        @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  inspectionType InspectionType @relation(fields: [inspectionTypeId], references: [id], onDelete: Cascade)
+
+  @@unique([articleId, inspectionTypeId])
+  @@map("article_inspection_schedules")
+}
+
+model ArticleDefect {
+  id          Int       @id @default(autoincrement())
+  articleId   Int
+  reportedBy  String    @db.VarChar(255)
+  reportedAt  DateTime
+  description String    @db.Text
+  severity    String    @db.VarChar(20)
+  status      String    @default("open") @db.VarChar(20)
+  resolvedAt  DateTime?
+  resolvedBy  String?   @db.VarChar(255)
+  notes       String?   @db.Text
+  createdAt   DateTime  @default(now())
+
+  article Article        @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  repairs ArticleRepair[]
+
+  @@map("article_defects")
+}
+
+model ArticleRepair {
+  id          Int       @id @default(autoincrement())
+  articleId   Int
+  defectId    Int?
+  repairedAt  DateTime
+  repairedBy  String    @db.VarChar(255)
+  description String    @db.Text
+  cost        Decimal?  @db.Decimal(10, 2)
+  notes       String?   @db.Text
+  createdAt   DateTime  @default(now())
+
+  article Article       @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  defect  ArticleDefect? @relation(fields: [defectId], references: [id], onDelete: SetNull)
+
+  @@map("article_repairs")
 }
 
 // ==================== OPERATIONS / EINSÄTZE ====================

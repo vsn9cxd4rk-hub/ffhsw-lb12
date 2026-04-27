@@ -53,7 +53,7 @@ export function DashboardPage() {
         <StatCard icon={UserGroupIcon} label="Aktive Mitglieder" value={stats?.activeMembers ?? 0} color="bg-blue-500" />
         <StatCard icon={TruckIcon} label="Einsatzfahrzeuge" value={stats?.vehicles ?? 0} color="bg-green-500" />
         <StatCard icon={FireIcon} label="Einsätze (Jahr)" value={stats?.operationsThisYear ?? 0} color="bg-red-500" />
-        <StatCard icon={ExclamationTriangleIcon} label="Anst. Prüfungen" value={stats?.upcomingInspections?.length ?? 0} color="bg-yellow-500" />
+        <StatCard icon={ExclamationTriangleIcon} label="Anst. Prüfungen" value={stats?.upcomingInspections?.filter((i) => i.status === 'red' || i.status === 'yellow').length ?? 0} color="bg-yellow-500" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -95,9 +95,23 @@ export function DashboardPage() {
                   <ul className="space-y-2">
                     {stats.upcomingInspections.slice(0, 5).map((insp, i) => (
                       <li key={i} className="flex items-center justify-between text-sm">
-                        <span className="text-gray-700">{insp.entityName}</span>
+                        <span className="flex items-center text-gray-700">
+                          <span className={`inline-block h-2.5 w-2.5 rounded-full mr-2 ${
+                            insp.status === 'red' ? 'bg-red-500' : insp.status === 'yellow' ? 'bg-yellow-500' : 'bg-green-500'
+                          }`} />
+                          {insp.articleId ? (
+                            <button onClick={() => navigate(`/inventory/${insp.articleId}`)}
+                              className="text-primary-600 hover:text-primary-800 hover:underline text-left">
+                              {insp.entityName}
+                            </button>
+                          ) : (
+                            insp.entityName
+                          )}
+                        </span>
                         <div className="flex items-center gap-2">
-                          <Badge variant="warning">{insp.type}</Badge>
+                          <Badge variant={insp.status === 'red' ? 'danger' : insp.status === 'yellow' ? 'warning' : 'success'}>
+                            {insp.status === 'red' ? 'Überfällig' : insp.status === 'yellow' ? 'Fällig' : 'OK'}
+                          </Badge>
                           <span className="text-gray-500 text-xs">{formatDate(insp.dueDate)}</span>
                         </div>
                       </li>

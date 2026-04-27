@@ -10,6 +10,8 @@ export async function getDashboardStats(_req: Request, res: Response): Promise<v
     const reminderDays = 30;
     const reminderDate = new Date();
     reminderDate.setDate(reminderDate.getDate() + reminderDays);
+    const twoMonthsFromNow = new Date();
+    twoMonthsFromNow.setMonth(twoMonthsFromNow.getMonth() + 2);
 
     const [
       activeMembers,
@@ -54,49 +56,74 @@ export async function getDashboardStats(_req: Request, res: Response): Promise<v
         },
         include: { member: { select: { firstName: true, lastName: true } } },
       }),
-      // Articles with inspection interval and their latest inspection
+      // Articles with inspection interval (excluding decommissioned) and their latest inspection
       prisma.article.findMany({
-        where: { inspectionInterval: { not: null } },
+        where: {
+          inspectionInterval: { not: null },
+          isDecommissioned: false,
+          decommissionedDate: null,
+        },
         include: {
           inspections: { orderBy: { inspectedAt: 'desc' }, take: 1 },
         },
       }),
     ]);
 
-    // Build upcoming inspections list
-    const upcomingInspections: Array<{ type: string; entityName: string; dueDate: string }> = [];
+    // Build upcoming inspections list with traffic light status
+    const upcomingInspections: Array<{
+      type: string;
+      entityName: string;
+      dueDate: string;
+      status: 'red' | 'yellow' | 'green';
+      articleId?: number;
+    }> = [];
 
-    // Article inspections: due if never inspected or nextDueDate <= reminderDate
+    // Article inspections: compute traffic light status for each article
     const now = new Date();
     for (const article of articlesWithInterval) {
+      let dueDate: Date;
+      let status: 'red' | 'yellow' | 'green';
+
       if (article.inspections.length === 0) {
-        // Never inspected — due immediately
+        // Never inspected — red (overdue)
+        dueDate = now;
+        status = 'red';
+      } else {
+        const lastInsp = article.inspections[0];
+        if (!lastInsp.nextDueDate) {
+          continue; // No due date computed, skip
+        }
+        dueDate = lastInsp.nextDueDate;
+        if (dueDate <= now) {
+          status = 'red';
+        } else if (dueDate <= twoMonthsFromNow) {
+          status = 'yellow';
+        } else {
+          status = 'green';
+        }
+      }
+
+      // Only include red and yellow items (green = OK, no action needed)
+      if (status === 'red' || status === 'yellow') {
         upcomingInspections.push({
           type: 'Geräteprüfung',
           entityName: article.name,
-          dueDate: now.toISOString(),
+          dueDate: dueDate.toISOString(),
+          status,
+          articleId: article.id,
         });
-      } else {
-        const lastInsp = article.inspections[0];
-        if (lastInsp.nextDueDate && lastInsp.nextDueDate <= reminderDate) {
-          upcomingInspections.push({
-            type: 'Geräteprüfung',
-            entityName: article.name,
-            dueDate: lastInsp.nextDueDate.toISOString(),
-          });
-        }
       }
     }
 
     for (const insp of upcomingVehicleInspections) {
       if (insp.tuevDate && insp.tuevDate <= reminderDate) {
-        upcomingInspections.push({ type: 'TÜV', entityName: insp.vehicle.name, dueDate: insp.tuevDate.toISOString() });
+        upcomingInspections.push({ type: 'TÜV', entityName: insp.vehicle.name, dueDate: insp.tuevDate.toISOString(), status: insp.tuevDate <= now ? 'red' : 'yellow' });
       }
       if (insp.spDate && insp.spDate <= reminderDate) {
-        upcomingInspections.push({ type: 'SP-Prüfung', entityName: insp.vehicle.name, dueDate: insp.spDate.toISOString() });
+        upcomingInspections.push({ type: 'SP-Prüfung', entityName: insp.vehicle.name, dueDate: insp.spDate.toISOString(), status: insp.spDate <= now ? 'red' : 'yellow' });
       }
       if (insp.serviceDate && insp.serviceDate <= reminderDate) {
-        upcomingInspections.push({ type: 'Service', entityName: insp.vehicle.name, dueDate: insp.serviceDate.toISOString() });
+        upcomingInspections.push({ type: 'Service', entityName: insp.vehicle.name, dueDate: insp.serviceDate.toISOString(), status: insp.serviceDate <= now ? 'red' : 'yellow' });
       }
     }
 
@@ -106,6 +133,7 @@ export async function getDashboardStats(_req: Request, res: Response): Promise<v
           type: insp.type,
           entityName: `${insp.vehicle.name} - ${insp.type}`,
           dueDate: insp.nextInspection.toISOString(),
+          status: insp.nextInspection <= now ? 'red' : 'yellow',
         });
       }
     }
@@ -133,7 +161,12 @@ export async function getDashboardStats(_req: Request, res: Response): Promise<v
       vehicles: vehiclesCount,
       operationsThisYear,
       recentOperations,
-      upcomingInspections: upcomingInspections.sort((a, b) => a.dueDate.localeCompare(b.dueDate)).slice(0, 10),
+      upcomingInspections: upcomingInspections.sort((a, b) => {
+        const statusOrder: Record<string, number> = { red: 0, yellow: 1, green: 2 };
+        const statusDiff = statusOrder[a.status] - statusOrder[b.status];
+        if (statusDiff !== 0) return statusDiff;
+        return a.dueDate.localeCompare(b.dueDate);
+      }),
       upcomingMedicalExams: upcomingMedicalExamsList.sort((a, b) => a.dueDate.localeCompare(b.dueDate)).slice(0, 10),
     });
   } catch (err) {
@@ -205,6 +238,142 @@ export async function getStatistics(req: Request, res: Response): Promise<void> 
     } else {
       sendError(res, 'Unbekannter Statistiktyp', 400);
     }
+  } catch (err) {
+    sendError(res, (err as Error).message);
+  }
+}
+
+export async function getNotifications(_req: Request, res: Response): Promise<void> {
+  try {
+    const now = new Date();
+    const twoMonths = new Date();
+    twoMonths.setMonth(twoMonths.getMonth() + 2);
+
+    const notifications: Array<{ id: string; type: string; severity: 'red' | 'yellow' | 'info'; title: string; message: string; link?: string }> = [];
+
+    // 1. Überfällige Prüfungen (rot)
+    const articlesWithInterval = await prisma.article.findMany({
+      where: { inspectionInterval: { not: null }, isDecommissioned: false, decommissionedDate: null },
+      include: { inspections: { orderBy: { inspectedAt: 'desc' }, take: 1 } },
+    });
+
+    let overdueCount = 0;
+    let dueCount = 0;
+    for (const a of articlesWithInterval) {
+      if (a.inspections.length === 0) {
+        overdueCount++;
+      } else {
+        const next = a.inspections[0].nextDueDate;
+        if (next && next <= now) overdueCount++;
+        else if (next && next <= twoMonths) dueCount++;
+      }
+    }
+
+    if (overdueCount > 0) {
+      notifications.push({
+        id: 'insp-overdue', type: 'inspection', severity: 'red',
+        title: `${overdueCount} Prüfung${overdueCount > 1 ? 'en' : ''} überfällig`,
+        message: 'Geräteprüfungen sind überfällig und müssen dringend durchgeführt werden.',
+        link: '/inspections',
+      });
+    }
+    if (dueCount > 0) {
+      notifications.push({
+        id: 'insp-due', type: 'inspection', severity: 'yellow',
+        title: `${dueCount} Prüfung${dueCount > 1 ? 'en' : ''} demnächst fällig`,
+        message: 'Geräteprüfungen werden in den nächsten 2 Monaten fällig.',
+        link: '/inspections',
+      });
+    }
+
+    // 2. Offene Mängel (rot für critical/high, gelb für medium)
+    const openDefects = await prisma.articleDefect.groupBy({
+      by: ['severity'],
+      where: { status: { in: ['open', 'in_progress'] } },
+      _count: true,
+    });
+
+    const criticalDefects = openDefects.filter(d => d.severity === 'critical' || d.severity === 'high').reduce((sum, d) => sum + d._count, 0);
+    const mediumDefects = openDefects.filter(d => d.severity === 'medium').reduce((sum, d) => sum + d._count, 0);
+
+    if (criticalDefects > 0) {
+      notifications.push({
+        id: 'defect-critical', type: 'defect', severity: 'red',
+        title: `${criticalDefects} kritische${criticalDefects > 1 ? '' : 'r'} Mangel/Mängel offen`,
+        message: 'Es gibt offene Mängel mit hohem oder kritischem Schweregrad.',
+        link: '/defects',
+      });
+    }
+    if (mediumDefects > 0) {
+      notifications.push({
+        id: 'defect-medium', type: 'defect', severity: 'yellow',
+        title: `${mediumDefects} Mangel/Mängel offen`,
+        message: 'Es gibt offene Mängel mit mittlerem Schweregrad.',
+        link: '/defects',
+      });
+    }
+
+    // 3. Fahrzeug-Prüftermine (TÜV, SP)
+    const vehicles = await prisma.vehicle.findMany({
+      where: { isRetired: false },
+      include: { inspection: true },
+    });
+
+    for (const v of vehicles) {
+      if (!v.inspection) continue;
+      const checks = [
+        { name: 'TÜV', date: v.inspection.tuevDate },
+        { name: 'SP', date: v.inspection.spDate },
+        { name: 'Service', date: v.inspection.serviceDate },
+      ];
+      for (const check of checks) {
+        if (!check.date) continue;
+        if (check.date <= now) {
+          notifications.push({
+            id: `vehicle-${v.id}-${check.name}`, type: 'vehicle', severity: 'red',
+            title: `${v.name}: ${check.name} überfällig`,
+            message: `Der ${check.name}-Termin für ${v.name} ist abgelaufen.`,
+            link: `/vehicles/${v.id}`,
+          });
+        } else if (check.date <= twoMonths) {
+          notifications.push({
+            id: `vehicle-${v.id}-${check.name}`, type: 'vehicle', severity: 'yellow',
+            title: `${v.name}: ${check.name} demnächst fällig`,
+            message: `Der ${check.name}-Termin für ${v.name} steht bevor.`,
+            link: `/vehicles/${v.id}`,
+          });
+        }
+      }
+    }
+
+    // 4. Ablaufende med. Untersuchungen
+    const members = await prisma.member.findMany({
+      where: { isInactive: false, deletedAt: null },
+      include: { examination: true },
+    });
+
+    let examsDue = 0;
+    for (const m of members) {
+      if (!m.examination) continue;
+      const exams = [m.examination.g25Date, m.examination.g26Date, m.examination.g30Date];
+      for (const d of exams) {
+        if (d && d <= twoMonths) examsDue++;
+      }
+    }
+    if (examsDue > 0) {
+      notifications.push({
+        id: 'exams-due', type: 'medical', severity: 'info',
+        title: `${examsDue} Untersuchung${examsDue > 1 ? 'en' : ''} fällig`,
+        message: 'Arbeitsmedizinische Untersuchungen (G25/G26/G30) stehen an.',
+        link: '/members',
+      });
+    }
+
+    // Sort: red first, then yellow, then info
+    const order = { red: 0, yellow: 1, info: 2 };
+    notifications.sort((a, b) => order[a.severity] - order[b.severity]);
+
+    sendSuccess(res, notifications);
   } catch (err) {
     sendError(res, (err as Error).message);
   }
