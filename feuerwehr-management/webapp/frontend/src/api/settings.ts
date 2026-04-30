@@ -54,4 +54,6 @@ export const settingsApi = {
     client.post<{ data: { imported: number; errors: Array<{ row: number; message: string }>; total: number } }>('/settings/import/articles', { articles }),
   importInspections: (inspections: Array<Record<string, string>>) =>
     client.post<{ data: { imported: number; errors: Array<{ row: number; message: string }>; total: number } }>('/settings/import/inspections', { inspections }),
+  importMembers: (members: Array<Record<string, string>>) =>
+    client.post<{ data: { imported: number; skipped?: number; errors: Array<{ row: number; message: string }>; total: number } }>('/settings/import/members', { members }),
 };

@@ -110,19 +110,19 @@ function HistoryTab({ search, onEdit }: { search: string; onEdit: (inspection: A
   });
 
   const columns = [
-    { key: 'inspectedAt', header: 'Datum', render: (i: ArticleInspection) => formatDate(i.inspectedAt) },
-    { key: 'article', header: 'Artikel', render: (i: ArticleInspection) => (
+    { key: 'inspectedAt', header: 'Datum', sortable: true, sortValue: (i: ArticleInspection) => i.inspectedAt, render: (i: ArticleInspection) => formatDate(i.inspectedAt) },
+    { key: 'article', header: 'Artikel', sortable: true, sortValue: (i: ArticleInspection) => i.article?.name || '', render: (i: ArticleInspection) => (
       <div>
         <p className="font-medium">{i.article?.name}</p>
         {i.article?.inventoryNumber && <p className="text-xs text-gray-500">{i.article.inventoryNumber}</p>}
       </div>
     )},
-    { key: 'inspectionType', header: 'Prüfart', render: (i: ArticleInspection) => i.inspectionType?.name || '-' },
-    { key: 'deviceClass', header: 'Geräteklasse', render: (i: ArticleInspection) =>
+    { key: 'inspectionType', header: 'Prüfart', sortable: true, sortValue: (i: ArticleInspection) => i.inspectionType?.name || '', render: (i: ArticleInspection) => i.inspectionType?.name || '-' },
+    { key: 'deviceClass', header: 'Geräteklasse', sortable: true, sortValue: (i: ArticleInspection) => i.article?.deviceSubclass?.deviceClass?.name || '', render: (i: ArticleInspection) =>
       i.article?.deviceSubclass?.deviceClass?.name || '-'
     },
-    { key: 'inspectedBy', header: 'Prüfer' },
-    { key: 'result', header: 'Ergebnis', render: (i: ArticleInspection) => (
+    { key: 'inspectedBy', header: 'Prüfer', sortable: true, sortValue: (i: ArticleInspection) => i.inspectedBy },
+    { key: 'result', header: 'Ergebnis', sortable: true, sortValue: (i: ArticleInspection) => i.result, render: (i: ArticleInspection) => (
       <Badge variant={i.result === 'passed' ? 'success' : 'danger'}>
         {i.result === 'passed' ? 'Bestanden' : 'Nicht bestanden'}
       </Badge>
@@ -130,7 +130,7 @@ function HistoryTab({ search, onEdit }: { search: string; onEdit: (inspection: A
     { key: 'notes', header: 'Bemerkungen', render: (i: ArticleInspection) => (
       <span className="text-gray-500 text-sm truncate max-w-[200px] block">{i.notes || '-'}</span>
     )},
-    { key: 'nextDueDate', header: 'Nächste Prüfung', render: (i: ArticleInspection) => i.nextDueDate ? formatDate(i.nextDueDate) : '-' },
+    { key: 'nextDueDate', header: 'Nächste Prüfung', sortable: true, sortValue: (i: ArticleInspection) => i.nextDueDate || '', render: (i: ArticleInspection) => i.nextDueDate ? formatDate(i.nextDueDate) : '-' },
     { key: 'actions', header: '', render: (i: ArticleInspection) => (
       <button onClick={(e) => { e.stopPropagation(); onEdit(i); }}
         className="p-1.5 text-gray-400 hover:text-primary-600 rounded hover:bg-gray-100" title="Prüfung bearbeiten">

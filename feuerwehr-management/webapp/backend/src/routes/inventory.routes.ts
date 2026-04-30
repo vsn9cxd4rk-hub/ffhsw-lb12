@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { authenticate } from '../middleware/auth.middleware';
 import {
   getWarehouses, createWarehouse, updateWarehouse, deleteWarehouse,
+  getNextInventoryNumber,
   getArticles, createArticle, getArticle, updateArticle, deleteArticle,
   assignArticle, updateAssignment, deleteAssignment,
   articleDocUpload, getArticleDocuments, uploadArticleDocument, downloadArticleDocument, deleteArticleDocument,
@@ -19,6 +20,7 @@ router.post('/warehouses', createWarehouse);
 router.put('/warehouses/:id', updateWarehouse);
 router.delete('/warehouses/:id', deleteWarehouse);
 
+router.get('/articles/next-number', getNextInventoryNumber);
 router.get('/articles', getArticles);
 router.post('/articles', createArticle);
 

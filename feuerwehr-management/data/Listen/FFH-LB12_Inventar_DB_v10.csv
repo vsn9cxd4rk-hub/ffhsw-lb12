@@ -1,0 +1,436 @@
+﻿name;inventoryNumber;manufacturer;articleType;description;inspectionInterval;value;serialNumber;din;specification;manufacturingDate;warehouse;deviceClass;deviceSubclass;designationLB;commissionedDate;decommissionedDate;communityInventoryNumber;mpFeuerInventoryNumber;retirementPeriodMonths;pruefgrundsaetze
+Standrohr 2-B;120001;AWG;;;12;;;;AWG Standrohr DN80/DN50;2017-01-01;LF-8/6-TH;Schläuche, Armaturen und Zubehör;Wasserführende Armaturen;LB12;2017-01-01;;020472;;;DGUV 305-002
+Belüftungsgerät;120002;Hale;;;12;;20404;;HALE Typhoon;;LF-8/6-TH;Sondergerät;Elektrische Geräte;LB12;unbekannt;;013192;;;DGUV 49
+Blitzleuchte;120003;Horizont Signal;;;12;;167646;;LK-Blitz-Stableucht E1-2;;LF-8/6-TH;Beleuchtungs-, Signal- und Fernmeldegerät;Signal- & Beleuchtungsgeräte;LB12;;;013193;;;DGUV 3, DGUV 4
+Blitzleuchte;120004;Horizont Signal;;;12;;520886;;LK-LED-Stableuchte E1;2019-01-01;LF-8/6-TH;Beleuchtungs-, Signal- und Fernmeldegerät;Signal- & Beleuchtungsgeräte;LB12;2019-01-01;;020857;;;DGUV 3, DGUV 4
+Blitzleuchte;120005;Horizont Signal;;;12;;167620;;LK-Blitz-Stableucht E1-2;;LF-8/6-TH;Beleuchtungs-, Signal- und Fernmeldegerät;Signal- & Beleuchtungsgeräte;LB12;unbekannt;;013194;;;DGUV 3, DGUV 4
+Blitzleuchte;120006;Horizont Signal;;;12;;429646;;LK-LED-Stableuchte E1;2019-01-01;LF-8/6-TH;Beleuchtungs-, Signal- und Fernmeldegerät;Signal- & Beleuchtungsgeräte;LB12;2019-01-01;;;;;DGUV 3, DGUV 4
+Schleifkorbtrage;120007;Spencer;;;12;;2132913001;;Twin Shell;2021-09-01;LF-8/6-TH;Sanitäts- und Wiederbelebungsgerät;Sanitäts- & Wiederbelebungsgeräte;LB12;2021-01-01;;;;120;Hersteller, DGUV
+Hohlstrahlrohr C2235;120008;AWG;;;12;;;;Turbo-Spritze C2235;2019-10-01;LF-8/6-TH;Schläuche, Armaturen und Zubehör;Wasserführende Armaturen;LB12;2019-01-01;;021035;;;DGUV 305-002
+Hohlstrahlrohr C2235;120009;AWG;;;12;;;;Turbo-Spritze C2235;2021-09-01;LF-8/6-TH;Schläuche, Armaturen und Zubehör;Wasserführende Armaturen;LB12;2021-01-01;;;;;DGUV 305-002
+Hohlstrahlrohr C2235;120010;AWG;;;12;;;;Turbo-Spritze C2235;2020-05-01;LF-8/6-TH;Schläuche, Armaturen und Zubehör;Wasserführende Armaturen;LB12;2020-01-01;;;;;DGUV 305-002
+BMM-Mehrzweckstrahlrohr;120011;AWG;;;12;;;;Mehrzweckstrahlrohr BM;;LF-8/6-TH;Schläuche, Armaturen und Zubehör;Wasserführende Armaturen;LB12;;;013217;;;DGUV 305-002
+D-Mehrzweckstrahlrohr;120012;AWG;;;12;;;;Mehrzweckstrahlrohr DM;;LF-8/6-TH;Schläuche, Armaturen und Zubehör;Wasserführende Armaturen;LB12;;;;;;DGUV 305-002
+Hwerkzeugkoffer;120013;PARAT;;;12;;;;;;LF-8/6-TH;Handwerkzeug und Messgerät;;LB12;;;;;;DGUV 305-002
+Tauchpumpe TP 4/1;120014;MAST;;;12;;43312;;TP 4-1;;LF-8/6-TH;Arbeitsgerät;Geräte & Werkzeuge;LB12;1999-01-01;;013214;;;DGUV 3, DGUV 4, 203-049
+Personenschutzschalter;120015;Kopp;;;12;;;;PRCD-S;;LF-8/6-TH;Beleuchtungs-, Signal- und Fernmeldegerät;Signal- & Beleuchtungsgeräte;LB12;;;;;;DGUV 3, DGUV 4, 203-049
+Aldebaran Großflächenleuchte;120016;Setolite;;;12;;;;Aldebaran 360° Flex-C LED 600 Compact 2.0;;LF-8/6-TH;Beleuchtungs-, Signal- und Fernmeldegerät;Signal- & Beleuchtungsgeräte;LB12;45170;;021408;;;DGUV 3, DGUV 4, 203-049
+Motorkettensäge;120017;Stihl;;;12;;;;Stihl 044;1999-01-01;LF-8/6-TH;Arbeitsgerät;Geräte & Werkzeuge;LB12;2000-01-01;;013202;;;DGUV 305-002
+Forstarbeiterhelm;120018;Voss;;;12;;;;Forstarbeiterhelm;2022-03-01;LF-8/6-TH;Schutzkleidung und Schutzgerät;Helme;LB12;2022-01-01;;;;60;DGUV 305-002
+Forstarbeiterhelm;120019;Stihl;;;12;;;;Forstarbeiterhelm;2021-10-01;LF-8/6-TH;Schutzkleidung und Schutzgerät;Helme;LB12;2021-01-01;;;;60;DGUV 305-002
+Schnittschutzhose;120020;Stihl;;;12;;09/0088 508 0001;;Stihl Protect MS 360°;2019-12-01;LF-8/6-TH;Schutzkleidung und Schutzgerät;Schutzkleidung TH;LB12;2020-01-01;;;;120;DGUV 305-002, Herstellerangaben
+Stativ;120021;Dönges;;;12;;;;Teleskopstativ mit Dreibein;;LF-8/6-TH;Beleuchtungs-, Signal- und Fernmeldegerät;Signal- & Beleuchtungsgeräte;LB12;2023-01-01;;;;;DGUV 305-002, Herstellerangaben
+StabFast Stütze;120022;Weber Rescue;;;4;;2018110001;;StabFast ALU;2018-01-01;LF-8/6-TH;Arbeitsgerät;Geräte & Werkzeuge;LB12;;;;;;DGUV 305-002, Herstellerangaben
+StabFast Stütze;120023;Weber Rescue;;;4;;2021010001;;StabFast ALU;2021-01-01;LF-8/6-TH;Arbeitsgerät;Geräte & Werkzeuge;LB12;;;;;;DGUV 305-002, Herstellerangaben
+StabFast Stütze;120024;Weber Rescue;;;4;;2018110001;;StabFast ALU;2018-01-01;LF-8/6-TH;Arbeitsgerät;Geräte & Werkzeuge;LB12;;;;;;DGUV 305-002, Herstellerangaben
+StabFast Stütze;120025;Weber Rescue;;;4;;2021010001;;StabFast ALU;2021-01-01;LF-8/6-TH;Arbeitsgerät;Geräte & Werkzeuge;LB12;;;;;;DGUV 305-002, Herstellerangaben
+Feuerlöscher ABC P12;120026;Jockel;;;24;;;;Feuerlöscher 12kg ABC Pulver;2013-01-01;LF-8/6-TH;Löschgerät;Tragbare Feuerlöscher;LB12;;;018702;;;DGUV 1
+Feuerlöscher CO2;120027;Harz;;;24;;;;Feuerlöscher Kohlendioxid;2019-03-01;LF-8/6-TH;Löschgerät;Tragbare Feuerlöscher;LB12;2019-01-01;;;;;DGUV 1
+Zumischer Z4B;120028;AWG;;;12;;;;Zumischer Z4R-DIN14384;1999-01-01;LF-8/6-TH;Schläuche, Armaturen und Zubehör;Wasserführende Armaturen;LB12;2000-01-01;;013203;;;DGUV 305-002
+DELTA Box 230 Volt;120029;Mennekes;;;12;;;;10866;;LF-8/6-TH;Beleuchtungs-, Signal- und Fernmeldegerät;Signal- & Beleuchtungsgeräte;LB12;;;;;;DGUV 3, DGUV 4, 203-049
+Personenschutzschalter;120030;Kopp;;;12;;;;PRCD-S;;LF-8/6-TH;Beleuchtungs-, Signal- und Fernmeldegerät;Signal- & Beleuchtungsgeräte;LB12;;;;;;DGUV 3, DGUV 4, 203-049
+Leitungsroller 230V;120031;Bosch;;;12;;7791021119;;KSA 20;;LF-8/6-TH;Beleuchtungs-, Signal- und Fernmeldegerät;Signal- & Beleuchtungsgeräte;LB12;2000-01-01;;013215;;;DGUV 3, DGUV 4, 203-049
+Stromerzeuger 5,5kVA;120032;Knurz;;;12;;20144;;DE+E 5,5 BVF;1999-10-01;LF-8/6-TH;Arbeitsgerät;Geräte & Werkzeuge;LB12;2000-01-01;;013198;;;DGUV 3, DGUV 4, 203-049
+Rundschlinge 6t;120033;Sitex GmbH;;;12;;104043-00001;;SF7;2022-04-01;LF-8/6-TH;Arbeitsgerät;Geräte & Werkzeuge;LB12;2022-01-01;;;;120;DGUV 305-002
+Rundschlinge 3t;120034;Dolezych;;;12;;DD119860760020182;;WLL 3000kg;2021-01-01;LF-8/6-TH;Arbeitsgerät;Geräte & Werkzeuge;LB12;2021-01-01;;;;120;DGUV 305-002
+Rundschlinge 3t;120035;Dolezych;;;12;;DD119860760020183;;WLL 3000kg;2021-01-01;LF-8/6-TH;Arbeitsgerät;Geräte & Werkzeuge;LB12;2021-01-01;;;;120;DGUV 305-002
+Rundschlinge 2,2t;120036;Ellipse;;;12;;09998S;;PPLSAC20;2022-01-01;LF-8/6-TH;Arbeitsgerät;Geräte & Werkzeuge;LB12;2022-01-01;;;;120;DGUV 305-002
+Rundschlinge 2,2t;120037;Ellipse;;;12;;09998S144;;PPLSAC20;2022-01-01;LF-8/6-TH;Arbeitsgerät;Geräte & Werkzeuge;LB12;2022-01-01;;;;120;DGUV 305-002
+Spanngurt ohne Ratsche;120038;Dolezych;;;12;;;;Spanngurt 2,5t;2021-01-01;LF-8/6-TH;Arbeitsgerät;Geräte & Werkzeuge;LB12;2021-01-01;;;;120;DGUV 305-002
+Ratsche für Spanngurt;120039;Dolezych;;;12;;;;Ratsche für Spanngurt 2,5t;2021-01-01;LF-8/6-TH;Arbeitsgerät;Geräte & Werkzeuge;LB12;2021-01-01;;;;120;DGUV 305-002
+Spanngurt ohne Ratsche;120040;Ponsa;;;12;;;;Spanngurt 2,5t;2017-04-01;LF-8/6-TH;Arbeitsgerät;Geräte & Werkzeuge;LB12;2017-01-01;;;;120;DGUV 305-002
+Ratsche für Spanngurt;120041;Ponsa;;;12;;;;Ratsche für Spanngurt 2,5t;2017-04-01;LF-8/6-TH;Arbeitsgerät;Geräte & Werkzeuge;LB12;2017-01-01;;;;120;DGUV 305-002
+Akku-Schlagbohrschrauber;120042;Milwaukee;;;12;;;;HD18 PD;2012-01-01;LF-8/6-TH;Handwerkzeug und Messgerät;;LB12;2012-01-01;;;;;DGUV 305-002
+Akke-Geradschleifer;120043;Milwaukee;;;12;;;;HD18 SG;2012-01-01;LF-8/6-TH;Handwerkzeug und Messgerät;;LB12;2012-01-01;;;;;DGUV 305-002
+Türöffnungswerkzeug;120044;PAX;;;12;;;;;;LF-8/6-TH;Handwerkzeug und Messgerät;;LB12;;;;;;DGUV 305-002, Herstellerangaben
+Aufsatz Armaturenbrett;120045;Weber Rescue;;;12;;;;Armaturen Druckplatte Vorne;;LF-8/6-TH;Arbeitsgerät;Geräte & Werkzeuge;LB12;;;;;;DGUV 305-002, Herstellerangaben
+Aufsatz Rückbank;120046;Weber Rescue;;;12;;;;Armaturen Druckplatte Hinten;;LF-8/6-TH;Arbeitsgerät;Geräte & Werkzeuge;LB12;;;;;;DGUV 305-002, Herstellerangaben
+Schwelleraufsatz;120047;Weber Rescue;;;12;;812.173.7;;Schwelleraufsatz;;LF-8/6-TH;Arbeitsgerät;Geräte & Werkzeuge;LB12;;;;;;DGUV 305-002, Herstellerangaben
+Akku-Säbelsäge;120048;Milwaukee;;;12;;;;HD18 SX;2012-01-01;LF-8/6-TH;Handwerkzeug und Messgerät;;LB12;2012-01-01;;;;;DGUV 305-002
+Akku-Winkelschleifer 125mm;120049;Milwaukee;;;12;;;;M18 CAG 125X;2018-01-01;LF-8/6-TH;Handwerkzeug und Messgerät;;LB12;2018-01-01;;Nicht lesbar;;;DGUV 305-002
+Hydraulikaggregat;120050;Weber Rescue;;;12;;107871803200116;;E70W-SAH20;2022-08-01;LF-8/6-TH;Arbeitsgerät;Geräte & Werkzeuge;LB12;2022-01-01;;021405;;;DGUV 305-002, Herstellerangaben
+RZT-2 775 Verlängerung;120051;Weber Rescue;;;12;;3864588;;RZT-2 775 Verlängerung;2013-01-01;LF-8/6-TH;Arbeitsgerät;Geräte & Werkzeuge;LB12;2013-01-01;;;;;DGUV 305-002, Herstellerangaben
+Rettungszylinder RZT-2 775;120052;Weber Rescue;;;12;;2195;;RZT-2 775;2013-01-01;LF-8/6-TH;Arbeitsgerät;Geräte & Werkzeuge;LB12;2013-01-01;;;;;DGUV 305-002, Herstellerangaben
+Rettungszylinder RZT-2 1500;120053;Weber Rescue;;;12;;1166;;RZT-2 1500;2013-01-01;LF-8/6-TH;Arbeitsgerät;Geräte & Werkzeuge;LB12;2013-01-01;;;;;DGUV 305-002, Herstellerangaben
+Spreizer SP 30 LS;120054;Weber Rescue;;;12;;;;SP 30 LS;1999-01-01;LF-8/6-TH;Arbeitsgerät;Geräte & Werkzeuge;LB12;1999-01-01;;013212;;;DGUV 305-002, Herstellerangaben
+Schere S180;120055;Weber Rescue;;Prüfblatt FEHLT!!;12;;2388;;S180;1999-01-01;LF-8/6-TH;Arbeitsgerät;Geräte & Werkzeuge;LB12;1999-01-01;;;;;DGUV 305-002, Herstellerangaben
+Schnellangriffseinrichtung;120056;Magirus;;;12;;;;;1999-01-01;LF-8/6-TH;Löschgerät;Löschgeräte;LB12;1999-01-01;;;;;DGUV 305-002
+Kettensatz für Spreizer 4t;120057;;;;12;;;;;1999-01-01;LF-8/6-TH;Arbeitsgerät;Geräte & Werkzeuge;LB12;1999-01-01;;;;;DGUV 305-002, Herstellerangaben
+FP 8/8;120058;Magirus;;;12;;87990;;FP 8/8;1999-01-01;LF-8/6-TH;Pumpen;Pumpen;LB12;1999-01-01;;;;;DGUV 305-002
+Verteiler B-CBC;120059;AWG;;;12;;;;AWG Verteiler mit StorzKupplung B-CBC;1999-01-01;LF-8/6-TH;Schläuche, Armaturen und Zubehör;Wasserführende Armaturen;LB12;1999-01-01;;013221;;;DGUV 305-002, Herstellerangaben
+Saugkorb A;120060;AWG;;;12;;;;AWG Saugkorb A;1999-01-01;LF-8/6-TH;Schläuche, Armaturen und Zubehör;Wasserführende Armaturen;LB12;1999-01-01;;;;;DGUV 305-002, Herstellerangaben
+Sammelstück 2B;120061;AWG;;;12;;;;AWG Sammelstück 2B;1999-01-01;LF-8/6-TH;Schläuche, Armaturen und Zubehör;Wasserführende Armaturen;LB12;1999-01-01;;;;;DGUV 305-002, Herstellerangaben
+Sammelstück 2C;120062;AWG;;;12;;;;AWG Sammelstück 2C;1999-01-01;LF-8/6-TH;Schläuche, Armaturen und Zubehör;Wasserführende Armaturen;LB12;1999-01-01;;;;;DGUV 305-002, Herstellerangaben
+Stützkrümmer B;120063;AWG;;;12;;;;AWG Stützkrümmer;1999-01-01;LF-8/6-TH;Schläuche, Armaturen und Zubehör;Wasserführende Armaturen;LB12;1999-01-01;;;;;DGUV 305-002, Herstellerangaben
+Atemschutzüberwachungstafel;120064;Dräger;;;12;;;;REGIS 300;;LF-8/6-TH;Atemschutz;Atemschutzgeräte;LB12;;;;;;DGUV 305-002
+TwinSaw Rettungssäge;120065;TwinSaw;;;12;;2016 0022;;CRE2326-520;2016-01-01;LF-8/6-TH;Arbeitsgerät;Geräte & Werkzeuge;LB12;2016-01-01;;019998;;;DGUV 3,4, 203-049
+Elektro-Trennschleifer 230mm;120066;Bosch;;;12;;;;GWS 2000-23 J;;LF-8/6-TH;Arbeitsgerät;Geräte & Werkzeuge;LB12;1999-01-01;;013218;;;DGUV 3,4, 203-049
+Schaumrohr S4;120067;AWG;;;12;;;;;1999-01-01;LF-8/6-TH;Schläuche, Armaturen und Zubehör;Wasserführende Armaturen;LB12;1999-01-01;;;;;DGUV 305-002, Herstellerangaben
+Hitzeschutzkleidung;120068;;Hose;Schutzkleidung für spez. Brandbekämpfung;12;;;DIN EN 1486;Glas-Alu;1999;LF8;PSA;Schutzkleidung Brandbekämpfung;LB12;;;;;;
+Beinlinge (Schnittschutz);120069;;Form C;;;;;;;1999;LF8;PSA;Schutzkleidung TH;LB12;;;;;;
+Schnittschutzhose;120070;;Latzhose;;;;0999/64/56;;;2003;LF8;PSA;Schutzkleidung TH;LB12;;;;;;
+Holzfällerjacke;120071;;Schnittschutzjacke;;12;;;DIN EN 381;;1999;LF8;PSA;Schutzkleidung TH;LB12;;;;;;
+Waldarbeiterhelm mit Visier;120072;;AQN1-2;;12;;;;;2003;LF8;PSA;Helme;LB12;;;;;;
+Schutzbrille;120073;;;;;;;;;1999;LF8;PSA;Schutzkleidung sonstige;LB12;;;;;;
+Warnweste;516;;;;12;;;DIN EN 471;;1999;LF8;PSA;Schutzkleidung sonstige;LB12;;;;;;
+Helm;HE1;Junker;Alu;WIAP;12;;;DIN EN 433;;1988;GH;PSA;Helme;LB12;;;;;;
+Helm;HE2;MSA-Gallet;F1SA12;SEDO;12;;1191075;DIN EN 433;;1997;GH;PSA;Helme;LB12;;;;;;
+Helm;HE3;x;x;nicht prüfbar;12;;x;;;;GH;PSA;Helme;LB12;;;;;;
+Helm;HE4;MSA-Gallet;F1SF25 B;MAHO;12;;1739427;DIN EN 443;;2008;GH;PSA;Helme;LB12;;;;;;
+Helm;HE5;MSA-Gallet;F1E;ANJO;12;;1739422;DIN EN 443;;2008;GH;PSA;Helme;LB12;;;;;;
+Helm;HE6;MSA-Gallet;F1SF25 B;MAJU;12;;1739426;DIN EN 443;;2008;GH;PSA;Helme;LB12;;;;;;
+Helm;HE7;MSA-Gallet;F1SF25 B;RUGL;12;;1739429;DIN EN 443;;2008;GH;PSA;Helme;LB12;;;;;;
+Helm;HE9;Draeger;F200;TIJO;12;;299;DIN EN 433;;1998;GH;PSA;Helme;LB12;;;;;;
+Helm;HE11;MSA-Gallet;F1SF25 B;HALI;12;;1527662;DIN EN 443;;2008;GH;PSA;Helme;LB12;;;;;;
+Helm;HE12;MSA-Gallet;F1S12;JOMA;12;;400530;DIN EN 433;;1997;GH;PSA;Helme;LB12;;;;;;
+Helm;HE13;MSA-Gallet;F1S12;RAMA;12;;400531;DIN EN 433;;1997;GH;PSA;Helme;LB12;;;;;;
+Helm;HE16;MSA-Gallet;F1SA12;SEME;12;;1191084;DIN EN 433;;1997;GH;PSA;Helme;LB12;;;;;;
+Helm;HE17;MSA-Gallet;F1SF25 B;NONA;12;;1739428;DIN EN 433;;2008;GH;PSA;Helme;LB12;;;;;;
+Helm;HE19;MSA-Gallet;F1SF25 B;FASI;12;;1527660;DIN EN 433;;2008;GH;PSA;Helme;LB12;;;;;;
+Helm;HE21;MSA-Gallet;F1SF25 B;MASU;12;;1739424;DIN EN 433;;2008;GH;PSA;Helme;LB12;;;;;;
+Helm;HE23;MSA-Gallet;F1SF25 B;DOWU;12;;1739425;DIN EN 433;;2008;GH;PSA;Helme;LB12;;;;;;
+Helm;HE24;MSA-Gallet;F1SF25 B;MIWU;12;;1739423;DIN EN 433;;2008;GH;PSA;Helme;LB12;;;;;;
+Überjacke 7;JA1;Bristol;Nomex Delta T;WIAP;12;;216;DIN EN 469;;1997;GH;PSA;Schutzkleidung sonstige;LB12;;;;;;
+Überjacke 54;JA2;Watex;HuPF Teil1;SEDO;12;;;DIN EN 469;;2013;GH;PSA;Schutzkleidung sonstige;LB12;;;;;;
+Überjacke x;JA3;x;x;WOGL;12;;x;;;;GH;PSA;Schutzkleidung sonstige;LB12;;;;;;
+Überjacke 8;JA4;Bristol;Nomex Delta T;MAHO;12;;309;DIN EN 469;;1997;GH;PSA;Schutzkleidung sonstige;LB12;;;;;;
+Überjacke 9;JA5;Bristol;Nomex Delta T;ANJO;12;;419;DIN EN 469;;1997;GH;PSA;Schutzkleidung sonstige;LB12;;;;;;
+Überjacke 56;JA7;Watex;HuPF Teil1;RUKL;12;;;DIN EN 469;;2010;GH;PSA;Schutzkleidung sonstige;LB12;;;;;;
+TH Jacke 52;JA8;TH Jacke;HuPF Teil3;SAKU;12;;;DIN EN 469;;2012;GH;PSA;Schutzkleidung TH;LB12;;;;;;
+Überjacke 7;JA9;Bristol;Nomex Delta T;SAKU;12;;192;DIN EN 469;;1997;GH;PSA;Schutzkleidung sonstige;LB12;;;;;;
+Überjacke 64;JA10;Watex;HuPF Teil1;TIJO;12;;;DIN EN 469;;2013;GH;PSA;Schutzkleidung sonstige;LB12;;;;;;
+Überjacke 7;JA11;Bristol;Nomex Delta T;KHKU;12;;168;DIN EN 469;;1997;GH;PSA;Schutzkleidung sonstige;LB12;;;;;;
+Überjacke 58;JA12;Watex;HuPF Teil1;HALI;12;;;DIN EN 469;;2011;GH;PSA;Schutzkleidung sonstige;LB12;;;;;;
+Überjacke 7;JA13;Bristol;Nomex Delta T;JOMA;12;;248;DIN EN 469;;1997;GH;PSA;Schutzkleidung sonstige;LB12;;;;;;
+Überjacke 52;JA14;Novotex-Isomat;HuPF Teil3;RAMA;12;;;DIN EN 469;;2010;GH;PSA;Schutzkleidung sonstige;LB12;;;;;;
+Überjacke 7;JA17;Bristol;Nomex Delta T;FEMA;12;;346;DIN EN 469;;1997;GH;PSA;Schutzkleidung sonstige;LB12;;;;;;
+Überjacke 9;JA20;Bristol;Nomex Delta T;ANPO;12;;1;DIN EN 469;;1998;GH;PSA;Schutzkleidung sonstige;LB12;;;;;;
+Überjacke 9;JA21;Bristol;Nomex Delta T;FASI;12;;412;DIN EN 469;;1997;GH;PSA;Schutzkleidung sonstige;LB12;;;;;;
+Überjacke 7;JA23;Bristol;Nomex Delta T;MASU;12;;309;DIN EN 469;;1997;GH;PSA;Schutzkleidung sonstige;LB12;;;;;;
+Überjacke 7;JA25;Bristol;Nomex Delta T;DOWU;12;;186;DIN EN 469;;1997;GH;PSA;Schutzkleidung sonstige;LB12;;;;;;
+Überjacke 5;JA27;Bristol;Nomex Delta T;RAKU;12;;92;DIN EN 469;;1997;GH;PSA;Schutzkleidung sonstige;LB12;;;;;;
+Überjacke 7;JA28;Bristol;Nomex Delta T;TOPO;12;;x;DIN EN 469;;1997;GH;PSA;Schutzkleidung sonstige;LB12;;;;;;
+TH Jacke 54;JA29;Novotex-Isomat;HuPF Teil3;TOPO;12;;;DIN EN 469;;2014;GH;PSA;Schutzkleidung TH;LB12;;;;;;
+Überjacke 8;JA30;Bristol;Nomex Delta T;TIRE;12;;395;DIN EN 469;;1997;GH;PSA;Schutzkleidung sonstige;LB12;;;;;;
+Überjacke 3;JA32;Bristol;Nomex Delta T;NISP;12;;3;DIN EN 469;;1997;GH;PSA;Schutzkleidung sonstige;LB12;;;;;;
+TH Jacke 44;JA33;Novotex-Isomat;HuPF Teil3;NISP;12;;;DIN EN 469;;2014;GH;PSA;Schutzkleidung TH;LB12;;;;;;
+Feuerwehrstiefel;120074;;;;;;;;;;GH;PSA;Schutzkleidung sonstige;LB12;;;;;;
+Feuerwehrhandschuhe;120075;;;;;;;;;;GH;PSA;Schutzkleidung sonstige;LB12;;;;;;
+Kopfhaube;120076;Albatros;Feuerschutzhaube;;12;;;DIN EN 13911;;;GH;PSA;Schutzkleidung sonstige;LB12;;;;;;
+Rettungstrage;13197;;;SK7 /88/E;0;;;;;1987;LF8;Erste Hilfe & Hygiene;Sanitäts- & Wiederbelebungsgeräte;LB12;;;;;;
+Vakuunmatraze mit Pumpe;120077;;;Zubehör Trage;1;;;;grün;1987;LF8;Erste Hilfe & Hygiene;Sanitäts- & Wiederbelebungsgeräte;LB12;;;;;;
+Krankenhausdecke;120078;;;;0;;;;;2004;LF8;Erste Hilfe & Hygiene;Sanitäts- & Wiederbelebungsgeräte;LB12;;;;;;
+Rettungsbrett;120079;;;Eigenbau;0;;;;;1999;LF8;Erste Hilfe & Hygiene;Sanitäts- & Wiederbelebungsgeräte;LB12;;;;;;
+Rettungstuch m. Tasche;120080;;;;0;;;;;1999;LF8;Erste Hilfe & Hygiene;Sanitäts- & Wiederbelebungsgeräte;LB12;;;;;;
+Leichentuch;120081;;;;0;;;;;1999;LF8;Erste Hilfe & Hygiene;Sanitäts- & Wiederbelebungsgeräte;LB12;;;;;;
+Leichensack;120082;;;;0;;;;;1999;LF8;Erste Hilfe & Hygiene;Sanitäts- & Wiederbelebungsgeräte;LB12;;;;;;
+Verbandkasten K;120083;;;;0;;;;;1999;LF8;Erste Hilfe & Hygiene;Sanitäts- & Wiederbelebungsgeräte;LB12;;;;;;
+Verbandskasten klein;120084;;;;0;;;;;;GH;Erste Hilfe & Hygiene;Sanitäts- & Wiederbelebungsgeräte;LB12;;;;;;
+Arbeitsstellenscheinwerfer;120085;Bosch;;;12;;7 782 42 0022;DIN SBFV200;12V;1988;LF8;Signal- & Beleuchtungsgeräte;Signal- & Beleuchtungsgeräte;LB12;;;;;;
+Scheinwerfer-Verlängerung;120086;;;Zubehör Fahrzeug;;;;;;1999;LF8;Signal- & Beleuchtungsgeräte;Signal- & Beleuchtungsgeräte;LB12;;;;;;
+Überlandkompressorhörner;120087;;;Zubehör Fahrzeug;;;;;;1980;LF8;Signal- & Beleuchtungsgeräte;Signal- & Beleuchtungsgeräte;LB12;;;;;;
+Stabblitzleuchte;13192;Horizont Signale;Lk- Blitz- Stableuchte;;12;;167 620;;;2004;LF8;Signal- & Beleuchtungsgeräte;Signal- & Beleuchtungsgeräte;LB12;;;;;;
+Stabblitzleuchte;13193;Horizont Signale;Lk- Blitz- Stableuchte;;12;;167 646;;;2004;LF8;Signal- & Beleuchtungsgeräte;Signal- & Beleuchtungsgeräte;LB12;;;;;;
+Stabblitzleuchte;120088;Ziegler;20 593;;12;;16631;;;2000;LF8;Signal- & Beleuchtungsgeräte;Signal- & Beleuchtungsgeräte;LB12;;;;;;
+Elektronenblitzleuchte;13195;Nissen;Star Blitz 410;;12;;;;;2000;LF8;Signal- & Beleuchtungsgeräte;Signal- & Beleuchtungsgeräte;LB12;;;;;;
+Handlautsprecher;120089;TOA Electric;ER 308;;12;;564184;;16W;1988;LF8;Signal- & Beleuchtungsgeräte;Signal- & Beleuchtungsgeräte;LB12;;;;;;
+Verkehrswarngerät;120090;Boese;TRI-BLITZ 2;;12;;;;;1999;LF8;Signal- & Beleuchtungsgeräte;Geräte Verkehrssicherung;LB12;;;;;;
+Verkehrsleitkegel;120091;;;;;;;;;1999;LF8;Signal- & Beleuchtungsgeräte;Geräte Verkehrssicherung;LB12;;;;;;
+Kompressor für Überlandhorn;120092;;;Zubehör Fahrzeug;;;;;;1980;LF8;Signal- & Beleuchtungsgeräte;Signal- & Beleuchtungsgeräte;LB12;;;;;;
+Handscheinwerfer, EX;13219;Bosch;HKEB 100 G;;;;79057;DIN 14 642;NI-Cd;1999;LF8;Signal- & Beleuchtungsgeräte;Signal- & Beleuchtungsgeräte;LB12;;;;;;
+Handscheinwerfer, EX;13220;Bosch;HKEB 100-EN;;;;;DIN 14 642;NI-Cd;1999;LF8;Signal- & Beleuchtungsgeräte;Signal- & Beleuchtungsgeräte;LB12;;;;;;
+Handscheinwerfer, EX;WA 1;Bosch;HSEL 7;;12;;935925;DIN 14 642;NI-Cd;1999;LF8;Signal- & Beleuchtungsgeräte;Signal- & Beleuchtungsgeräte;LB12;;;;;;
+Handscheinwerfer, EX;WA 6;Bosch;HKE 100 G;;12;;71649;DIN 14 642;NI-Cd;1999;LF8;Signal- & Beleuchtungsgeräte;Signal- & Beleuchtungsgeräte;LB12;;;;;;
+Handscheinwerfer, EX;WA 8;Bosch;HKE 100 G;;12;;69156;DIN 14 642;NI-Cd;;LF8;Signal- & Beleuchtungsgeräte;Signal- & Beleuchtungsgeräte;LB12;;;;;;
+Handscheinwerfer, EX;WA 9;Lacont;Adalit L 2000-LB;Akku defekt;12;;31083;DIN 14 642;NI-Cd;2009;LF8;Signal- & Beleuchtungsgeräte;Signal- & Beleuchtungsgeräte;LB12;;;;;;
+Handscheinwerfer, EX;WA 10;Lacont;Adalit L 2000-LB;Akku defekt;12;;36280;DIN 14 642;NI-Cd;2009;LF8;Signal- & Beleuchtungsgeräte;Signal- & Beleuchtungsgeräte;LB12;;;;;;
+Warnleuchte nach StVZO;120093;ULO;Rundumleuchte;;12;;;;24V;1999;LF8;Signal- & Beleuchtungsgeräte;Signal- & Beleuchtungsgeräte;LB12;;;;;;
+Winkerkelle;13225;;Rot/Grün;;12;;;;;1999;LF8;Signal- & Beleuchtungsgeräte;Signal- & Beleuchtungsgeräte;LB12;;;;;;
+Warndreieck n. StVO;120094;;;;;;;;;1999;LF8;Signal- & Beleuchtungsgeräte;Geräte Verkehrssicherung;LB12;;;;;;
+"Warndreieck ""Unfall""";120095;;;kleine Ausführung;;;17695;;;1999;LF8;Signal- & Beleuchtungsgeräte;Geräte Verkehrssicherung;LB12;;;;;;
+"Warndreieck ""Ölspur""";120096;;;kleine Ausführung;;;17696;;;1999;LF8;Signal- & Beleuchtungsgeräte;Geräte Verkehrssicherung;LB12;;;;;;
+Handscheinwerfer EX;13230;;;;;;;;;1999;LF8;Signal- & Beleuchtungsgeräte;Signal- & Beleuchtungsgeräte;LB12;;;;;;
+Ex-Helmleuchten;120097;Underwater Kinetics;UK 4AA-EN 2;nur 9 verfügbar und prüfbar;12;560;;DIN EN 60 079;Mignon AA;2003;GH;Signal- & Beleuchtungsgeräte;Signal- & Beleuchtungsgeräte;LB12;;;;;;
+Spannungswandler 12/24V;120098;;;Zubehör Fahrzeug;;;;;;1999;LF8;Signal- & Beleuchtungsgeräte;Signal- & Beleuchtungsgeräte;LB12;;;;;;
+Hand-Sprechfunk 2 m;1;Bosch;FTZ Nr. 233/72;Erfassung Funk;12;;9470199;;31,32,50,55;1999;LF8;Signal- & Beleuchtungsgeräte;Funkgeräte & Melder;LB12;;;;;;
+Hand-Sprechfunk 2 m;2;Bosch;FTZ Nr. 233/72;Erfassung Funk;12;;3680109;;31,50,53,55,56;1999;LF8;Signal- & Beleuchtungsgeräte;Funkgeräte & Melder;LB12;;;;;;
+Hand-Sprechfunk 2 m;3;Bosch;FTZ Nr. 233/72;Erassung Funk;12;;3680108;;31,50,55;1999;LF8;Signal- & Beleuchtungsgeräte;Funkgeräte & Melder;LB12;;;;;;
+Hand-Sprechfunk 2 m;4;Bosch;FTZ Nr. 233/72;Erassung Funk;12;;3680121;;31,50,53,55,56;1999;LF8;Signal- & Beleuchtungsgeräte;Funkgeräte & Melder;LB12;;;;;;
+Hand-Sprechfunk 2 m;5;Bosch;FTZ Nr. 233/72;Erassung Funk;12;;3620238;;31,50,53,55,56;1999;LF8;Signal- & Beleuchtungsgeräte;Funkgeräte & Melder;LB12;;;;;;
+Hand-Sprechfunk 2 m;6;Motorola;Pj 302D GP 900 11b;;12;;402 TCQ 0812;;1-125;;LF8;Signal- & Beleuchtungsgeräte;Funkgeräte & Melder;LB12;;;;;;
+Hand-Sprechfunk 2 m;7;Motorola;PG 302 040;mir Sprechgarnitur;12;;018 TJH 2702;;23,50,55,56;;LF8;Signal- & Beleuchtungsgeräte;Funkgeräte & Melder;LB12;;;;;;
+Ladegerät FUG 10;120099;;;Erfassung Funk;;;;;;;GH;Signal- & Beleuchtungsgeräte;Signal- & Beleuchtungsgeräte;LB12;;;;;;
+Funkgerät 4m;120100;Bosch;PG228D;;12;;9651274;;470 G/U;1999;LF8;Signal- & Beleuchtungsgeräte;Funkgeräte & Melder;LB12;;;;;;
+Funkgerät HRT;120101;Sepura;;;12;;;;Digital;2012;LF8;Signal- & Beleuchtungsgeräte;Funkgeräte & Melder;LB12;;;;;;
+Funkgerät MRT;120102;Sepura;SRG3900;;12;;;;Digital;2012;LF8;Signal- & Beleuchtungsgeräte;Funkgeräte & Melder;LB12;;;;;;
+Dunghacke;120103;;;;;;;;;1999;LF8;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Mistgabel;120104;;;;;;;;;1999;LF8;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Schaufel flach;120105;;;;;;;;;1999;LF8;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Stoßbesen;120106;;;;;;;;;1999;LF8;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Werkzeugkasten Allgemein;13208;;;;;;;;;1999;LF8;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Schornsteinfegerwerkzeugkasten;13209;;;;;;;;;1999;LF8;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Kaminkehrgerät;120107;;;Inhalt Kasten;;;;;;1999;LF8;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Axt;120108;;;;;;;;;1999;LF8;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Feuerwehraxt;120109;;;;;;;;;1999;LF8;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Vorschlaghammer;120110;;;;;;;;;1999;LF8;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Brechstange;120111;;;;;;;;;1999;LF8;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Werkzeugkasten E;120112;;1000V;;;;;;;1999;LF8;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Bügelsäge;120113;;;;;;;;;1999;LF8;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Stichsäge;120114;;;;;;;;;1999;LF8;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Baumschere;120115;;;;;;;;;1999;LF8;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Drahltschere;120116;;rot;;;;;;;1999;LF8;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Spaten;120117;;;;;;;;;1999;LF8;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Klappspaten;120118;;;;;;;;;1999;LF8;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Feuerwehrbeil;120119;;;;12;;;DIN EN 14924;;1999;LF8;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Haligantool;120120;;;;;;;;;2014;LF8;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Werkbank;120121;;;;;;;;;;GH;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Schraubstock;120122;;;;;;;;;;GH;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Einreißhaken;120123;;;;;;;;;1999;LF8;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Feuerpatschen;120124;;;;;;;;;1999;LF8;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Bohrmaschine;120125;;;;;;;;;;GH;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Motortrennschleifer TS 350;120126;Stihl;;;12;;;;;1999;LF8;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Winkelschleifer;120127;;;;;;;;;;GH;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Motor Lüfter GX 160 5,5 KW;13192;Honda;;HALE / Typhoon;;;;;;1999;LF8;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Hochleistungslüfter 24H5 Thyphoon;13192;FireDumpCompanie;;HALE / Typhoon;;;20404;;;1999;LF8;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Tragkraftspritze TS 8/8;120128;Magirus;;;12;;;DIN 14420;;1999;LF8;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Tauchpumpe B 780l/min;13214;MAST;PVR 305/10/84;;12;;43312;DIN 14425;TP 4-1;1999;LF8;Arbeitsgeräte;Pumpen;LB12;;;;;;
+Tauchpumpe D 330l/min;120129;MAST;PVR 305/10/84;;12;39.95;90728;DIN 14425;TP K5;1999;LF8;Arbeitsgeräte;Pumpen;LB12;;;;;;
+Tauchpunmpe 1350l/h;120130;MAST;PVR FT 6/1295/10;;12;;14307;DIN 14425;TP 8-1;2013;LF8;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Tauchpunmpe 1100l/h;120131;EINHELL;FLTP 750-S;;12;;EB016901;DIN 14425;;2006;LF8;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Tauchpunmpe 1600l/h;120132;METABO;TPS 16000;;12;;9174245681;DIN 14420;;2009;LF8;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+TS 8/8 (alt);13245;;;;;;;;;1964;GH;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Abgassschlauch;120133;;;;;;;;;1999;LF8;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Kraftstoff Doppelkanister;120134;;;Zubehör Mororsäge;;;;;;1999;LF8;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Benzinkanister 10 Liter;120135;;;;;;;;;1999;LF8;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Ausgießer für Benzinkanister;120136;;;;;;;;;1999;LF8;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Abgasschlauch 2 m;120137;;;;;;;;;1999;LF8;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Benzinkanister 5 Liter;120138;;;;;;;;;1999;LF8;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Schrankenschlüssel;120139;;;;;;;;;1999;LF8;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Winde, hydraulisch;120140;;;;;;;;;1999;LF8;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Abschleppseil;120141;;;;;;;;;1999;LF8;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Schäkel;120142;;;;;;;;;1999;LF8;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Unterlegkeil;120143;;;;;;;;;1999;LF8;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Treibstoffkanister;120144;;;;;40;;;;;GH;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Ölbindemittel;120145;;;;;;;;;1999;LF8;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Kanister Bio-Chem;120146;;;;;;;;;1999;LF8;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Gartenspritzen;120147;;;;;;;;;1999;LF8;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Schlauchbrücken;120148;;;;;;;;;1999;LF8;Arbeitsgeräte;Geräte & Werkzeuge;LB12;;;;;;
+Standrohr 2 B;13191;AWG;2B;;1;;;DIN 15182;;1999;LF8;Löschgeräte;Wasserführende Armaturen;LB12;;;;;;
+Standrohrschlüssel;120149;;;;0;;;;;1999;LF8;Löschgeräte;Wasserführende Armaturen;LB12;;;;;;
+Schlüssel Überflurhydrant;120150;;;;0;;;;;1999;LF8;Löschgeräte;Wasserführende Armaturen;LB12;;;;;;
+Kanaldeckelschachthaken;120151;;;;0;;;;;1999;LF8;Löschgeräte;Löschgeräte;LB12;;;;;;
+Schlauchtragekorb;13204;;;;0;;;;;1999;LF8;Löschgeräte;Schläuche;LB12;;;;;;
+Strahlrohr f. Schnellangriff;13216;;Hohlstrahlrohr Typ C;;1;;;;;1999;LF8;Löschgeräte;Wasserführende Armaturen;LB12;;;;;;
+Strahlrohr BM;13217;AWG;BM;;1;;;DIN 15182;;1999;LF8;Löschgeräte;Wasserführende Armaturen;LB12;;;;;;
+Strahlrohr CM;120152;AWG;CM;;1;;;DIN 15182;;1999;LF8;Löschgeräte;Wasserführende Armaturen;LB12;;;;;;
+Strahlrohr DM;120153;AWG;DM;;1;;;DIN 15182;;1999;LF8;Löschgeräte;Wasserführende Armaturen;LB12;;;;;;
+Stützkrümmer SK B;120154;AWG;B;;1;;;DIN 15182;;1999;LF8;Löschgeräte;Löschgeräte;LB12;;;;;;
+Kupplungsschlüssel ABC;120155;;;;0;;;;;1999;LF8;Löschgeräte;Wasserführende Armaturen;LB12;;;;;;
+Seilschlauchhalter;120156;;;;0;;;;;1999;LF8;Löschgeräte;Schläuche;LB12;;;;;;
+Schlauchschellen C;120157;;;;0;;;;;1999;LF8;Löschgeräte;Schläuche;LB12;;;;;;
+Schlauchschellen B;120158;;;;0;;;;;1999;LF8;Löschgeräte;Schläuche;LB12;;;;;;
+Arbeitsleine;120159;;;;0;;;;;1999;LF8;Löschgeräte;Löschgeräte;LB12;;;;;;
+Übergangsstück A-B;120160;;A-B;;1;;;;;1999;LF8;Löschgeräte;Wasserführende Armaturen;LB12;;;;;;
+Übergangsstück B-C;120161;;B-C;;1;;;;;1999;LF8;Löschgeräte;Wasserführende Armaturen;LB12;;;;;;
+Übergangsstück C-D;120162;;C-D;;1;;;;;1999;LF8;Löschgeräte;Wasserführende Armaturen;LB12;;;;;;
+Übergangsstück D-GKF;120163;;D-GK;;1;;;;;1999;LF8;Löschgeräte;Wasserführende Armaturen;LB12;;;;;;
+Verteiler;13221;AWG;CCB;;1;;;DIN 15182;;1999;LF8;Löschgeräte;Wasserführende Armaturen;LB12;;;;;;
+Sammelstück A-2B;120164;AWG;ABB;;1;;;DIN 15182;;1999;LF8;Löschgeräte;Wasserführende Armaturen;LB12;;;;;;
+Sammelstück B-CC;120165;AWG;BCC;;1;;;DIN 15182;;1972;LF8;Löschgeräte;Wasserführende Armaturen;LB12;;;;;;
+Saugschutzkorb A;120166;;;;0;;;;;1999;LF8;Löschgeräte;Löschgeräte;LB12;;;;;;
+Absperrventil B;120167;AWG;B;;1;;;DIN 15182;;1999;LF8;Löschgeräte;Löschgeräte;LB12;;;;;;
+Absperrventil C;120168;AWG;C;;1;;;DIN 15182;;1999;LF8;Löschgeräte;Löschgeräte;LB12;;;;;;
+Standrohr B;120169;AWG;2B;;1;;;DIN 15182;;1972;SA;Löschgeräte;Wasserführende Armaturen;LB12;;;;;;
+Schlauchhaspel;120170;;;;0;;;;;1989;SA;Löschgeräte;Schläuche;LB12;;;;;;
+Verteiler 3xB;120171;;;;0;;;;;1989;SA;Löschgeräte;Wasserführende Armaturen;LB12;;;;;;
+Druckschlauch D 15;120172;;D-15;;1;;1;DIN 14811/1;15m;1999;LF8;Löschgeräte;Schläuche;LB12;;;;;;
+Druckschlauch D 6;120173;;D-6;;1;;2;DIN 14811/1;6m;1999;LF8;Löschgeräte;Schläuche;LB12;;;;;;
+Druckschlauch D 5;120174;;D-5;;1;;3;DIN 14811/1;5m;1999;LF8;Löschgeräte;Schläuche;LB12;;;;;;
+Druckschlauch S 50;120175;;S-50;nv - defekt?;1;;;DIN 14811/1;50m;1999;LF8;Löschgeräte;Schläuche;LB12;;;;;;
+Druckschlauch S 28;120176;;S-28;nv - defekt?;0;;;;28m;1999;LF8;Löschgeräte;Schläuche;LB12;;;;;;
+Füllschlauch B;HSW12-162;;B-3;;0;;;;3m;1999;LF8;Löschgeräte;Schläuche;LB12;;;;;;
+Ansaugschlauch für Zumischer;HSW12-164;Petzetakis;B1;;1;;;;1,5m;1999;LF8;Löschgeräte;Schläuche;LB12;;;;;;
+Druckschlauch B 15;120177;;;;0;;;;;;SA;Löschgeräte;Schläuche;LB12;;;;;;
+Druckschlauch B 30;HSW12-101;;B30;;1;;;DIN 14811/1;30m;;SA;Löschgeräte;Schläuche;LB12;;;;;;
+Druckschlauch B 20;HSW12-129;;B-20;;1;;;DIN 14811/1;20m;;LF8;Löschgeräte;Schläuche;LB12;;;;;;
+Druckschlauch C 15;HSW12-201;;C-15;;1;;;DIN 14811/1;15m;;LF8;Löschgeräte;Schläuche;LB12;;;;;;
+Saugschlauch A-1500 K;120178;AWG;A-1500K;;1;;1,2,3,4;DIN 14810;150cm;1999;SA;Löschgeräte;Schläuche;LB12;;;;;;
+Seilrolle;197;Petzl;;;12;;05105F;;;2005;LF8;Rettungsgeräte;Spanngurte & Seile;LB12;;;;;;
+Rettungsdreick mit Trägern;120179;Petzl;Pitagor C80BR;;12;;13197SL7540;DIN EN 1498;rot/schwarz;2013;LF8;Rettungsgeräte;Rettungsgeräte;LB12;;;;;;
+Transportgehänge;547;Skylotec;;;;;;;;2005;LF8;Rettungsgeräte;Rettungsgeräte;LB12;;;;;;
+Genähte Schlinge 60 cm;120180;;;Zubehör Höhens.;;;;;;1997;LF8;Rettungsgeräte;Spanngurte & Seile;LB12;;;;;;
+Genähte Schlinge 150 cm;120181;;;Zubehör Höhens.;;;;;;1997;LF8;Rettungsgeräte;Spanngurte & Seile;LB12;;;;;;
+Verriegelbarer Karabiner 23 kN;120182;Edelrid;HMS Triplelock;Zubehör Höhens.;12;;;DIN 14800-17;silber;2013;LF8;Rettungsgeräte;Rettungsgeräte;LB12;;;;;;
+Karabiner HMS;120183;Edelrid;Karabiner HMS;;12;;;DIN 14800-17;silber;2008;LF8;Rettungsgeräte;Rettungsgeräte;LB12;;;;;;
+Karabiner Multi HMS;120184;Edelrid;Karabiner Triplelock;;12;;;DIN 14800-17;grau;2008;LF8;Rettungsgeräte;Rettungsgeräte;LB12;;;;;;
+Karabiner Omni;120185;Petzl;Omni M37SL;;12;;407;DIN 14800-17;silber;2008;LF8;Rettungsgeräte;Rettungsgeräte;LB12;;;;;;
+Karabiner OK Stahl;120186;Ets FOIN;OK Karabiner;;12;;;DIN 14800-17;silber;2008;LF8;Rettungsgeräte;Rettungsgeräte;LB12;;;;;;
+40 m Kernmanteldynamikseil;13223;;;Zubehör Höhens.;;;;;;2000;LF8;Rettungsgeräte;Spanngurte & Seile;LB12;;;;;;
+Fangleine;120187;;Feuerwehrleine F 30-K;;12;;90770;DIN EN 14 920;30m;2ß17;LF8;Rettungsgeräte;Feuerwehrleinen;LB12;;;;;;
+Fangleine;120188;;Feuerwehrleine F 30-K;;12;;IV/1457/98;DIN EN 14 920;30m;2019;LF8;Rettungsgeräte;Feuerwehrleinen;LB12;;;;;;
+Fangleine;120189;;Feuerwehrleine F 30-K;;12;;IV/23/1457/98;DIN EN 14 920;30m;2020;LF8;Rettungsgeräte;Feuerwehrleinen;LB12;;;;;;
+Fangleine;120190;;Feuerwehrleine F 30-K;;12;;1910748/2020-0699;DIN EN 14 920;30m;2022;LF8;Rettungsgeräte;Feuerwehrleinen;LB12;;;;;;
+Fangleinenbeutel;120191;;rot, ohne Werkzeug;;;;D-26203;;;1999;LF8;Rettungsgeräte;Feuerwehrleinen;LB12;;;;;;
+Fangleinenbeutel;120192;;schwarz, mit Werkzeug;;;;;;;2020;LF8;Rettungsgeräte;Feuerwehrleinen;LB12;;;;;;
+FW Haltegurt;120193;;Typ A;;12;;19635000333;DIN 14927:2005-09;Größe 5;2019;GH;Rettungsgeräte;Feuerwehrhaltegurte;LB12;;;;;;
+FW Haltegurt;120194;;Typ A;;12;;2ß634000047;DIN 14927:2005-09;Größe 4;2020;GH;Rettungsgeräte;Feuerwehrhaltegurte;LB12;;;;;;
+FW Haltegurt;120195;;Typ A;;12;;56307-016;DIN 14927:2005-09;Größe 4;2016;GH;Rettungsgeräte;Feuerwehrhaltegurte;LB12;;;;;;
+FW Haltegurt;120196;;Typ A;;12;;56307-001;DIN 14927:2005-09;Größe 4;2016;GH;Rettungsgeräte;Feuerwehrhaltegurte;LB12;;;;;;
+FW Haltegurt;120197;;Typ A;;12;;56421-021;DIN 14927:2005-09;Größe 3;2016;GH;Rettungsgeräte;Feuerwehrhaltegurte;LB12;;;;;;
+FW Haltegurt;120198;;Typ A;;12;;56421-011;DIN 14927:2005-09;Größe 3;2016;GH;Rettungsgeräte;Feuerwehrhaltegurte;LB12;;;;;;
+FW Haltegurt;120199;;Typ A;;12;;55250-091;DIN 14927:2005-09;Größe 2;2016;GH;Rettungsgeräte;Feuerwehrhaltegurte;LB12;;;;;;
+FW Haltegurt;120200;;Typ A;;12;;19631002653;DIN 14927:2005-09;Größe 1;2019;GH;Rettungsgeräte;Feuerwehrhaltegurte;LB12;;;;;;
+FW Haltegurt;120201;;Typ A;;12;;19631002681;DIN 14927:2005-09;Größe 1;2019;GH;Rettungsgeräte;Feuerwehrhaltegurte;LB12;;;;;;
+Auffanggurt/Rettungsweste;120202;Petzl;C73JF02;;12;;;DIN EN 361;Gr 2;2011;LF8;Rettungsgeräte;Feuerwehrhaltegurte;LB12;;;;;;
+Schleifkorbtrage;13197;Kaufmann;;;12;;;;Edelstahl;2010;LF8;Rettungsgeräte;Rettungsgeräte;LB12;;;;;;
+Klappleiter - Holz;120203;;;nur für Übungszwecke;12;;;DIN EN 1147;;1990;LF8;Rettungsgeräte;Tragbare Leitern;LB12;;;;;;
+Steckleiter 4-teilig;13190;;LM;;12;;;DIN EN 1147;4 teilig;1999;LF8;Rettungsgeräte;Tragbare Leitern;LB12;;;;;;
+Schiebeleiter 3-teilig;120204;;;;;180;;;;;GH;Rettungsgeräte;Tragbare Leitern;LB12;;;;;;
+Treppenleiter;120205;;;;;50;;;;;GH;Rettungsgeräte;Tragbare Leitern;LB12;;;;;;
+2-teilige Schiebeleiter;120206;;;nicht mehr zugelassen;;;;;;;GH;Rettungsgeräte;Tragbare Leitern;LB12;;;;;;
+Hydraulik-Pumpenaggregat;13210;Weber Hydraulik;;;;;162158;;;1999;LF8;Rettungsgeräte;Rettungsgeräte;LB12;;;;;;
+Hydraulik Schlauch;120207;Weber Hydraulik;Rot;;12;;QC36242811;;20m;2010;LF8;Rettungsgeräte;Rettungsgeräte;LB12;;;;;;
+Hydraulik Schlauch;120208;Weber Hydraulik;Gelb;;12;;QC36240962;;20m;2010;LF8;Rettungsgeräte;Rettungsgeräte;LB12;;;;;;
+Schneidgerät S 180;13211;Weber Hydraulik;S 180 59947.6;;;;59947.6;DIN 14 751 T1;2388;1999;LF8;Rettungsgeräte;Rettungsgeräte;LB12;;;;;;
+Spreizer SP 30 LS;13212;Weber Hydraulik;SP 30 LS-5 9805,1;;;;59805.1;DIN 14 751 T1;2857;1999;LF8;Rettungsgeräte;Rettungsgeräte;LB12;;;;;;
+Rettungszylinder;120209;Weber Rescue;RZT2;;;;1166;DIN EN 13204;1500mm;2014;LF8;Rettungsgeräte;Rettungsgeräte;LB12;;;;;;
+Rettungszylinder;120210;Weber Rescue;RZT2;;;;2105;DIN EN 13204;775mm;2014;LF8;Rettungsgeräte;Rettungsgeräte;LB12;;;;;;
+Verlängerung für RZT2;120211;Weber Rescue;;;;;3864588;;max.168KN;2014;LF8;Rettungsgeräte;Rettungsgeräte;LB12;;;;;;
+Schwelleraufsatz;120212;Weber Rescue;;;;;8121737;;Sillsupport;2014;LF8;Rettungsgeräte;Rettungsgeräte;LB12;;;;;;
+Druckplatte;120213;Weber Rescue;;;;;;;Armaturenbrett;2014;LF8;Rettungsgeräte;Rettungsgeräte;LB12;;;;;;
+Pressluftatmer;120214;INTERSPIRO;;Erfassung Atemschutz;12;;;DIN EN 137;;2008;LF8;Rettungsgeräte;Rettungsgeräte;LB12;;;;;;
+Atemluftflaschen 6 Liter;120215;INTERSPIRO;Spiromatic 90L;Erfassung Atemschutz;12;;;DIN EN 144;;2008;LF8;Rettungsgeräte;Rettungsgeräte;LB12;;;;;;
+Atemschutzmasken;120216;DRÄGER;Panorama Nova;Erfassung Atemschutz;12;;;DIN EN 136;;2013;LF8;Rettungsgeräte;Rettungsgeräte;LB12;;;;;;
+Brandfluchthauben;120217;;;;;;;;;1999;LF8;Rettungsgeräte;Rettungsgeräte;LB12;;;;;;
+Motorsäge Stihl 044;13202;Stihl;;Sägeschiene 40cm;12;;11289673301as;DIN EN ISO 19432;;1999;LF8;Rettungsgeräte;Rettungsgeräte;LB12;;;;;;
+Ersatzkette f. Motorsäge;120218;;;;;;;;;1999;LF8;Rettungsgeräte;Rettungsgeräte;LB12;;;;;;
+Doppelkanister Bezin/Öl;120219;;;;;;;;;1999;LF8;Rettungsgeräte;Rettungsgeräte;LB12;;;;;;
+Auffangwannen Zink;120220;;;;;;;;;1999;LF8;Rettungsgeräte;Rettungsgeräte;LB12;;;;;;
+Kanaldichtkissen;120221;;;;;;;;;1999;LF8;Rettungsgeräte;Rettungsgeräte;LB12;;;;;;
+Glassäge;120222;Weber Rescue;;;;;;;mit Federkörner;2014;LF8;Rettungsgeräte;Rettungsgeräte;LB12;;;;;;
+Kettensatzbox;13213;KWB;KSS8;;;;;;Zugkraft 4000N;1999;LF8;Rettungsgeräte;Rettungsgeräte;LB12;;;;;;
+Brecheisen;120223;;;;;;;;;1999;LF8;Rettungsgeräte;Rettungsgeräte;LB12;;;;;;
+Blechschneider;120224;Feuerwehrbedarfsfabrik;;;;;;;;1999;LF8;Rettungsgeräte;Rettungsgeräte;LB12;;;;;;
+Federkörner;120225;;;;;;;;;1999;LF8;Rettungsgeräte;Rettungsgeräte;LB12;;;;;;
+Kabelschere;120226;;K101/1;;;;Klauke;;;1999;LF8;Rettungsgeräte;Rettungsgeräte;LB12;;;;;;
+Gurtmesser;120227;;;;;;;;;1999;LF8;Rettungsgeräte;Rettungsgeräte;LB12;;;;;;
+Fenstergummimesser;120228;;;;;;;;;1999;LF8;Rettungsgeräte;Rettungsgeräte;LB12;;;;;;
+Spreizerersatzbacken;120229;;;;;;;;;1999;LF8;Rettungsgeräte;Rettungsgeräte;LB12;;;;;;
+Montiereisen;120230;;;;;;;;;1999;LF8;Rettungsgeräte;Rettungsgeräte;LB12;;;;;;
+Trennscheibe f. Metall;120231;;;;;;;;;1999;LF8;Rettungsgeräte;Rettungsgeräte;LB12;;;;;;
+Trennscheibe f. Stein;120232;;;;;;;;;1999;LF8;Rettungsgeräte;Rettungsgeräte;LB12;;;;;;
+Unterbauholz für VU;120233;;;;;;;;;1999;LF8;Rettungsgeräte;Rettungsgeräte;LB12;;;;;;
+Kranschlaufen 3 t;120234;;;;;;;;;1999;LF8;Rettungsgeräte;Rettungsgeräte;LB12;;;;;;
+Spanngurte LC 2500daN;120235;;;;;;;;;1999;LF8;Rettungsgeräte;Spanngurte & Seile;LB12;;;;;;
+Stihl-Flex 350 Ø;120236;;;nicht mehr zugelassen;;800;;;;;GH;Rettungsgeräte;Rettungsgeräte;LB12;;;;;;
+Motor Stromerzeuger 7,8KW;13198;Briggs Stratton;;Knorz;12;;9122030593;;;1999;LF8;Elektrische Geräte;Elektrische Geräte;LB12;;;;;;
+Stromerzeuger 5 kVA;13198;Kirsch;;Knorz;12;;20144;;;1999;LF8;Elektrische Geräte;Elektrische Geräte;LB12;;;;;;
+Flutlichtstrahler;13199;Meister;BS 1000;IP 55;12;;57 097;DIN VDE 0702-1;1000 W, 230V;1999;LF8;Elektrische Geräte;Elektrische Geräte;LB12;;;;;;
+Flutlichtstrahler;13199;Meister;BS 1000;IP 55;12;;57 098;DIN VDE 0702-1;1000 W, 230V;1999;LF8;Elektrische Geräte;Elektrische Geräte;LB12;;;;;;
+Stativ f. Flutlicht;17629;Bosch;Lzu 15;Zubehör Strahler;12;;;;;1999;LF8;Elektrische Geräte;Elektrische Geräte;LB12;;;;;;
+Aufnahmebrücke f. Flutl.;120237;;;Zubehör Strahler;;;;;;1999;LF8;Elektrische Geräte;Elektrische Geräte;LB12;;;;;;
+Abzweigstück 3-fach;120238;Bosch;1-3;IP 55;12;;;DIN VDE 0702-1;230V;1999;LF8;Elektrische Geräte;Elektrische Geräte;LB12;;;;;;
+Erdnägel mit Abspannseilen;120239;;;Zubehör Strahler;;;;;;1999;LF8;Elektrische Geräte;Elektrische Geräte;LB12;;;;;;
+Kabeltrommel 50 m;13215;Eisemann;50m 5x2,5²;;12;;73141;DIN VDE 0702-1;;2014;LF8;Elektrische Geräte;Elektrische Geräte;LB12;;;;;;
+Kabeltrommel 50 m;120240;Bosch;50m 3x2,5²;;12;;7 791 021 119;DIN VDE 0702-1;;1999;LF8;Elektrische Geräte;Elektrische Geräte;LB12;;;;;;
+Trennschleifmaschine;13218;;;;;;;;;1999;LF8;Elektrische Geräte;Elektrische Geräte;LB12;;;;;;
+Lichtmast;120241;;;;12;;;;;1989;SA;Elektrische Geräte;Elektrische Geräte;LB12;;;;;;
+Kabeltrommel 50 m;120242;;;;12;120;;DIN VDE 0702-1;;1999;GH;Elektrische Geräte;Elektrische Geräte;LB12;;;;;;
+Industriesauger;120243;;;;;400;;;;;GH;Elektrische Geräte;Elektrische Geräte;LB12;;;;;;
+Verlängerungskabel 380 V;120244;;;;;100;;;;;GH;Elektrische Geräte;Elektrische Geräte;LB12;;;;;;
+400 V - Verteiler;120245;;;;;180;;;;;GH;Elektrische Geräte;Elektrische Geräte;LB12;;;;;;
+DI-Schalter;DI 1;Kopp;PRCD-S;IP 55;12;;;DIN VDE 0702-1;16A, 230V;2013;LF8;Elektrische Geräte;Elektrische Geräte;LB12;;;;;;
+Hochleistungsfräse;120246;Milwaukee;HD 18SG;;12;;4000417821;;18 V;2013;LF8;Elektrische Geräte;Elektrische Geräte;LB12;;;;;;
+Säbelsäge;120247;Milwaukee;HD 18SX;;12;;4000431278;;18 V;2013;LF8;Elektrische Geräte;Elektrische Geräte;LB12;;;;;;
+Bohrschrauber;120248;Milwaukee;HD 18PD;;12;;4000431526;;18 V;2013;LF8;Elektrische Geräte;Elektrische Geräte;LB12;;;;;;
+Akku;120249;Milwaukee;M18 BX;;12;;9559;;18V, 3Ah;2013;LF8;Elektrische Geräte;Elektrische Geräte;LB12;;;;;;
+Akku;120250;Milwaukee;M 18 BX;;12;;8891;;18V, 3Ah;2013;LF8;Elektrische Geräte;Elektrische Geräte;LB12;;;;;;
+Akku;120251;Milwaukee;M18 BX;;12;;57830;;18 V, 3Ah;2013;LF8;Elektrische Geräte;Elektrische Geräte;LB12;;;;;;
+Akku;120252;Milwaukee;C 18 B;;12;;4932352071;;18 V, 3Ah;2013;LF8;Elektrische Geräte;Elektrische Geräte;LB12;;;;;;
+Akku Ladegerät;120253;Milwaukee;C 1418 C;;12;;400041900083967;;14.4-18V;2013;LF8;Elektrische Geräte;Elektrische Geräte;LB12;;;;;;
+Akku Ladegerät;120254;Milwaukee;C 1418 C;;12;;400041900016779;;14.4-18V;2013;LF8;Elektrische Geräte;Elektrische Geräte;LB12;;;;;;
+LED;1;Westfalia;6 x 3W, 12V;;12;;;;IP66;;LF8;Elektrische Geräte;Elektrische Geräte;LB12;;;;;;
+Elektrotrennschleifer;13218;Bosch;GWS 2000-23J;;12;;;;;1999;LF8;Elektrische Geräte;Elektrische Geräte;LB12;;;;;;
+Ladegerätlampen;13237;;;;0;;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Telefon;13238;;;;0;40;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Fax-Gerät;13239;;;;0;100;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Glasschaukasten;120255;;;;0;500;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+AEG-Lichtleisten;120256;;;;0;1400;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Radio;120257;;;;0;250;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Verstärker;120258;;;;0;600;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+DVD-Spieler;120259;;;;0;70;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Boxen;120260;;;;0;300;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Möbeltresor;120261;;;;0;700;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Kühlzelle;120262;;;;0;2500;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Stativ Boxen;120263;;;;0;100;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Sackkarren;120264;;;;0;250;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Gabelhubwagen;120265;;;;0;650;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Zeltgarnituren;120266;;;;0;750;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Rostwurstbude;120267;;;;0;500;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Geschirr;120268;;;;0;5000;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Kleiderständer;120269;;;;0;100;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Holzregale;120270;;;;0;200;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Baustützen 4m;120271;;;;0;400;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Kühltruhen;120272;;;;0;;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Transportwagen;120273;;;;0;60;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Transportwagen, groß;120274;;;;0;900;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Holztheken;120275;;;;0;300;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Hängesteckdose 3fach;120276;;;;0;100;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Friteuse groß;120277;;;;0;300;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Friteuse klein;120278;;;;0;200;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Trinkwasserschlauch;120279;;;für Vereinsfeste;0;;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Kaffeemaschine;120280;;;;0;300;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Blechspint;120281;;;;0;;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Holzschrank;120282;;;;0;;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Metallregale;120283;;;;0;;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Kühltruhe;120284;;;;0;;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Boiler;120285;;;;0;;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Einbauküche;13246;;;Fw zur Verfügung gestellt;0;4300;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Theke;13247;;;Fw zur Verfügung gestellt;0;2000;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Kühlung;120286;;;Fw zur Verfügung gestellt;0;3000;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Geschirrspüler;13248;;;Fw zur Verfügung gestellt;0;400;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Tisch;120287;;;Fw zur Verfügung gestellt;0;1000;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Stühle;120288;;;Fw zur Verfügung gestellt;0;1200;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Barhocker;120289;;;Fw zur Verfügung gestellt;0;420;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Beamer;13249;;;Fw zur Verfügung gestellt;0;2000;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+DVD-Player;13250;;;Fw zur Verfügung gestellt;0;140;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Kopierer;13251;;;Fw zur Verfügung gestellt;0;3000;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Sat-Anlage;120290;;;Fw zur Verfügung gestellt;0;150;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Overhead-Projektor;13252;;;Fw zur Verfügung gestellt;0;290;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Doppelschiebetafel;13253;;;Fw zur Verfügung gestellt;0;2000;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Elektroleinwand;13254;;;Fw zur Verfügung gestellt;0;1500;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Videorecorder;13255;;;Fw zur Verfügung gestellt;0;80;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+ISDN-Telefon;13256;;;Fw zur Verfügung gestellt;0;50;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Analog-Telefon;120291;;;Fw zur Verfügung gestellt;0;40;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Notstrombeleuchtung;120292;;;Fw zur Verfügung gestellt;0;220;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Abzugshaube Küche;120293;;;;;2000;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Deckenheizer;120294;;;;;1500;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Notstrombeleutung 2fach;120295;;;;;320;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Hängeschränke;120296;;;;;300;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+E-Herd;120297;;;;;250;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Spülmaschine;120298;;;;;1500;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Unterschränke;120299;;;;;250;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Einkocher;120300;;;;;180;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Kühlschrank;120301;;;;;800;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Kühltheke;120302;;;;;1000;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Regalsystem;120303;;;;;400;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Gasgrill;120304;;;;;300;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Gasflasche;120305;;;;;50;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Schreibtische;120306;;;;;;;;;1980;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Telefonanlage;120307;;;;;;;;;;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Bürostühle;120308;;;;;;;;;1980;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Aktenschrank;120309;;;;;;;;;1980;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Computeranlage;120310;;;;;;;;;1980;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Präsentationsschrank;120311;;;;;;;;;1980;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Funktisch;120312;;;;;;;;;1980;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Desktop PC Optiplex 7010;120313;Dell;DELL7010;;;135;;;Intel Core i3 2x 3,4GHz 4GB RAM 250GB HDD;2018;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Desktop PC Medion Akoya P7300D;120314;Medion;MD8838;;;0;;;Intel Core 2 Quad CPU Q8200 2.33GHz, 4GB RAM, 100 GB HDD;2017;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+DELL P2211H;120315;Dell;DELP2211H;;;0;;;22'' Monitor 1920x1080;2019;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Samsung Sysncmaster B2240;120316;Samsung;B2240;;;0;;;22'' Monitor 1680x1050;2019;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Samsung SCX 3200;120317;Samsung;SCX3200;;;0;;;Samsung Mono Laser Drucker;2016;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Lexmark X264dn;120318;Lexmark;X264dn;;;0;;;Lexmark Mono Laser Drucker;2017;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Rpi Media Box;120319;RaspberryPI;RPIM1;;;0;;;RaspberryPI 1 Model A, 256MB RAM, SD card;2015;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Rpi Music Box;120320;RaspberryPI;RPIM2;;;0;;;RaspberryPI 2 Model B, 1024MB RAM, microSD card;2018;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Network Switch 6fach;120321;Netgear;Netgear;;;0;;;10/100Mbit Network Switch, 6fach;2015;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Notebook;120322;Lenovo;Lenovo;;;0;;;;2019;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;
+Printer;120323;Brother;Brother;;;0;;;;2019;GH;Geräte & Fahrzeuge im GH;Geräte & Fahrzeuge;LB12;;;;;;

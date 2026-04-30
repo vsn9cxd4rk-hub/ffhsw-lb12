@@ -5,10 +5,11 @@ import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/solid';
 import { settingsApi } from '../../api/settings';
 import { Button } from '../../components/ui/Button';
 
-type ImportType = 'articles' | 'inspections';
+type ImportType = 'articles' | 'inspections' | 'members';
 
 interface ImportResult {
   imported: number;
+  skipped?: number;
   errors: Array<{ row: number; message: string }>;
   total: number;
 }
@@ -44,6 +45,31 @@ const INSPECTION_COLUMNS = [
   { name: 'result', label: 'Ergebnis (passed/failed)', required: true, example: 'passed' },
   { name: 'inspectionType', label: 'Prüfart (Name)', required: false, example: 'Sicht- und Funktionsprüfung' },
   { name: 'notes', label: 'Bemerkungen', required: false, example: 'Keine Mängel' },
+];
+
+const MEMBER_COLUMNS = [
+  { name: 'lastName', label: 'Nachname', required: true, example: 'Mustermann' },
+  { name: 'firstName', label: 'Vorname', required: true, example: 'Max' },
+  { name: 'salutation', label: 'Anrede', required: false, example: 'Herr' },
+  { name: 'group', label: 'Mitgliedergruppe (Name)', required: false, example: 'Einsatzabteilung' },
+  { name: 'rank', label: 'Dienstgrad', required: false, example: 'Feuerwehrmann' },
+  { name: 'street', label: 'Straße', required: false, example: 'Musterstr. 1' },
+  { name: 'city', label: 'Ort', required: false, example: '66265 Heusweiler' },
+  { name: 'phonePrivate', label: 'Telefon privat', required: false, example: '06806-123456' },
+  { name: 'phoneMobile', label: 'Mobiltelefon', required: false, example: '0171-1234567' },
+  { name: 'email', label: 'E-Mail', required: false, example: 'max@example.de' },
+  { name: 'birthDate', label: 'Geburtsdatum (YYYY-MM-DD)', required: false, example: '1990-05-15' },
+  { name: 'memberSince', label: 'Mitglied seit (YYYY-MM-DD)', required: false, example: '2015-01-01' },
+  { name: 'occupation', label: 'Beruf', required: false, example: 'Schlosser' },
+  { name: 'nationality', label: 'Nationalität', required: false, example: 'deutsch' },
+  { name: 'driverLicenseNo', label: 'Führerschein-Nr.', required: false, example: 'B12345' },
+  { name: 'healthInsurance', label: 'Krankenkasse', required: false, example: 'AOK Saarland' },
+  { name: 'qualFirstAid', label: 'Erste Hilfe (ja/nein)', required: false, example: 'ja' },
+  { name: 'qualAGT', label: 'Atemschutz (ja/nein)', required: false, example: 'ja' },
+  { name: 'qualMachinist', label: 'Maschinist (ja/nein)', required: false, example: 'nein' },
+  { name: 'qualTruppmann', label: 'Truppmann (ja/nein)', required: false, example: 'ja' },
+  { name: 'qualTruppfuehrer', label: 'Truppführer (ja/nein)', required: false, example: 'nein' },
+  { name: 'comment', label: 'Bemerkung', required: false, example: '' },
 ];
 
 function parseCsv(text: string): Array<Record<string, string>> {
@@ -95,7 +121,7 @@ export function DataImportSettings() {
   const [result, setResult] = useState<ImportResult | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const columns = importType === 'articles' ? ARTICLE_COLUMNS : INSPECTION_COLUMNS;
+  const columns = importType === 'articles' ? ARTICLE_COLUMNS : importType === 'members' ? MEMBER_COLUMNS : INSPECTION_COLUMNS;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -122,6 +148,7 @@ export function DataImportSettings() {
   const importMutation = useMutation({
     mutationFn: () => {
       if (importType === 'articles') return settingsApi.importArticles(parsedData);
+      if (importType === 'members') return settingsApi.importMembers(parsedData);
       return settingsApi.importInspections(parsedData);
     },
     onSuccess: (res) => {
@@ -152,6 +179,7 @@ export function DataImportSettings() {
             className="block w-64 px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none bg-white">
             <option value="articles">Bestandsliste (Artikel)</option>
             <option value="inspections">Prüfungen</option>
+            <option value="members">Mitglieder (Personal)</option>
           </select>
         </div>
         <div>
@@ -250,7 +278,10 @@ export function DataImportSettings() {
           {result.imported > 0 && (
             <div className="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
               <CheckCircleIcon className="h-5 w-5 text-green-500" />
-              <span className="text-sm font-medium">{result.imported} von {result.total} Datensätzen erfolgreich importiert</span>
+              <span className="text-sm font-medium">
+                {result.imported} von {result.total} Datensätzen erfolgreich importiert
+                {result.skipped ? ` (${result.skipped} übersprungen — bereits vorhanden)` : ''}
+              </span>
             </div>
           )}
           {result.errors.length > 0 && (

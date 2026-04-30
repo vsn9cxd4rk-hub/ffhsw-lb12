@@ -75,10 +75,24 @@ export async function deleteVehicle(req: Request, res: Response): Promise<void> 
 export async function upsertVehicleInspection(req: Request, res: Response): Promise<void> {
   try {
     const vehicleId = parseInt(req.params.id);
+    const data: Record<string, unknown> = {};
+    const dateFields = ['tuevDate', 'spDate', 'serviceDate'];
+    const boolFields = ['notifyTuev', 'notifySp', 'notifyService'];
+
+    for (const f of dateFields) {
+      if (f in req.body) {
+        data[f] = req.body[f] ? new Date(req.body[f]) : null;
+      }
+    }
+    for (const f of boolFields) {
+      if (f in req.body) data[f] = req.body[f];
+    }
+    if ('notes' in req.body) data.notes = req.body.notes || null;
+
     const inspection = await prisma.vehicleInspection.upsert({
       where: { vehicleId },
-      update: req.body,
-      create: { ...req.body, vehicleId },
+      update: data,
+      create: { ...data, vehicleId },
     });
     sendSuccess(res, inspection);
   } catch (err) {

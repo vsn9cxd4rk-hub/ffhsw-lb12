@@ -28,12 +28,22 @@ export function VehicleDetailPage() {
 
   const updateMutation = useMutation({
     mutationFn: (data: Partial<Vehicle>) => vehiclesApi.update(parseInt(id!), data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['vehicle', id] }),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['vehicle', id] }); setError(''); },
+    onError: (err: unknown) => {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Speichern fehlgeschlagen';
+      setError(msg);
+    },
   });
+
+  const [error, setError] = useState('');
 
   const updateInspectionMutation = useMutation({
     mutationFn: (data: Record<string, string | null>) => vehiclesApi.updateInspection(parseInt(id!), data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['vehicle', id] }),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['vehicle', id] }); setError(''); },
+    onError: (err: unknown) => {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Speichern fehlgeschlagen';
+      setError(msg);
+    },
   });
 
   if (isLoading) return <LoadingSpinner />;
@@ -57,6 +67,12 @@ export function VehicleDetailPage() {
           {vehicle.isRetired ? 'Außer Dienst' : 'Aktiv'}
         </Badge>
       </div>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-md">
+          {error}
+        </div>
+      )}
 
       <div className="border-b border-gray-200">
         <nav className="flex gap-4 -mb-px">

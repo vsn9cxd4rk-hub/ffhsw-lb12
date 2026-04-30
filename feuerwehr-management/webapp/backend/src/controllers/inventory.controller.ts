@@ -88,6 +88,27 @@ export async function deleteWarehouse(req: Request, res: Response): Promise<void
   }
 }
 
+// Next inventory number
+export async function getNextInventoryNumber(_req: Request, res: Response): Promise<void> {
+  try {
+    const articles = await prisma.article.findMany({
+      where: { inventoryNumber: { not: null } },
+      select: { inventoryNumber: true },
+    });
+    let maxNum = 0;
+    for (const a of articles) {
+      const match = a.inventoryNumber?.match(/(\d+)/);
+      if (match) {
+        const num = parseInt(match[match.length - 1]);
+        if (num > maxNum) maxNum = num;
+      }
+    }
+    sendSuccess(res, { next: String(maxNum + 1) });
+  } catch (err) {
+    sendError(res, (err as Error).message);
+  }
+}
+
 // Articles
 export async function getArticles(req: Request, res: Response): Promise<void> {
   try {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { PlusIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, ArrowDownTrayIcon, PencilIcon, ClipboardDocumentCheckIcon } from '@heroicons/react/24/outline';
 import { Article, Warehouse, DeviceClass } from '../../types';
 import { Table } from '../../components/ui/Table';
 import { Button } from '../../components/ui/Button';
@@ -14,6 +14,8 @@ import { Badge } from '../../components/ui/Badge';
 import { formatCurrency } from '../../utils/format';
 import client from '../../api/client';
 import { settingsApi } from '../../api/settings';
+import { exportInventoryCsv, exportInventoryPdf } from '../../utils/inventoryExport';
+import { CriteriaInspectionModal } from '../../components/inspections/CriteriaInspectionModal';
 
 const inventoryApiWrapper = {
   getWarehouses: (params?: Record<string, unknown>) => client.get('/inventory/warehouses', { params }),
@@ -55,6 +57,11 @@ function ArticleFormModal({ isOpen, onClose, warehouses, article, deviceClasses 
   useEffect(() => {
     if (isOpen) {
       const dcId = article?.deviceSubclass?.deviceClassId?.toString() || '';
+      if (!article) {
+        client.get<{ data: { next: string } }>('/inventory/articles/next-number').then(r => {
+          setForm(f => ({ ...f, inventoryNumber: r.data.data.next }));
+        }).catch(() => {});
+      }
       setForm({
         name: article?.name || '',
         manufacturer: article?.manufacturer || '',
@@ -216,6 +223,8 @@ export function InventoryPage() {
   const [page, setPage] = useState(1);
   const [showForm, setShowForm] = useState(false);
   const [editArticle, setEditArticle] = useState<Article | undefined>();
+  const [showInspection, setShowInspection] = useState(false);
+  const [inspectArticle, setInspectArticle] = useState<Article | undefined>();
 
   const { data: warehouses } = useQuery({
     queryKey: ['warehouses'],
@@ -243,23 +252,35 @@ export function InventoryPage() {
   const closeForm = () => { setShowForm(false); setEditArticle(undefined); };
 
   const columns = [
-    { key: 'inventoryNumber', header: 'Inv.-Nr.', render: (a: Article) => a.inventoryNumber || '-' },
-    { key: 'name', header: 'Bezeichnung', render: (a: Article) => (
+    { key: 'inventoryNumber', header: 'Inv.-Nr.', sortable: true, sortValue: (a: Article) => a.inventoryNumber || '', render: (a: Article) => a.inventoryNumber || '-' },
+    { key: 'name', header: 'Bezeichnung', sortable: true, sortValue: (a: Article) => a.name, render: (a: Article) => (
       <div>
         <p className={`font-medium ${a.isDecommissioned ? 'text-gray-400 line-through' : ''}`}>{a.name}</p>
         {a.manufacturer && <p className="text-xs text-gray-500">{a.manufacturer}</p>}
       </div>
     )},
-    { key: 'deviceClass', header: 'Geräteklasse', render: (a: Article) => {
+    { key: 'deviceClass', header: 'Geräteklasse', sortable: true, sortValue: (a: Article) => a.deviceSubclass?.deviceClass?.name || '', render: (a: Article) => {
       const dc = a.deviceSubclass?.deviceClass;
       return dc ? <span className="text-sm">{dc.name}</span> : <span className="text-gray-400">-</span>;
     }},
-    { key: 'warehouse', header: 'Lagerort', render: (a: Article) => a.warehouse?.name || '-' },
-    { key: 'inspectionInterval', header: 'Prüfintervall', render: (a: Article) => a.inspectionInterval ? `${a.inspectionInterval} Monate` : '-' },
+    { key: 'warehouse', header: 'Lagerort', sortable: true, sortValue: (a: Article) => a.warehouse?.name || '', render: (a: Article) => a.warehouse?.name || '-' },
+    { key: 'inspectionInterval', header: 'Prüfintervall', sortable: true, sortValue: (a: Article) => a.inspectionInterval || 0, render: (a: Article) => a.inspectionInterval ? `${a.inspectionInterval} Monate` : '-' },
     { key: 'status', header: 'Status', render: (a: Article) =>
       a.isDecommissioned ? <Badge variant="default">Außer Dienst</Badge> : null
     },
-    { key: 'value', header: 'Wert', render: (a: Article) => formatCurrency(a.value) },
+    { key: 'value', header: 'Wert', sortable: true, sortValue: (a: Article) => a.value || 0, render: (a: Article) => formatCurrency(a.value) },
+    { key: 'actions', header: '', render: (a: Article) => (
+      <div className="flex items-center gap-1">
+        <button onClick={(e) => { e.stopPropagation(); setInspectArticle(a); setShowInspection(true); }}
+          className="p-1.5 text-gray-400 hover:text-green-600 rounded hover:bg-gray-100" title="Prüfung durchführen">
+          <ClipboardDocumentCheckIcon className="h-4 w-4" />
+        </button>
+        <button onClick={(e) => { e.stopPropagation(); openEdit(a); }}
+          className="p-1.5 text-gray-400 hover:text-primary-600 rounded hover:bg-gray-100" title="Artikel bearbeiten">
+          <PencilIcon className="h-4 w-4" />
+        </button>
+      </div>
+    )},
   ];
 
   return (
@@ -312,7 +333,17 @@ export function InventoryPage() {
         <div className="flex-1 space-y-4">
           <div className="flex items-center justify-between">
             <SearchInput value={search} onChange={setSearch} placeholder="Artikel suchen..." className="w-64" />
-            <Button variant="primary" icon={<PlusIcon />} onClick={openCreate}>Neuer Artikel</Button>
+            <div className="flex items-center gap-2">
+              <Button variant="secondary" size="sm" icon={<ArrowDownTrayIcon />}
+                onClick={() => data?.data && exportInventoryCsv(data.data)} disabled={!data?.data?.length}>
+                CSV
+              </Button>
+              <Button variant="secondary" size="sm" icon={<ArrowDownTrayIcon />}
+                onClick={() => data?.data && exportInventoryPdf(data.data, 'Gesamtübersicht')} disabled={!data?.data?.length}>
+                PDF
+              </Button>
+              <Button variant="primary" icon={<PlusIcon />} onClick={openCreate}>Neuer Artikel</Button>
+            </div>
           </div>
 
           <div className="bg-white rounded-lg shadow-sm border border-gray-200">
@@ -322,7 +353,7 @@ export function InventoryPage() {
               loading={isLoading}
               emptyMessage="Keine Artikel gefunden."
               keyExtractor={(a) => a.id}
-              onRowClick={(a) => openEdit(a as Article)}
+              onRowClick={(a) => navigate(`/inventory/${(a as Article).id}`)}
             />
             {data?.pagination && <Pagination {...data.pagination} onPageChange={setPage} />}
           </div>
@@ -330,6 +361,13 @@ export function InventoryPage() {
       </div>
 
       <ArticleFormModal isOpen={showForm} onClose={closeForm} warehouses={warehouses || []} article={editArticle} deviceClasses={deviceClasses} />
+
+      <CriteriaInspectionModal
+        isOpen={showInspection}
+        onClose={() => { setShowInspection(false); setInspectArticle(undefined); }}
+        preselectedArticle={inspectArticle}
+        articles={data?.data || []}
+      />
     </div>
   );
 }

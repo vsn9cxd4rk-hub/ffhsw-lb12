@@ -297,7 +297,16 @@ export async function updateSubclass(req: Request, res: Response): Promise<void>
 
 export async function deleteSubclass(req: Request, res: Response): Promise<void> {
   try {
-    await prisma.deviceSubclass.delete({ where: { id: parseInt(req.params.id) } });
+    const id = parseInt(req.params.id);
+    await prisma.$transaction(async (tx) => {
+      const criteria = await tx.inspectionCriterion.findMany({ where: { deviceSubclassId: id }, select: { id: true } });
+      const criterionIds = criteria.map(c => c.id);
+      if (criterionIds.length > 0) {
+        await tx.inspectionCriterionResult.deleteMany({ where: { criterionId: { in: criterionIds } } });
+        await tx.inspectionCriterion.deleteMany({ where: { deviceSubclassId: id } });
+      }
+      await tx.deviceSubclass.delete({ where: { id } });
+    });
     sendSuccess(res, { message: 'Unterklasse gelöscht' });
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -327,7 +336,11 @@ export async function updateCriterion(req: Request, res: Response): Promise<void
 
 export async function deleteCriterion(req: Request, res: Response): Promise<void> {
   try {
-    await prisma.inspectionCriterion.delete({ where: { id: parseInt(req.params.id) } });
+    const id = parseInt(req.params.id);
+    await prisma.$transaction(async (tx) => {
+      await tx.inspectionCriterionResult.deleteMany({ where: { criterionId: id } });
+      await tx.inspectionCriterion.delete({ where: { id } });
+    });
     sendSuccess(res, { message: 'Prüfkriterium gelöscht' });
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -384,14 +397,16 @@ export async function importArticles(req: Request, res: Response): Promise<void>
     const warehouses = await prisma.warehouse.findMany();
     const deviceClasses = await prisma.deviceClass.findMany();
     const subclasses = await prisma.deviceSubclass.findMany({ include: { deviceClass: true } });
+    const existingArticles = await prisma.article.findMany({ where: { inventoryNumber: { not: null } }, select: { inventoryNumber: true } });
+    const existingInvNumbers = new Set(existingArticles.map(a => a.inventoryNumber!.toLowerCase()));
     const warehouseMap = new Map(warehouses.map(w => [w.name.toLowerCase(), w.id]));
     const classMap = new Map(deviceClasses.map(c => [c.name.toLowerCase(), c.id]));
-    // Map: "classId:subclassName" -> subclassId for exact match, plus plain name fallback
     const subclassMap = new Map(subclasses.map(s => [s.name.toLowerCase(), s.id]));
     const subclassWithClassMap = new Map(subclasses.map(s => [`${s.deviceClassId}:${s.name.toLowerCase()}`, s.id]));
 
     const errors: Array<{ row: number; message: string }> = [];
     let imported = 0;
+    let skipped = 0;
 
     await prisma.$transaction(async (tx) => {
       for (let i = 0; i < rows.length; i++) {
@@ -400,6 +415,11 @@ export async function importArticles(req: Request, res: Response): Promise<void>
 
         if (!row.name || !row.name.trim()) {
           errors.push({ row: rowNum, message: 'Bezeichnung (name) ist ein Pflichtfeld' });
+          continue;
+        }
+
+        if (row.inventoryNumber?.trim() && existingInvNumbers.has(row.inventoryNumber.trim().toLowerCase())) {
+          skipped++;
           continue;
         }
 
@@ -500,7 +520,7 @@ export async function importArticles(req: Request, res: Response): Promise<void>
       }
     });
 
-    sendSuccess(res, { imported, errors, total: rows.length });
+    sendSuccess(res, { imported, skipped, errors, total: rows.length });
   } catch (err) {
     sendError(res, (err as Error).message);
   }
@@ -602,6 +622,111 @@ export async function importInspections(req: Request, res: Response): Promise<vo
     });
 
     sendSuccess(res, { imported, errors, total: rows.length });
+  } catch (err) {
+    sendError(res, (err as Error).message);
+  }
+}
+
+// CSV Import - Members
+export async function importMembers(req: Request, res: Response): Promise<void> {
+  try {
+    const rows: Array<Record<string, string>> = req.body.members;
+    if (!Array.isArray(rows) || rows.length === 0) {
+      sendError(res, 'Keine Daten zum Importieren', 400);
+      return;
+    }
+
+    const memberGroups = await prisma.memberGroup.findMany();
+    const groupMap = new Map(memberGroups.map(g => [g.name.toLowerCase(), g.id]));
+
+    const existingMembers = await prisma.member.findMany({
+      where: { deletedAt: null },
+      select: { firstName: true, lastName: true },
+    });
+    const existingSet = new Set(existingMembers.map(m => `${m.firstName.toLowerCase()}|${m.lastName.toLowerCase()}`));
+
+    const errors: Array<{ row: number; message: string }> = [];
+    let imported = 0;
+    let skipped = 0;
+
+    const boolFields = [
+      'qualLicenseC', 'qualLicenseB', 'qualFirstAid', 'qualRadioOperator',
+      'qualMachinist', 'qualTruppmann', 'qualTruppfuehrer', 'qualGruppenfuehrer',
+      'qualZugfuehrer', 'qualRettSan', 'qualFwSan', 'qualVerbandfuehrer', 'qualAGT', 'qualTH1',
+    ];
+
+    await prisma.$transaction(async (tx) => {
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const rowNum = i + 2;
+
+        if (!row.lastName?.trim() || !row.firstName?.trim()) {
+          errors.push({ row: rowNum, message: 'Nachname und Vorname sind Pflichtfelder' });
+          continue;
+        }
+
+        const key = `${row.firstName.trim().toLowerCase()}|${row.lastName.trim().toLowerCase()}`;
+        if (existingSet.has(key)) {
+          skipped++;
+          continue;
+        }
+
+        let groupId: number | null = null;
+        if (row.group?.trim()) {
+          groupId = groupMap.get(row.group.trim().toLowerCase()) ?? null;
+          if (!groupId) {
+            errors.push({ row: rowNum, message: `Mitgliedergruppe "${row.group}" nicht gefunden` });
+            continue;
+          }
+        }
+
+        const parseDateField = (val: string | undefined): Date | null => {
+          if (!val?.trim()) return null;
+          const d = new Date(val.trim());
+          return isNaN(d.getTime()) ? null : d;
+        };
+
+        const data: Record<string, unknown> = {
+          lastName: row.lastName.trim(),
+          firstName: row.firstName.trim(),
+          groupId,
+          salutation: row.salutation?.trim() || null,
+          street: row.street?.trim() || null,
+          city: row.city?.trim() || null,
+          phonePrivate: row.phonePrivate?.trim() || null,
+          phoneMobile: row.phoneMobile?.trim() || null,
+          phoneWork: row.phoneWork?.trim() || null,
+          email: row.email?.trim() || null,
+          email2: row.email2?.trim() || null,
+          occupation: row.occupation?.trim() || null,
+          nationality: row.nationality?.trim() || null,
+          rank: row.rank?.trim() || null,
+          memberSince: parseDateField(row.memberSince),
+          birthDate: parseDateField(row.birthDate),
+          driverLicenseNo: row.driverLicenseNo?.trim() || null,
+          serviceCardNo: row.serviceCardNo?.trim() || null,
+          healthInsurance: row.healthInsurance?.trim() || null,
+          comment: row.comment?.trim() || null,
+        };
+
+        for (const bf of boolFields) {
+          if (row[bf] !== undefined) {
+            const val = row[bf].trim().toLowerCase();
+            data[bf] = val === '1' || val === 'true' || val === 'ja' || val === 'yes' || val === 'x';
+          }
+        }
+
+        try {
+          await tx.member.create({ data: data as { lastName: string; firstName: string; [key: string]: unknown } });
+          existingSet.add(key);
+          imported++;
+        } catch (err: unknown) {
+          errors.push({ row: rowNum, message: (err as Error).message });
+        }
+      }
+    });
+
+    sendSuccess(res, { imported, skipped, errors, total: rows.length });
   } catch (err) {
     sendError(res, (err as Error).message);
   }

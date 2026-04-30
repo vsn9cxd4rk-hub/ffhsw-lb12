@@ -23,7 +23,7 @@ export async function getDashboardStats(_req: Request, res: Response): Promise<v
       upcomingMedicalExams,
       articlesWithInterval,
     ] = await Promise.all([
-      prisma.member.count({ where: { isInactive: false, deletedAt: null } }),
+      prisma.member.count({ where: { isInactive: false, deletedAt: null, group: { name: 'Einsatzabteilung' } } }),
       prisma.vehicle.count({ where: { isRetired: false } }),
       prisma.operation.count({ where: { date: { gte: yearStart, lt: yearEnd } } }),
       prisma.operation.findMany({

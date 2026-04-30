@@ -19,7 +19,6 @@ export function generateInspectionReport(
     const article = inspection.article;
     let y = margin;
 
-    // Title
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
     doc.text('Prüfbericht', margin, y);
@@ -31,13 +30,11 @@ export function generateInspectionReport(
     doc.setTextColor(0);
     y += 8;
 
-    // Separator line
     doc.setDrawColor(200);
     doc.setLineWidth(0.5);
     doc.line(margin, y, pageWidth - margin, y);
     y += 6;
 
-    // Header: Article details
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
     doc.text('Artikeldaten', margin, y);
@@ -73,7 +70,6 @@ export function generateInspectionReport(
 
     y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 8;
 
-    // Inspection details
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
     doc.text('Prüfung', margin, y);
@@ -82,15 +78,18 @@ export function generateInspectionReport(
     const inspDate = new Date(inspection.inspectedAt).toLocaleDateString('de-DE');
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
-    doc.text(`Prüfdatum: ${inspDate}`, margin, y);
-    doc.text(`Prüfer: ${inspection.inspectedBy}`, margin + 70, y);
+    doc.text('Prüfdatum: ' + inspDate, margin, y);
+    doc.text('Prüfer: ' + inspection.inspectedBy, margin + 70, y);
+    if (inspection.inspectionType) {
+      doc.text('Prüfart: ' + inspection.inspectionType.name, margin + 140, y);
+    }
     y += 7;
 
-    // Criteria results table
+    // Criteria results table with drawn checkmarks and crosses
     if (inspection.criterionResults && inspection.criterionResults.length > 0) {
       const tableBody = inspection.criterionResults.map(cr => [
         cr.criterion?.name || '-',
-        cr.result === 'io' ? '\u2713' : '\u2717',
+        cr.result,
       ]);
 
       autoTable(doc, {
@@ -106,16 +105,34 @@ export function generateInspectionReport(
         },
         didParseCell: (data) => {
           if (data.section === 'body' && data.column.index === 1) {
-            const val = data.cell.raw as string;
-            if (val === '\u2713') {
-              data.cell.styles.textColor = [34, 139, 34]; // green
-              data.cell.styles.fontStyle = 'bold';
-              data.cell.styles.fontSize = 12;
-            } else if (val === '\u2717') {
-              data.cell.styles.textColor = [220, 20, 20]; // red
-              data.cell.styles.fontStyle = 'bold';
-              data.cell.styles.fontSize = 12;
+            data.cell.text = [''];
+          }
+        },
+        didDrawCell: (data) => {
+          if (data.section === 'body' && data.column.index === 1) {
+            const raw = data.cell.raw as string;
+            const cx = data.cell.x + data.cell.width / 2;
+            const cy = data.cell.y + data.cell.height / 2;
+            const s = 2.5;
+
+            if (raw === 'io') {
+              // Green checkmark + "OK"
+              doc.setDrawColor(34, 139, 34);
+              doc.setLineWidth(0.7);
+              doc.line(cx - s, cy, cx - s * 0.3, cy + s * 0.7);
+              doc.line(cx - s * 0.3, cy + s * 0.7, cx + s, cy - s * 0.6);
+              doc.setFontSize(7);
+              doc.setTextColor(34, 139, 34);
+              doc.text('OK', cx + s + 1.5, cy + 1);
+            } else if (raw === 'nio') {
+              // Red cross (X)
+              doc.setDrawColor(220, 20, 20);
+              doc.setLineWidth(0.7);
+              doc.line(cx - s, cy - s, cx + s, cy + s);
+              doc.line(cx + s, cy - s, cx - s, cy + s);
             }
+            doc.setDrawColor(0);
+            doc.setTextColor(0);
           }
         },
       });
@@ -135,7 +152,6 @@ export function generateInspectionReport(
     doc.setTextColor(0);
     y += 8;
 
-    // Notes
     if (inspection.notes) {
       doc.setFontSize(9);
       doc.setFont('helvetica', 'bold');
@@ -146,12 +162,11 @@ export function generateInspectionReport(
       doc.text(splitNotes, margin, y);
     }
 
-    // Footer
     doc.setFontSize(7);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(150);
     doc.text(
-      `Erstellt von ${exportedBy} am ${exportDate} | Seite ${index + 1} von ${inspections.length}`,
+      'Erstellt von ' + exportedBy + ' am ' + exportDate + ' | Seite ' + (index + 1) + ' von ' + inspections.length,
       margin,
       pageHeight - 10,
     );
@@ -163,9 +178,9 @@ export function generateInspectionReport(
     doc.text('Keine Prüfungen im gewählten Zeitraum gefunden.', margin, 30);
     doc.setFontSize(7);
     doc.setTextColor(150);
-    doc.text(`Erstellt von ${exportedBy} am ${exportDate}`, margin, pageHeight - 10);
+    doc.text('Erstellt von ' + exportedBy + ' am ' + exportDate, margin, pageHeight - 10);
     doc.setTextColor(0);
   }
 
-  doc.save(`Pruefbericht_${filterLabel.replace(/[^a-zA-Z0-9]/g, '_')}_${exportDate.replace(/\./g, '-')}.pdf`);
+  doc.save('Pruefbericht_' + filterLabel.replace(/[^a-zA-Z0-9]/g, '_') + '_' + exportDate.replace(/\./g, '-') + '.pdf');
 }

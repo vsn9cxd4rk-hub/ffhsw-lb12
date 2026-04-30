@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { PlusIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 import { membersApi } from '../../api/members';
 import { Member } from '../../types';
 import { Table } from '../../components/ui/Table';
@@ -103,13 +103,39 @@ export function MembersPage() {
             Inaktive zeigen
           </label>
         </div>
-        <Button
-          variant="primary"
-          icon={<PlusIcon />}
-          onClick={() => navigate('/members/new')}
-        >
-          Neues Mitglied
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="secondary" size="sm" icon={<ArrowDownTrayIcon />}
+            onClick={() => {
+              membersApi.getAll({ limit: 10000 }).then(r => {
+                const list: Member[] = r.data.data || [];
+                const headers = ['lastName','firstName','salutation','group','rank','street','city','phonePrivate','phoneMobile','phoneWork','email','email2','birthDate','memberSince','occupation','nationality','driverLicenseNo','serviceCardNo','healthInsurance','status','comment'];
+                const rows = list.map(m => [
+                  m.lastName, m.firstName, m.salutation || '', m.group?.name || '', m.rank || '',
+                  m.street || '', m.city || '', m.phonePrivate || '', m.phoneMobile || '', m.phoneWork || '',
+                  m.email || '', m.email2 || '',
+                  m.birthDate ? m.birthDate.split('T')[0] : '',
+                  m.memberSince ? m.memberSince.split('T')[0] : '',
+                  m.occupation || '', m.nationality || '',
+                  m.driverLicenseNo || '', m.serviceCardNo || '', m.healthInsurance || '',
+                  m.isInactive ? 'Inaktiv' : 'Aktiv', m.comment || '',
+                ]);
+                const csv = [headers, ...rows].map(row => row.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(';')).join('\n');
+                const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a'); a.href = url; a.download = 'Mitgliederliste_' + new Date().toISOString().split('T')[0] + '.csv'; a.click();
+                URL.revokeObjectURL(url);
+              });
+            }}>
+            CSV Export
+          </Button>
+          <Button
+            variant="primary"
+            icon={<PlusIcon />}
+            onClick={() => navigate('/members/new')}
+          >
+            Neues Mitglied
+          </Button>
+        </div>
       </div>
 
       {/* Table */}

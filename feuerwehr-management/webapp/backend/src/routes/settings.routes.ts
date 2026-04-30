@@ -9,7 +9,7 @@ import {
   getDeviceClasses, createDeviceClass, updateDeviceClass, deleteDeviceClass,
   createSubclass, updateSubclass, deleteSubclass,
   createCriterion, updateCriterion, deleteCriterion,
-  importArticles, importInspections,
+  importArticles, importInspections, importMembers,
   getInspectionTypes, createInspectionType, updateInspectionType, deleteInspectionType,
 } from '../controllers/settings.controller';
 
@@ -56,5 +56,6 @@ router.delete('/inspection-types/:id', requireAdmin, deleteInspectionType);
 // CSV Import
 router.post('/import/articles', requireAdmin, importArticles);
 router.post('/import/inspections', requireAdmin, importInspections);
+router.post('/import/members', requireAdmin, importMembers);
 
 export default router;
