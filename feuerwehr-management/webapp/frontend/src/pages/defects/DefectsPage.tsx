@@ -13,8 +13,9 @@ import { Input } from '../../components/ui/Input';
 import { Textarea } from '../../components/ui/Textarea';
 import { Select } from '../../components/ui/Select';
 import { Pagination } from '../../components/ui/Pagination';
-import { ArticleDefect, ArticleRepair, Article } from '../../types';
+import { ArticleDefect, ArticleRepair, Article, DeviceClass } from '../../types';
 import { formatDate, formatCurrency } from '../../utils/format';
+import { settingsApi } from '../../api/settings';
 
 type Tab = 'defects' | 'repairs';
 
@@ -146,6 +147,87 @@ function useArticles() {
   });
 }
 
+function ArticleSelector({ value, onChange, required }: { value: string; onChange: (val: string, label?: string) => void; required?: boolean }) {
+  const { data: articles } = useArticles();
+  const { data: vehiclesRes } = useQuery({
+    queryKey: ['vehicles-for-defects'],
+    queryFn: () => client.get<{ data: Array<{ id: number; name: string }> }>('/vehicles').then(r => r.data.data),
+  });
+  const { data: classesRes } = useQuery({
+    queryKey: ['device-classes'],
+    queryFn: () => settingsApi.getDeviceClasses(),
+  });
+  const deviceClasses: DeviceClass[] = classesRes?.data?.data || [];
+
+  const [filterClass, setFilterClass] = useState('');
+  const [filterSubclass, setFilterSubclass] = useState('');
+
+  const selectedClass = deviceClasses.find(dc => dc.id === parseInt(filterClass));
+
+  // Filter articles
+  let filtered = articles || [];
+  if (filterClass === 'none') {
+    filtered = filtered.filter(a => !a.deviceSubclassId);
+  } else if (filterClass) {
+    filtered = filtered.filter(a => a.deviceSubclass?.deviceClass?.id === parseInt(filterClass));
+    if (filterSubclass) {
+      filtered = filtered.filter(a => a.deviceSubclassId === parseInt(filterSubclass));
+    }
+  }
+
+  return (
+    <div className="space-y-2">
+      <label className="block text-sm font-medium text-gray-700">
+        Artikel / Gerät {required && <span className="text-red-500">*</span>}
+      </label>
+      <div className="grid grid-cols-2 gap-2">
+        <select value={filterClass}
+          onChange={(e) => { setFilterClass(e.target.value); setFilterSubclass(''); }}
+          className="px-2 py-1.5 border border-gray-300 rounded-md text-xs focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none bg-white">
+          <option value="">Alle Geräteklassen</option>
+          <option value="none">Ohne Geräteklasse</option>
+          {deviceClasses.map(dc => <option key={dc.id} value={dc.id}>{dc.name}</option>)}
+        </select>
+        <select value={filterSubclass}
+          onChange={(e) => setFilterSubclass(e.target.value)}
+          disabled={!filterClass || filterClass === 'none'}
+          className="px-2 py-1.5 border border-gray-300 rounded-md text-xs focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none bg-white disabled:bg-gray-100">
+          <option value="">Alle Unterklassen</option>
+          {selectedClass?.subclasses?.map(sc => <option key={sc.id} value={sc.id}>{sc.name}</option>)}
+        </select>
+      </div>
+      <select value={value} onChange={(e) => {
+          const v = e.target.value;
+          const label = e.target.selectedOptions[0]?.text || '';
+          const isSpecial = v.startsWith('vehicle_') || v === 'sonstige';
+          onChange(v, isSpecial ? label : undefined);
+        }}
+        className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none bg-white">
+        <option value="">-- Auswählen --</option>
+        {filtered.length > 0 && (
+          <optgroup label="Artikel">
+            {filtered.map(a => (
+              <option key={a.id} value={a.id}>
+                {a.name}{a.inventoryNumber ? ` (${a.inventoryNumber})` : ''}{a.warehouse ? ` [${a.warehouse.name}]` : ''}
+              </option>
+            ))}
+          </optgroup>
+        )}
+        {vehiclesRes && vehiclesRes.length > 0 && (
+          <optgroup label="Fahrzeuge">
+            {vehiclesRes.map(v => (
+              <option key={`v_${v.id}`} value={`vehicle_${v.id}`}>{v.name}</option>
+            ))}
+          </optgroup>
+        )}
+        <optgroup label="Sonstige">
+          <option value="sonstige">Sonstige</option>
+        </optgroup>
+      </select>
+    </div>
+  );
+}
+
 // =====================
 // Defects Tab
 // =====================
@@ -156,6 +238,7 @@ function DefectsTab() {
   const [statusFilter, setStatusFilter] = useState('');
   const [severityFilter, setSeverityFilter] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [subjectLabel, setSubjectLabel] = useState('');
   const [editItem, setEditItem] = useState<ArticleDefect | null>(null);
   const [form, setForm] = useState<DefectForm>({ ...emptyDefectForm });
 
@@ -179,8 +262,10 @@ function DefectsTab() {
 
   const saveMutation = useMutation({
     mutationFn: () => {
+      const isArticle = form.articleId && !form.articleId.startsWith('vehicle_') && form.articleId !== 'sonstige';
       const payload: Record<string, unknown> = {
-        articleId: parseInt(form.articleId),
+        articleId: isArticle ? parseInt(form.articleId) : null,
+        subject: !isArticle ? (subjectLabel || (form.articleId === 'sonstige' ? 'Sonstige' : form.articleId)) : null,
         description: form.description,
         severity: form.severity,
         reportedBy: form.reportedBy,
@@ -252,7 +337,8 @@ function DefectsTab() {
       const inv = defect.article.inventoryNumber ? ` (${defect.article.inventoryNumber})` : '';
       return `${defect.article.name}${inv}`;
     }
-    return `Artikel #${defect.articleId}`;
+    if (defect.subject) return defect.subject;
+    return defect.articleId ? `Artikel #${defect.articleId}` : '-';
   }
 
   const u = (k: keyof DefectForm, v: string) => setForm((f) => ({ ...f, [k]: v }));
@@ -260,10 +346,6 @@ function DefectsTab() {
   const canSave =
     form.articleId && form.description.trim() && form.reportedBy.trim() && form.reportedAt;
 
-  const articleOptions = (articles || []).map((a) => ({
-    value: a.id,
-    label: a.inventoryNumber ? `${a.name} (${a.inventoryNumber})` : a.name,
-  }));
 
   return (
     <>
@@ -402,14 +484,7 @@ function DefectsTab() {
         }
       >
         <div className="space-y-4">
-          <Select
-            label="Artikel"
-            value={form.articleId}
-            onChange={(e) => u('articleId', e.target.value)}
-            options={articleOptions}
-            placeholder="Artikel auswählen..."
-            required
-          />
+          <ArticleSelector value={form.articleId} onChange={(val, label) => { u('articleId', val); if (label) setSubjectLabel(label); else setSubjectLabel(''); }} required />
           <Textarea
             label="Beschreibung"
             value={form.description}
@@ -492,6 +567,7 @@ function RepairsTab() {
   const [page, setPage] = useState(1);
   const [showModal, setShowModal] = useState(false);
   const [editItem, setEditItem] = useState<ArticleRepair | null>(null);
+  const [subjectLabel, setSubjectLabel] = useState('');
   const [form, setForm] = useState<RepairForm>({ ...emptyRepairForm });
 
   const { data: articles } = useArticles();
@@ -518,8 +594,10 @@ function RepairsTab() {
 
   const saveMutation = useMutation({
     mutationFn: () => {
+      const isArticle = form.articleId && !form.articleId.startsWith('vehicle_') && form.articleId !== 'sonstige';
       const payload: Record<string, unknown> = {
-        articleId: parseInt(form.articleId),
+        articleId: isArticle ? parseInt(form.articleId) : null,
+        subject: !isArticle ? (subjectLabel || (form.articleId === 'sonstige' ? 'Sonstige' : form.articleId)) : null,
         repairedAt: form.repairedAt,
         repairedBy: form.repairedBy,
         description: form.description,
@@ -583,7 +661,8 @@ function RepairsTab() {
       const inv = repair.article.inventoryNumber ? ` (${repair.article.inventoryNumber})` : '';
       return `${repair.article.name}${inv}`;
     }
-    return `Artikel #${repair.articleId}`;
+    if (repair.subject) return repair.subject;
+    return repair.articleId ? `Artikel #${repair.articleId}` : '-';
   }
 
   const u = (k: keyof RepairForm, v: string) => setForm((f) => ({ ...f, [k]: v }));
@@ -591,10 +670,6 @@ function RepairsTab() {
   const canSave =
     form.articleId && form.description.trim() && form.repairedBy.trim() && form.repairedAt;
 
-  const articleOptions = (articles || []).map((a) => ({
-    value: a.id,
-    label: a.inventoryNumber ? `${a.name} (${a.inventoryNumber})` : a.name,
-  }));
 
   const openDefects = openDefectsData || [];
   const defectOptions = openDefects.map((d) => ({
@@ -694,14 +769,7 @@ function RepairsTab() {
         }
       >
         <div className="space-y-4">
-          <Select
-            label="Artikel"
-            value={form.articleId}
-            onChange={(e) => u('articleId', e.target.value)}
-            options={articleOptions}
-            placeholder="Artikel auswählen..."
-            required
-          />
+          <ArticleSelector value={form.articleId} onChange={(val, label) => { u('articleId', val); if (label) setSubjectLabel(label); else setSubjectLabel(''); }} required />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
               label="Datum"

@@ -619,7 +619,8 @@ CREATE TABLE IF NOT EXISTS `article_inspection_schedules` (
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `article_defects` (
   `id`          INT          NOT NULL AUTO_INCREMENT,
-  `articleId`   INT          NOT NULL,
+  `articleId`   INT          NULL,
+  `subject`     VARCHAR(255) NULL,
   `reportedBy`  VARCHAR(255) NOT NULL,
   `reportedAt`  DATETIME     NOT NULL,
   `description` TEXT         NOT NULL,
@@ -640,7 +641,8 @@ CREATE TABLE IF NOT EXISTS `article_defects` (
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `article_repairs` (
   `id`          INT            NOT NULL AUTO_INCREMENT,
-  `articleId`   INT            NOT NULL,
+  `articleId`   INT            NULL,
+  `subject`     VARCHAR(255)   NULL,
   `defectId`    INT            NULL,
   `repairedAt`  DATETIME       NOT NULL,
   `repairedBy`  VARCHAR(255)   NOT NULL,

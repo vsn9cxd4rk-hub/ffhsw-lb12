@@ -22,6 +22,7 @@ import { SettingsPage } from './pages/settings/SettingsPage';
 import { ChangePasswordPage } from './pages/auth/ChangePasswordPage';
 import { HelpPage } from './pages/help/HelpPage';
 import { UsersPage } from './pages/users/UsersPage';
+import { ScanPage } from './pages/scan/ScanPage';
 
 export default function App() {
   return (
@@ -29,6 +30,7 @@ export default function App() {
       <Routes>
         {/* Public routes */}
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/scan/:id" element={<ScanPage />} />
 
         {/* Protected routes */}
         <Route element={<Layout />}>

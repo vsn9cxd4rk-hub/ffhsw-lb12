@@ -248,7 +248,8 @@ export interface ArticleInspectionSchedule {
 
 export interface ArticleDefect {
   id: number;
-  articleId: number;
+  articleId: number | null;
+  subject: string | null;
   reportedBy: string;
   reportedAt: string;
   description: string;
@@ -264,7 +265,8 @@ export interface ArticleDefect {
 
 export interface ArticleRepair {
   id: number;
-  articleId: number;
+  articleId: number | null;
+  subject: string | null;
   defectId: number | null;
   repairedAt: string;
   repairedBy: string;

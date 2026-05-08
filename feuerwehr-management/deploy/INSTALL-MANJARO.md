@@ -376,5 +376,98 @@ cp -r dist/* /var/www/feuerwehrmanagement/frontend/
 
 ---
 
+## System-Migration (Klonen auf ein neues System)
+
+Falls ein bestehendes System auf einen neuen Server umgezogen werden soll,
+muessen nur drei Dinge vom alten System gesichert werden.
+Frontend und Backend werden aus dem Quellcode neu gebaut.
+
+### Was gesichert werden muss
+
+| Was | Pfad | Inhalt |
+|-----|------|--------|
+| Datenbank-Dump | `mysqldump` | Alle Daten (Mitglieder, Artikel, Pruefungen, etc.) |
+| Uploads-Verzeichnis | `/var/www/feuerwehrmanagement/uploads/` | PDFs (Pruefprotokolle, Artikel-Dokumente, Templates) |
+| Backend .env | `/var/www/feuerwehrmanagement/backend/.env` | DB-Credentials, JWT-Secrets, Pfade |
+
+### Schritt 1: Backup auf dem ALTEN System
+
+```bash
+# Datenbank sichern
+mysqldump -u FFWVSLB12 -p FFWVSLB12 > /tmp/db-backup.sql
+
+# Uploads sichern
+tar czf /tmp/uploads-backup.tar.gz -C /var/www/feuerwehrmanagement uploads/
+
+# .env sichern
+cp /var/www/feuerwehrmanagement/backend/.env /tmp/env-backup
+```
+
+### Schritt 2: Dateien auf das NEUE System uebertragen
+
+```bash
+scp /tmp/db-backup.sql user@neues-system:/tmp/
+scp /tmp/uploads-backup.tar.gz user@neues-system:/tmp/
+scp /tmp/env-backup user@neues-system:/tmp/
+```
+
+### Schritt 3: Auf dem NEUEN System einspielen
+
+Voraussetzung: Die Grundinstallation (Abschnitte 1-7 dieser Anleitung)
+wurde bereits durchgefuehrt.
+
+```bash
+# Datenbank importieren (ueberschreibt init-db.sql Daten)
+mysql -u FFWVSLB12 -p FFWVSLB12 < /tmp/db-backup.sql
+
+# Uploads wiederherstellen
+tar xzf /tmp/uploads-backup.tar.gz -C /var/www/feuerwehrmanagement/
+chown -R lb12admin:lb12admin /var/www/feuerwehrmanagement/uploads
+
+# .env einspielen und ggf. anpassen
+cp /tmp/env-backup /var/www/feuerwehrmanagement/backend/.env
+nano /var/www/feuerwehrmanagement/backend/.env
+# Pruefen/anpassen: CORS_ORIGIN (neue IP/Domain), UPLOAD_PATH
+```
+
+### Schritt 4: Backend und Frontend neu bauen
+
+```bash
+# Backend
+cd /var/www/feuerwehrmanagement/backend
+npm install
+npm run prisma:generate
+npm run build
+pm2 restart feuerwehr-backend
+
+# Frontend
+cd /pfad/zum/projekt/webapp/frontend
+npm install
+npm run build
+cp -r dist/* /var/www/feuerwehrmanagement/frontend/
+```
+
+### Schritt 5: Verifizierung
+
+```bash
+# Backend laeuft?
+pm2 status
+curl http://localhost:3001/api/settings
+
+# Nginx laeuft?
+sudo systemctl status nginx
+
+# Browser: Login testen mit bestehenden Zugangsdaten
+```
+
+### Was NICHT gesichert werden muss
+
+- `node_modules/` — wird durch `npm install` neu erzeugt
+- `dist/` — wird durch `npm run build` neu erzeugt
+- Frontend-Quellcode — wird aus dem Repository/Quellpaket neu gebaut
+- Prisma Client — wird durch `prisma generate` neu erzeugt
+
+---
+
 *Feuerwehr Management System - Installationsanleitung fuer Manjaro Linux*
 *Erstellt: April 2026*

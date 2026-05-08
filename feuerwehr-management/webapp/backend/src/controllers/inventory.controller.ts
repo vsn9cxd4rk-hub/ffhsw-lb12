@@ -139,6 +139,11 @@ export async function getArticles(req: Request, res: Response): Promise<void> {
       where.deviceSubclass = { deviceClassId };
     }
 
+    const sortBy = req.query.sortBy as string || 'name';
+    const sortDir = (req.query.sortDir as string || 'asc') === 'desc' ? 'desc' : 'asc';
+    const validSortFields = ['name', 'inventoryNumber', 'manufacturer', 'inspectionInterval', 'value', 'createdAt'];
+    const orderBy: Record<string, string> = validSortFields.includes(sortBy) ? { [sortBy]: sortDir } : { name: 'asc' };
+
     const [articles, total] = await Promise.all([
       prisma.article.findMany({
         where,
@@ -151,7 +156,7 @@ export async function getArticles(req: Request, res: Response): Promise<void> {
             include: { warehouse: true },
           },
         },
-        orderBy: { name: 'asc' },
+        orderBy,
       }),
       prisma.article.count({ where }),
     ]);
@@ -489,10 +494,12 @@ export async function getDefect(req: Request, res: Response): Promise<void> {
 
 export async function createDefect(req: Request, res: Response): Promise<void> {
   try {
-    const { reportedAt, ...rest } = req.body;
+    const { reportedAt, articleId, subject, ...rest } = req.body;
     const defect = await prisma.articleDefect.create({
       data: {
         ...rest,
+        articleId: articleId ? parseInt(articleId) : null,
+        subject: subject || null,
         reportedAt: reportedAt ? new Date(reportedAt) : new Date(),
       },
       include: { article: true },
@@ -558,10 +565,12 @@ export async function getRepairs(req: Request, res: Response): Promise<void> {
 
 export async function createRepair(req: Request, res: Response): Promise<void> {
   try {
-    const { repairedAt, ...rest } = req.body;
+    const { repairedAt, articleId, subject, ...rest } = req.body;
     const repair = await prisma.articleRepair.create({
       data: {
         ...rest,
+        articleId: articleId ? parseInt(articleId) : null,
+        subject: subject || null,
         repairedAt: repairedAt ? new Date(repairedAt) : new Date(),
       },
       include: { article: true, defect: true },

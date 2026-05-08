@@ -2,7 +2,7 @@
 # =============================================================================
 # Feuerwehr Management System - Backup-Skript
 # Behält: 30 Tages-Backups, 12 Monats-Backups
-# Cron: 0 2 * * * /var/www/fuerwehr/scripts/backup.sh >> /var/log/fuerwehr/backup.log 2>&1
+# Cron: 0 2 * * * /var/www/feuerwehr/scripts/backup.sh >> /var/log/feuerwehr/backup.log 2>&1
 # =============================================================================
 set -e
 
@@ -18,6 +18,7 @@ error()   { echo -e "$(date '+%Y-%m-%d %H:%M:%S') ${RED}[ERROR]${NC} $*"; exit 1
 APP_DIR="/var/www/feuerwehrmanagement"
 BACKUP_DIR="${APP_DIR}/backups"
 LOG_DIR="/var/log/feuerwehrmanagement"
+DB_PASS="Ffw#VSLB12!25"
 
 if [[ -f "${APP_DIR}/backend/.env" ]]; then
   set -a
@@ -28,17 +29,16 @@ fi
 # DB-Verbindung aus DATABASE_URL parsen (mysql://user:pass@host:port/dbname)
 if [[ -n "${DATABASE_URL:-}" ]]; then
   DB_USER=$(echo "$DATABASE_URL" | sed -E 's|mysql://([^:]+):.*|\1|')
-  DB_PASS=$(echo "$DATABASE_URL" | sed -E 's|mysql://[^:]+:([^@]+)@.*|\1|')
   DB_HOST=$(echo "$DATABASE_URL" | sed -E 's|.*@([^:]+):.*|\1|')
   DB_PORT=$(echo "$DATABASE_URL" | sed -E 's|.*:([0-9]+)/.*|\1|')
   DB_NAME=$(echo "$DATABASE_URL" | sed -E 's|.*/([^?]+).*|\1|')
 else
   # Fallbacks
-  DB_USER="${DB_USER:-fuerwehr}"
-  DB_PASS="${DB_PASS:-}"
+  DB_USER="${DB_USER:-FFWVSLB12}"
+  DB_PASS="${DB_PASS:-Ffw#VSLB12!25}"
   DB_HOST="${DB_HOST:-localhost}"
   DB_PORT="${DB_PORT:-3306}"
-  DB_NAME="${DB_NAME:-fuerwehr}"
+  DB_NAME="${DB_NAME:-FFWVSLB12}"
 fi
 
 KEEP_DAILY=30
@@ -46,7 +46,7 @@ KEEP_MONTHLY=12
 DATE=$(date +%Y-%m-%d)
 MONTH=$(date +%Y-%m)
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-BACKUP_NAME="fuerwehr_${TIMESTAMP}"
+BACKUP_NAME="feuerwehr_lb12_${TIMESTAMP}"
 BACKUP_PATH="${BACKUP_DIR}/${BACKUP_NAME}"
 TMP_DIR=$(mktemp -d)
 
@@ -114,10 +114,10 @@ success "Backup erstellt: ${BACKUP_NAME}.tar.gz (${TOTAL_SIZE})"
 # --------------------------------------------------------------------------
 # Monats-Backup (erstes Backup des Monats)
 # --------------------------------------------------------------------------
-MONTHLY_FILE="${BACKUP_DIR}/monthly/fuerwehr_${MONTH}.tar.gz"
+MONTHLY_FILE="${BACKUP_DIR}/monthly/feuerwehr_lb12_${MONTH}.tar.gz"
 if [[ ! -f "${MONTHLY_FILE}" ]]; then
   cp "${BACKUP_DIR}/daily/${BACKUP_NAME}.tar.gz" "${MONTHLY_FILE}"
-  success "Monats-Backup erstellt: fuerwehr_${MONTH}.tar.gz"
+  success "Monats-Backup erstellt: feuerwehr_lb12_${MONTH}.tar.gz"
 fi
 
 # --------------------------------------------------------------------------
@@ -126,14 +126,14 @@ fi
 info "Alte Backups werden bereinigt..."
 
 # Tages-Backups (älter als KEEP_DAILY Tage)
-DELETED_DAILY=$(find "${BACKUP_DIR}/daily" -name "fuerwehr_*.tar.gz" -mtime +${KEEP_DAILY} -print -delete 2>/dev/null | wc -l)
+DELETED_DAILY=$(find "${BACKUP_DIR}/daily" -name "feuerwehr_*.tar.gz" -mtime +${KEEP_DAILY} -print -delete 2>/dev/null | wc -l)
 if [[ $DELETED_DAILY -gt 0 ]]; then
   info "  ${DELETED_DAILY} alte Tages-Backup(s) gelöscht"
 fi
 
 # Monats-Backups (älter als KEEP_MONTHLY Monate = ~365 Tage)
 KEEP_MONTHLY_DAYS=$(( KEEP_MONTHLY * 31 ))
-DELETED_MONTHLY=$(find "${BACKUP_DIR}/monthly" -name "fuerwehr_*.tar.gz" -mtime +${KEEP_MONTHLY_DAYS} -print -delete 2>/dev/null | wc -l)
+DELETED_MONTHLY=$(find "${BACKUP_DIR}/monthly" -name "feuerwehr_*.tar.gz" -mtime +${KEEP_MONTHLY_DAYS} -print -delete 2>/dev/null | wc -l)
 if [[ $DELETED_MONTHLY -gt 0 ]]; then
   info "  ${DELETED_MONTHLY} alte Monats-Backup(s) gelöscht"
 fi

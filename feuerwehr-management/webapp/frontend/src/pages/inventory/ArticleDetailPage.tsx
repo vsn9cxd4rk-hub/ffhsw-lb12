@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeftIcon, PlusIcon, TrashIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 import { Article, ArticleInspection, ArticleDefect, ArticleRepair, ArticleInspectionStandard, ArticleInspectionSchedule, ArticleDocument, InspectionType } from '../../types';
+import { QrSingleView } from '../../components/inventory/QrPrintView';
 import { Table } from '../../components/ui/Table';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
@@ -107,16 +108,39 @@ function StammdatenTab({ article }: { article: Article }) {
     { label: 'Beschreibung', value: article.description },
   ];
 
+  const baseUrl = window.location.origin;
+
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
-      <div className="grid grid-cols-2 gap-x-8 gap-y-3">
-        {fields.map((f, i) => (
-          <div key={i}>
-            <dt className="text-xs font-medium text-gray-500">{f.label}</dt>
-            <dd className="text-sm text-gray-900">{f.value || '-'}</dd>
-          </div>
-        ))}
+    <div className="flex gap-6">
+      <div className="flex-1 bg-white rounded-lg border border-gray-200 p-6">
+        <div className="grid grid-cols-2 gap-x-8 gap-y-3">
+          {fields.map((f, i) => (
+            <div key={i}>
+              <dt className="text-xs font-medium text-gray-500">{f.label}</dt>
+              <dd className="text-sm text-gray-900">{f.value || '-'}</dd>
+            </div>
+          ))}
+        </div>
       </div>
+      {article.inventoryNumber && (
+        <div className="w-56 flex-shrink-0 bg-white rounded-lg border border-gray-200 p-4">
+          <QrSingleView article={article} baseUrl={baseUrl} onPrint={() => {
+            const printWin = window.open('', '_blank', 'width=300,height=400');
+            if (!printWin) return;
+            import('qrcode').then(QRCode => {
+              QRCode.default.toDataURL(`${baseUrl}/scan/${article.inventoryNumber}`, { width: 200, margin: 2 }).then((url: string) => {
+                printWin.document.write(`<html><head><title>QR Etikett</title><style>body{margin:0;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif}
+                .label{text-align:center;width:40mm;height:30mm;padding:2mm;border:0.5px dashed #ccc}
+                img{width:20mm;height:20mm} .inv{font-size:8pt;font-weight:bold} .name{font-size:7pt} .lb{font-size:6pt;color:#666}
+                @media print{body{height:auto}.label{border:none}}</style></head>
+                <body><div class="label"><img src="${url}"/><div class="inv">${article.inventoryNumber}</div><div class="name">${article.name}</div><div class="lb">${article.designationLB || 'LB12'}</div></div></body></html>`);
+                printWin.document.close();
+                setTimeout(() => { printWin.print(); }, 300);
+              });
+            });
+          }} />
+        </div>
+      )}
     </div>
   );
 }
@@ -462,9 +486,17 @@ function ReparaturenTab({ articleId, articleName }: { articleId: number; article
 }
 
 function HistorieTab({ articleId }: { articleId: number }) {
+  const queryClient = useQueryClient();
   const { data: inspectionsRes, isLoading } = useQuery({
     queryKey: ['article-inspections', articleId],
     queryFn: () => inspectionsApi.getArticleInspections(articleId).then(r => r.data.data),
+  });
+  const [editId, setEditId] = useState<number | null>(null);
+  const [nextDate, setNextDate] = useState('');
+
+  const updateNextDateMut = useMutation({
+    mutationFn: () => inspectionsApi.update(editId!, { nextDueDate: nextDate || null }),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['article-inspections', articleId] }); setEditId(null); },
   });
 
   return (
@@ -484,8 +516,30 @@ function HistorieTab({ articleId }: { articleId: number }) {
             const io = i.criterionResults?.filter(cr => cr.result === 'io').length || 0;
             return total > 0 ? `${io}/${total} io` : '-';
           }},
+          { key: 'docs', header: 'PDF', render: (i: ArticleInspection) =>
+            i.documents && i.documents.length > 0
+              ? <button onClick={(e) => { e.stopPropagation(); inspectionsApi.downloadDocument(i.documents![0].id).then(res => { const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' })); window.open(url, '_blank'); }); }}
+                  className="text-red-500 hover:text-red-700" title={i.documents[0].fileName}>
+                  <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20"><path d="M4 18h12a2 2 0 002-2V6.414A2 2 0 0017.414 5L14 1.586A2 2 0 0012.586 1H4a2 2 0 00-2 2v13a2 2 0 002 2z"/></svg>
+                </button>
+              : <span className="text-gray-300">-</span>
+          },
           { key: 'notes', header: 'Bemerkungen', render: (i: ArticleInspection) => <span className="text-sm text-gray-500 truncate max-w-[200px] block">{i.notes || '-'}</span> },
-          { key: 'nextDueDate', header: 'Nächste Prüfung', render: (i: ArticleInspection) => i.nextDueDate ? formatDate(i.nextDueDate) : '-' },
+          { key: 'nextDueDate', header: 'Nächste Prüfung', render: (i: ArticleInspection) => (
+            editId === i.id ? (
+              <div className="flex items-center gap-1">
+                <input type="date" value={nextDate} onChange={(e) => setNextDate(e.target.value)}
+                  className="px-2 py-1 border border-gray-300 rounded text-xs w-32" />
+                <button onClick={() => updateNextDateMut.mutate()} className="text-green-600 text-xs font-medium">OK</button>
+                <button onClick={() => setEditId(null)} className="text-gray-400 text-xs">X</button>
+              </div>
+            ) : (
+              <button onClick={() => { setEditId(i.id); setNextDate(i.nextDueDate ? i.nextDueDate.split('T')[0] : ''); }}
+                className="text-sm text-gray-700 hover:text-primary-600 hover:underline" title="Klicken zum Ändern">
+                {i.nextDueDate ? formatDate(i.nextDueDate) : '-'}
+              </button>
+            )
+          )},
         ]}
         data={inspectionsRes || []}
         loading={isLoading}

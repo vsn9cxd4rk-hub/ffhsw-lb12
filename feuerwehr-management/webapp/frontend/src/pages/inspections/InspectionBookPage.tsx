@@ -103,10 +103,12 @@ function DueTab({ onInspect, search }: { onInspect: (article: Article) => void; 
 
 function HistoryTab({ search, onEdit }: { search: string; onEdit: (inspection: ArticleInspection) => void }) {
   const [page, setPage] = useState(1);
+  const [sortBy, setSortBy] = useState('inspectedAt');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
 
   const { data, isLoading } = useQuery({
-    queryKey: ['inspections-history', page, search],
-    queryFn: () => inspectionsApi.getAll({ page, limit: 20, search: search || undefined }).then(r => r.data),
+    queryKey: ['inspections-history', page, search, sortBy, sortDir],
+    queryFn: () => inspectionsApi.getAll({ page, limit: 20, search: search || undefined, sortBy, sortDir } as Record<string, unknown>).then(r => r.data),
   });
 
   const columns = [
@@ -130,6 +132,14 @@ function HistoryTab({ search, onEdit }: { search: string; onEdit: (inspection: A
     { key: 'notes', header: 'Bemerkungen', render: (i: ArticleInspection) => (
       <span className="text-gray-500 text-sm truncate max-w-[200px] block">{i.notes || '-'}</span>
     )},
+    { key: 'docs', header: 'PDF', render: (i: ArticleInspection) =>
+      i.documents && i.documents.length > 0
+        ? <button onClick={(e) => { e.stopPropagation(); inspectionsApi.downloadDocument(i.documents![0].id).then(res => { const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' })); window.open(url, '_blank'); }); }}
+            className="text-red-500 hover:text-red-700" title={i.documents[0].fileName}>
+            <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20"><path d="M4 18h12a2 2 0 002-2V6.414A2 2 0 0017.414 5L14 1.586A2 2 0 0012.586 1H4a2 2 0 00-2 2v13a2 2 0 002 2z"/></svg>
+          </button>
+        : <span className="text-gray-300">-</span>
+    },
     { key: 'nextDueDate', header: 'Nächste Prüfung', sortable: true, sortValue: (i: ArticleInspection) => i.nextDueDate || '', render: (i: ArticleInspection) => i.nextDueDate ? formatDate(i.nextDueDate) : '-' },
     { key: 'actions', header: '', render: (i: ArticleInspection) => (
       <button onClick={(e) => { e.stopPropagation(); onEdit(i); }}
@@ -147,6 +157,9 @@ function HistoryTab({ search, onEdit }: { search: string; onEdit: (inspection: A
         loading={isLoading}
         emptyMessage="Keine Prüfungen dokumentiert."
         keyExtractor={(i) => i.id}
+        onSort={(key, dir) => { setSortBy(key); setSortDir(dir); setPage(1); }}
+        externalSortKey={sortBy}
+        externalSortDir={sortDir}
       />
       {data?.pagination && <Pagination {...data.pagination} onPageChange={setPage} />}
     </div>

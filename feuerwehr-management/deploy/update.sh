@@ -2,7 +2,7 @@
 # =============================================================================
 # Feuerwehr Management System - Update-Skript
 # Führt ein Update auf die neueste Version durch (mit vorherigem Backup)
-# Ausführen als: sudo bash /var/www/fuerwehr/scripts/update.sh
+# Ausführen als: sudo bash /var/www/feuerwehr/scripts/update.sh
 # =============================================================================
 set -e
 
@@ -29,7 +29,7 @@ echo ""
 # Quell-Verzeichnis bestimmen
 # --------------------------------------------------------------------------
 # Versuche den Projektordner zu finden (wo update.sh liegt)
-# Bei der Ausführung aus /var/www/fuerwehr/scripts/ nehmen wir einen
+# Bei der Ausführung aus /var/www/feuerwehr/scripts/ nehmen wir einen
 # zusätzlichen Parameter entgegen oder fragen nach
 if [[ -n "${1:-}" && -d "${1}" ]]; then
   SOURCE_DIR="$1"
@@ -145,7 +145,7 @@ else
 fi
 
 # Nginx neu laden (für den Fall, dass sich die Config geändert hat)
-if [[ -f "${SOURCE_DIR}/deploy/nginx/fuerwehr.conf" ]]; then
+if [[ -f "${SOURCE_DIR}/deploy/nginx/feuerwehr.conf" ]]; then
   info "Nginx-Konfiguration wird geprüft..."
   nginx -t 2>/dev/null && systemctl reload nginx && success "Nginx neu geladen"
 fi

@@ -583,7 +583,8 @@ model ArticleInspectionSchedule {
 
 model ArticleDefect {
   id          Int       @id @default(autoincrement())
-  articleId   Int
+  articleId   Int?
+  subject     String?   @db.VarChar(255)
   reportedBy  String    @db.VarChar(255)
   reportedAt  DateTime
   description String    @db.Text
@@ -594,7 +595,7 @@ model ArticleDefect {
   notes       String?   @db.Text
   createdAt   DateTime  @default(now())
 
-  article Article        @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  article Article?       @relation(fields: [articleId], references: [id], onDelete: Cascade)
   repairs ArticleRepair[]
 
   @@map("article_defects")
@@ -602,7 +603,8 @@ model ArticleDefect {
 
 model ArticleRepair {
   id          Int       @id @default(autoincrement())
-  articleId   Int
+  articleId   Int?
+  subject     String?   @db.VarChar(255)
   defectId    Int?
   repairedAt  DateTime
   repairedBy  String    @db.VarChar(255)
@@ -611,7 +613,7 @@ model ArticleRepair {
   notes       String?   @db.Text
   createdAt   DateTime  @default(now())
 
-  article Article       @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  article Article?      @relation(fields: [articleId], references: [id], onDelete: Cascade)
   defect  ArticleDefect? @relation(fields: [defectId], references: [id], onDelete: SetNull)
 
   @@map("article_repairs")

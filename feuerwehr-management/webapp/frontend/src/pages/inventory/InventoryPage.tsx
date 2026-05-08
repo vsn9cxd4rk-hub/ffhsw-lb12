@@ -16,6 +16,7 @@ import client from '../../api/client';
 import { settingsApi } from '../../api/settings';
 import { exportInventoryCsv, exportInventoryPdf } from '../../utils/inventoryExport';
 import { CriteriaInspectionModal } from '../../components/inspections/CriteriaInspectionModal';
+import { QrBatchPrintView } from '../../components/inventory/QrPrintView';
 
 const inventoryApiWrapper = {
   getWarehouses: (params?: Record<string, unknown>) => client.get('/inventory/warehouses', { params }),
@@ -221,10 +222,13 @@ export function InventoryPage() {
   const [selectedWarehouse, setSelectedWarehouse] = useState<number | null>(null);
   const [selectedDeviceClass, setSelectedDeviceClass] = useState<number | null>(null);
   const [page, setPage] = useState(1);
+  const [sortBy, setSortBy] = useState('name');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   const [showForm, setShowForm] = useState(false);
   const [editArticle, setEditArticle] = useState<Article | undefined>();
   const [showInspection, setShowInspection] = useState(false);
   const [inspectArticle, setInspectArticle] = useState<Article | undefined>();
+  const [showQrBatch, setShowQrBatch] = useState(false);
 
   const { data: warehouses } = useQuery({
     queryKey: ['warehouses'],
@@ -238,12 +242,12 @@ export function InventoryPage() {
   const deviceClasses: DeviceClass[] = deviceClassesRes?.data?.data || [];
 
   const { data, isLoading } = useQuery({
-    queryKey: ['articles', search, selectedWarehouse, selectedDeviceClass, page],
+    queryKey: ['articles', search, selectedWarehouse, selectedDeviceClass, page, sortBy, sortDir],
     queryFn: () => inventoryApiWrapper.getArticles({
       search: search || undefined,
       warehouseId: selectedWarehouse || undefined,
       deviceClassId: selectedDeviceClass || undefined,
-      page, limit: 20,
+      page, limit: 20, sortBy, sortDir,
     }).then(r => r.data),
   });
 
@@ -342,6 +346,10 @@ export function InventoryPage() {
                 onClick={() => data?.data && exportInventoryPdf(data.data, 'Gesamtübersicht')} disabled={!data?.data?.length}>
                 PDF
               </Button>
+              <Button variant="secondary" size="sm"
+                onClick={() => setShowQrBatch(true)} disabled={!data?.data?.length}>
+                QR-Codes
+              </Button>
               <Button variant="primary" icon={<PlusIcon />} onClick={openCreate}>Neuer Artikel</Button>
             </div>
           </div>
@@ -354,6 +362,9 @@ export function InventoryPage() {
               emptyMessage="Keine Artikel gefunden."
               keyExtractor={(a) => a.id}
               onRowClick={(a) => navigate(`/inventory/${(a as Article).id}`)}
+              onSort={(key, dir) => { setSortBy(key); setSortDir(dir); setPage(1); }}
+              externalSortKey={sortBy}
+              externalSortDir={sortDir}
             />
             {data?.pagination && <Pagination {...data.pagination} onPageChange={setPage} />}
           </div>
@@ -368,6 +379,12 @@ export function InventoryPage() {
         preselectedArticle={inspectArticle}
         articles={data?.data || []}
       />
+
+      {showQrBatch && (
+        <Modal isOpen={showQrBatch} onClose={() => setShowQrBatch(false)} title="QR-Codes drucken" size="xl">
+          <QrBatchPrintView articles={data?.data || []} baseUrl={window.location.origin} />
+        </Modal>
+      )}
     </div>
   );
 }

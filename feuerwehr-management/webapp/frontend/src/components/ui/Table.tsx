@@ -18,6 +18,9 @@ interface TableProps<T> {
   emptyMessage?: string;
   onRowClick?: (row: T) => void;
   keyExtractor?: (row: T) => string | number;
+  onSort?: (key: string, dir: 'asc' | 'desc') => void;
+  externalSortKey?: string;
+  externalSortDir?: 'asc' | 'desc';
 }
 
 function SkeletonRow({ cols }: { cols: number }) {
@@ -39,21 +42,29 @@ export function Table<T extends object>({
   emptyMessage = 'Keine Einträge vorhanden.',
   onRowClick,
   keyExtractor,
+  onSort,
+  externalSortKey,
+  externalSortDir,
 }: TableProps<T>) {
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
 
+  const activeSortKey = externalSortKey ?? sortKey;
+  const activeSortDir = externalSortDir ?? sortDir;
+
   const handleSort = (col: Column<T>) => {
     if (!col.sortable) return;
-    if (sortKey === col.key) {
-      setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    const newDir = activeSortKey === col.key ? (activeSortDir === 'asc' ? 'desc' : 'asc') : 'asc';
+    if (onSort) {
+      onSort(col.key, newDir);
     } else {
       setSortKey(col.key);
-      setSortDir('asc');
+      setSortDir(newDir);
     }
   };
 
   const sortedData = useMemo(() => {
+    if (onSort) return data;
     if (!sortKey) return data;
     const col = columns.find(c => c.key === sortKey);
     if (!col) return data;
@@ -103,12 +114,12 @@ export function Table<T extends object>({
               >
                 <span className="flex items-center gap-1">
                   {col.header}
-                  {col.sortable && sortKey === col.key && (
-                    sortDir === 'asc'
+                  {col.sortable && activeSortKey === col.key && (
+                    activeSortDir === 'asc'
                       ? <ChevronUpIcon className="h-3 w-3" />
                       : <ChevronDownIcon className="h-3 w-3" />
                   )}
-                  {col.sortable && sortKey !== col.key && col.header && (
+                  {col.sortable && activeSortKey !== col.key && col.header && (
                     <span className="h-3 w-3 inline-block opacity-0 group-hover:opacity-30">
                       <ChevronUpIcon className="h-3 w-3 text-gray-300" />
                     </span>

@@ -15,6 +15,7 @@ error()   { echo -e "${RED}[ERROR]${NC} $*"; exit 1; }
 APP_DIR="/var/www/feuerwehrmanagement"
 BACKUP_DIR="${APP_DIR}/backups"
 APP_USER="lb12admin"
+DB_PASS="Ffw#VSLB12!25"
 
 [[ $EUID -ne 0 ]] && error "Dieses Script muss als root ausgeführt werden: sudo bash restore.sh"
 
@@ -35,7 +36,7 @@ else
   echo ""
   ls -1t "${BACKUP_DIR}/daily/"*.tar.gz 2>/dev/null | head -10 | while read f; do
     SIZE=$(du -sh "$f" | cut -f1)
-    DATE=$(basename "$f" | sed 's/fuerwehr_\([0-9_-]*\)\.tar\.gz/\1/' | sed 's/_/ /')
+    DATE=$(basename "$f" | sed 's/feuerwehr_lb12_\([0-9_-]*\)\.tar\.gz/\1/' | sed 's/_/ /')
     echo "  ${DATE}  (${SIZE})  $(basename $f)"
   done
   echo ""
@@ -72,13 +73,11 @@ fi
 
 if [[ -n "${DATABASE_URL:-}" ]]; then
   DB_USER=$(echo "$DATABASE_URL" | sed -E 's|mysql://([^:]+):.*|\1|')
-  DB_PASS=$(echo "$DATABASE_URL" | sed -E 's|mysql://[^:]+:([^@]+)@.*|\1|')
   DB_HOST=$(echo "$DATABASE_URL" | sed -E 's|.*@([^:]+):.*|\1|')
   DB_PORT=$(echo "$DATABASE_URL" | sed -E 's|.*:([0-9]+)/.*|\1|')
   DB_NAME=$(echo "$DATABASE_URL" | sed -E 's|.*/([^?]+).*|\1|')
 else
   read -p "Datenbankbenutzer: " DB_USER
-  read -p "Datenbankpasswort: " DB_PASS
   read -p "Datenbankname: " DB_NAME
   DB_HOST="localhost"
   DB_PORT="3306"

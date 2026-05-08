@@ -87,7 +87,13 @@ export async function getInspections(req: Request, res: Response): Promise<void>
           },
           documents: true,
         },
-        orderBy: { inspectedAt: 'desc' },
+        orderBy: (() => {
+          const sb = req.query.sortBy as string;
+          const sd = (req.query.sortDir as string) === 'asc' ? 'asc' : 'desc';
+          if (sb === 'inspectedBy') return { inspectedBy: sd };
+          if (sb === 'result') return { result: sd };
+          return { inspectedAt: sd || 'desc' };
+        })(),
       }),
       prisma.articleInspection.count({ where }),
     ]);

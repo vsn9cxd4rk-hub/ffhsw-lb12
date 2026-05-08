@@ -115,8 +115,8 @@ export function CriteriaInspectionModal({ isOpen, onClose, articles, preselected
       });
     },
     onSuccess: async (res) => {
-      if (!isEditMode && docFile) {
-        const inspectionId = res.data.data.id;
+      const inspectionId = isEditMode ? editInspection.id : res.data.data.id;
+      if (docFile) {
         try { await inspectionsApi.uploadDocument(inspectionId, docFile); } catch {}
       }
       queryClient.invalidateQueries({ queryKey: ['inspections'] });
@@ -220,13 +220,21 @@ export function CriteriaInspectionModal({ isOpen, onClose, articles, preselected
 
         <Textarea label="Bemerkungen" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
 
-        {!isEditMode && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">PDF-Anhang</label>
-            <input type="file" accept=".pdf" onChange={(e) => setDocFile(e.target.files?.[0] || null)}
-              className="block text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100" />
-          </div>
-        )}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">PDF-Anhang</label>
+          {isEditMode && editInspection?.documents && editInspection.documents.length > 0 && (
+            <div className="mb-2 text-sm text-gray-600">
+              {editInspection.documents.map(d => (
+                <span key={d.id} className="inline-flex items-center gap-1 text-primary-600">
+                  <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20"><path d="M4 18h12a2 2 0 002-2V6.414A2 2 0 0017.414 5L14 1.586A2 2 0 0012.586 1H4a2 2 0 00-2 2v13a2 2 0 002 2z"/></svg>
+                  {d.fileName}
+                </span>
+              ))}
+            </div>
+          )}
+          <input type="file" accept=".pdf" onChange={(e) => setDocFile(e.target.files?.[0] || null)}
+            className="block text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100" />
+        </div>
 
         {nextDueDateStr && (
           <div className="bg-blue-50 border border-blue-200 text-blue-700 text-sm px-4 py-3 rounded-md">

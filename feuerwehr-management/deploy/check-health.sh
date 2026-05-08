@@ -2,7 +2,7 @@
 # =============================================================================
 # Feuerwehr Management System - Health-Check-Skript
 # Prüft ob Backend erreichbar ist und startet ggf. automatisch neu
-# Cron: */5 * * * * /var/www/fuerwehr/scripts/check-health.sh >> /var/log/fuerwehr/health.log 2>&1
+# Cron: */5 * * * * /var/www/feuerwehr/scripts/check-health.sh >> /var/log/feuerwehr/health.log 2>&1
 # =============================================================================
 
 APP_DIR="/var/www/feuerwehrmanagement"
