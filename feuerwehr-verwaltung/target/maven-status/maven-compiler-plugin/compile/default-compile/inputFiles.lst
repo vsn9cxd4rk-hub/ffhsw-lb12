@@ -1,6 +1,8 @@
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/ao/AnmeldungAO.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/data/tabellen/TabelleDienstgrad.java
+/Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/utilities/Texte.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/ao/listen/LehrgangListeAO.java
+/Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/snUtilities/snUtils.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/data/tabellen/email/TabelleEMail_gesendet.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/ao/bestandsliste/BestandslisteAO.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/data/tabellen/einstellungen/TabelleEinstellungen.java
@@ -59,9 +61,11 @@
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/ao/statistik/EinsatzArtAO.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/ao/einstellungen/GrundkonfigurationAO.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/ao/fahrzeuge/FahrzeugEinteilungAO.java
+/Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/utilities/Datei.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/ao/mitglieder/MitgliederArbeitAnlegenAO.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/steuerung/prozesse/AusbildungKategorieAnlegenAnzeigen.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/go/schicht/Schicht.java
+/Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/utilities/luhnCheck.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/ao/ausbildung/BeförderungZuordnungAO.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/go/email/Gesendet.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/data/tabellen/TabelleAnwesenheit.java
@@ -73,6 +77,7 @@
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/go/Briefe.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/pdfdocumente/FahrzeugbelegungPDFSchreiben.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/ao/einstellungen/EinstellungAO.java
+/Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/jensen/verschluesselung/standard/tools/Schluesselrolle.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/listener/InfoListener.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/data/tabellen/statistik/TabelleStatistikMitglieder.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/pdfdocumente/BeteiligungsListePDFSchreibenAusgabeformatListe.java
@@ -80,6 +85,7 @@
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/service/SystemWarnungService.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/utilities_email/ErstelleFileArrayForAnhang.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/steuerung/prozesse/MängelmeldungKommentarAnzeigen.java
+/Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/utilities/hash.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/service/DBInstallService.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/go/Brandsicherheitswachen.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/steuerung/prozesse/MeinPasswortAnzeigen.java
@@ -162,6 +168,7 @@
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/data/tabellen/TabelleVeranstaltung.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/ao/statistik/VeranstaltungStatistikAO.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/data/tabellen/urlaubsplaner/TabelleUrlaub.java
+/Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/StartHashCodeCreator.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/data/tabellen/TabelleEinsatz_bericht.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/steuerung/prozesse/BriefAnzeigen.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/ao/fahrzeuge/FahrtenbuchAO.java
@@ -177,6 +184,7 @@
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/go/Einsatz_organisationen.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/ao/einsatz/Verdienstausfall_ZeitenAnpassenAO.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/ao/terminDisplay/TerminDisplayAO.java
+/Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/utilities/WinRegistry.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/data/tabellen/TabelleAusbildung_Kategorie.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/ao/einsatz/VerdienstausfallAO.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/data/tabellen/mitglied/TabelleMitglied.java
@@ -198,6 +206,7 @@
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/data/tabellen/TabelleStatistikEinsatz.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/listener/BeendenListener.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/ao/administrator/AdministratorAO.java
+/Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/logging/logging.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/data/tabellen/einstellungen/TabelleBerechtigunggruppe.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/ao/unwetterwarnung/UnwetterwarnungAO.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/data/tabellen/abrechnung/TabelleAbrechnung_konto.java
@@ -206,9 +215,11 @@
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/ao/bestandsliste/ArtikelZuweisenAO.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/pdfdocumente/karte/AlarmInfoPDFSchreiben.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/ao/statistik/VerfuegbarkeitsstatistikEinsatzAO.java
+/Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/utilities/RandomGenerator.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/ao/einstellungen/BenutzerAnlegenAO.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/data/tabellen/TabelleEinsatz_bericht_daten.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/steuerung/prozesse/LehrgangZuordnungAnzeigen.java
+/Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/jensen/verschluesselung/PasswortVerschluesslung.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/ao/statistik/BeteiligungsdauerAO.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/steuerung/prozesse/AdministratorAnzeigen.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/ao/karte/ImportAO.java
@@ -279,6 +290,7 @@
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/steuerung/prozesse/AnwesenheitEintragenAnzeigen.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/ao/GeräteprüfungAO.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/steuerung/prozesse/einstellungen/EinstellungAnzeigen.java
+/Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/StartBasicClasses.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/ao/listen/AnwesenheitListeAO.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/utilities/Utils.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/ao/statistik/AnwesendeMitgliederProDienstAO.java
@@ -340,6 +352,7 @@
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/go/Mitglieder_Anrede.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/utilities/CheckComboRenderer.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/go/Mandant.java
+/Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/utilities/MyEvent.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/ao/statistik/EinsatzFahrzeugStatistikAO.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/pdfdocumente/PDFVeranstaltungTeilnahmen.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/ao/listen/UntersuchungListeAO.java
@@ -359,6 +372,7 @@
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/ao/AnwesenheitEintragenAO.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/steuerung/prozesse/AngehoerigeAnzeigen.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/steuerung/prozesse/UrlaubsplanListeAnzeigen.java
+/Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/ao/ExceptionPrinterAO.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/go/Straße.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/steuerung/prozesse/listen/MitgliederListeAnzeigen.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/go/bestandsliste/Artikel.java
@@ -367,6 +381,7 @@
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/steuerung/prozesse/einstellungen/LizenzAnzeigen.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/go/schicht/SchichtMitglieder.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/steuerung/prozesse/listen/ArbeitgeberListeAnzeigen.java
+/Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/utilities/SbcUtils.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/data/tabellen/einstellungen/TabelleJahr.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/data/tabellen/TabelleMaengelmeldung_kommentar.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/steuerung/prozesse/bestandsliste/LagerAnlegenAnzeigen.java
@@ -394,12 +409,14 @@
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/ao/listen/UntersuchungListeAoTableRenderer.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/ao/ausbildung/AusbildungsinhaltTauschenAO.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/data/tabellen/TabelleLogbuch.java
+/Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/utilities/CompressFolder.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/ao/statistik/EinsatzProStundeAO.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/ao/listen/EinsatzListeAO.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/ao/email/EMail_AdressbuchAO.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/steuerung/prozesse/MitgliederakteAnzeigen.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/data/tabellen/einstellungen/TabelleMandant.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/pdfdocumente/mitgliedakte/PDFFahrzeugInDienst.java
+/Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/jensen/verschluesselung/schnittstellen/Verschluesselungsobjekt.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/data/tabellen/statistik/TabelleStatistikEinsatz.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/ao/mitglieder/MitgliederAkteKomentarAO.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/steuerung/prozesse/AtemschutzpassEintragAnzeigen.java
@@ -420,6 +437,7 @@
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/listener/DruckenListener.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/ao/fahrzeuge/FahrzeugakteAO.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/steuerung/prozesse/einstellungen/GrundkonfigurationAnzeigen.java
+/Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/jensen/verschluesselung/StringVerschluesslung.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/steuerung/prozesse/MitgliederGruppeAnzeigen.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/listener/ImportListener.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/steuerung/prozesse/MängelmeldungAnzeigen.java
@@ -427,6 +445,7 @@
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/steuerung/prozesse/listen/MitgliederBankverbindungListeAnzeigen.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/data/tabellen/einstellungen/TabelleFTPSync.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/go/Einsatz_bericht.java
+/Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/ao/AbstractFenster.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/ao/statistik/EinsatzTagNacht.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/service/HydrantService.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/data/tabellen/mitglied/TabelleMitglieder_laufbahn.java
@@ -492,6 +511,8 @@
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/go/StatistikLehrgang.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/go/DokumentLayoutOptions.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/utilities_email/DeleteAndDisplayEMail.java
+/Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/utilities/MyProperties.java
+/Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/ao/HashCodeErzeugenAO.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/go/Dateisystem.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/steuerung/prozesse/BenutzerAnlegenAnzeigen.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/go/Mitglieder_Arbeit.java
@@ -537,6 +558,7 @@
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/data/tabellen/TabelleBrandsicherheitswache.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/data/tabellen/TabelleVeranstaltung_Kategorie.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/ao/urlaubsplaner/UrlaubsplanerAO.java
+/Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/jensen/verschluesselung/standard/Verschluesselung.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/steuerung/prozesse/SchichtplanListeAnzeigen.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/ao/statistik/EinsatzProWochentagAO.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/steuerung/prozesse/FahrzeugGruppeAnzeigen.java
@@ -557,4 +579,5 @@
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/ao/statistik/MitgliederDurchschnittsalterStatistikAO.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/ao/statistik/AnAbwesenheitStatistikAO.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/data/tabellen/abrechnung/TabelleAbrechnung_artikel.java
+/Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/listener/AbstractActionListener.java
 /Volumes/media/projects/github/ffhsw-lb12/feuerwehr-verwaltung/src/main/java/steuerung/prozesse/email/NeueEmailAnzeigen.java

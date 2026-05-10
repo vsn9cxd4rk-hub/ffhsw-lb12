@@ -22,100 +22,56 @@
 
     <dependencies>
 
-        <!-- ===== Lokale JARs (lib/) ===== -->
+        <!-- ===== Lokales Repo: jshortcut (native JNI), PDFRenderer, ICEpdf ===== -->
 
-        <!-- Eigene Basisklassen: logging, utilities.MyEvent, utilities.hash etc. -->
-        <dependency>
-            <groupId>de.feuerwehr.local</groupId>
-            <artifactId>BasicClasses</artifactId>
-            <version>1.0</version>
-        </dependency>
-
-        <!-- Eigener Hashcode-Generator -->
-        <dependency>
-            <groupId>de.feuerwehr.local</groupId>
-            <artifactId>HashCodeCreator</artifactId>
-            <version>1.0</version>
-        </dependency>
-
-        <!-- Eigene Verschlüsselungsbibliothek (jensen.verschluesselung) -->
-        <dependency>
-            <groupId>de.feuerwehr.local</groupId>
-            <artifactId>encription</artifactId>
-            <version>1.0</version>
-        </dependency>
-
-        <!-- Windows-Verknüpfungen (jshortcut) -->
+        <!-- Windows-Verknüpfungen – enthält native .dll/.so, kein Maven Central Äquivalent -->
         <dependency>
             <groupId>de.feuerwehr.local</groupId>
             <artifactId>jshortcut</artifactId>
             <version>1.0</version>
         </dependency>
 
-        <!-- Sun PDF Renderer (com.sun.pdfview) -->
+        <!-- Sun PDF Renderer – nicht auf Maven Central verfügbar -->
         <dependency>
             <groupId>de.feuerwehr.local</groupId>
             <artifactId>PDFRenderer</artifactId>
             <version>1.0</version>
         </dependency>
 
-        <!-- SQLite JDBC (ältere Version v056) -->
-        <dependency>
-            <groupId>de.feuerwehr.local</groupId>
-            <artifactId>sqlitejdbc</artifactId>
-            <version>v056</version>
-        </dependency>
-
-        <!-- ICEpdf PDF-Viewer (Core) -->
+        <!-- ICEpdf – Maven Central Version hat nicht auflösbare Transitivabhängigkeit (jai_core) -->
         <dependency>
             <groupId>de.feuerwehr.local</groupId>
             <artifactId>icepdf-core</artifactId>
             <version>1.0</version>
         </dependency>
-
-        <!-- ICEpdf PDF-Viewer (Viewer-Komponente) -->
         <dependency>
             <groupId>de.feuerwehr.local</groupId>
             <artifactId>icepdf-viewer</artifactId>
             <version>1.0</version>
         </dependency>
 
-        <!-- JTattoo Look & Feel -->
+        <!-- ===== Maven Central ===== -->
+
+        <!-- JTattoo Look & Feel (ersetzt lokales JTattoo-1.6.11.jar) -->
         <dependency>
-            <groupId>de.feuerwehr.local</groupId>
+            <groupId>com.jtattoo</groupId>
             <artifactId>JTattoo</artifactId>
             <version>1.6.11</version>
         </dependency>
 
-        <!-- JavaMail: Versand (SMTP) -->
+        <!-- JavaMail (ersetzt mail.jar + mailapi.jar + smtp.jar + pop3.jar) -->
         <dependency>
-            <groupId>de.feuerwehr.local</groupId>
-            <artifactId>smtp</artifactId>
-            <version>1.0</version>
-        </dependency>
-
-        <!-- JavaMail: Empfang (POP3) -->
-        <dependency>
-            <groupId>de.feuerwehr.local</groupId>
-            <artifactId>pop3</artifactId>
-            <version>1.0</version>
-        </dependency>
-
-        <!-- JavaMail: Mail-API -->
-        <dependency>
-            <groupId>de.feuerwehr.local</groupId>
-            <artifactId>mailapi</artifactId>
-            <version>1.0</version>
-        </dependency>
-
-        <!-- JavaMail: Mail -->
-        <dependency>
-            <groupId>de.feuerwehr.local</groupId>
+            <groupId>javax.mail</groupId>
             <artifactId>mail</artifactId>
-            <version>1.0</version>
+            <version>1.4.7</version>
         </dependency>
 
-        <!-- ===== Maven Central Abhängigkeiten ===== -->
+        <!-- SQLite JDBC (ersetzt sqlitejdbc-v056.jar) -->
+        <dependency>
+            <groupId>org.xerial</groupId>
+            <artifactId>sqlite-jdbc</artifactId>
+            <version>3.36.0.3</version>
+        </dependency>
 
         <!-- Apache Commons Net (FTP, Netzwerk) -->
         <dependency>
@@ -228,7 +184,6 @@
                     <source>8</source>
                     <target>8</target>
                     <encoding>UTF-8</encoding>
-                    <!-- Warnungen für dekompilierten Code unterdrücken -->
                     <compilerArgs>
                         <arg>-Xlint:none</arg>
                     </compilerArgs>
@@ -254,7 +209,6 @@
                                     <mainClass>${mainClass}</mainClass>
                                 </transformer>
                             </transformers>
-                            <!-- System-scope JARs explizit einschließen -->
                             <includeSystemScope>true</includeSystemScope>
                             <filters>
                                 <filter>
@@ -278,7 +232,6 @@
                 <version>3.3.1</version>
                 <configuration>
                     <encoding>UTF-8</encoding>
-                    <!-- Bilder nicht filtern, nur kopieren -->
                     <nonFilteredFileExtensions>
                         <nonFilteredFileExtension>jpg</nonFilteredFileExtension>
                         <nonFilteredFileExtension>png</nonFilteredFileExtension>
@@ -292,13 +245,13 @@
     </build>
 
     <repositories>
-        <!-- Projektlokales Repo für custom JARs (de.feuerwehr.local) -->
+        <!-- Projektlokales Repo: nur noch für jshortcut (native JNI) -->
         <repository>
             <id>local-maven-repo</id>
             <name>Local Project Repository</name>
             <url>file://${project.basedir}/local-maven-repo</url>
         </repository>
-        <!-- iCal4j Repo -->
+        <!-- iCal4j -->
         <repository>
             <id>modularity-releases</id>
             <name>Modularity Releases Repository</name>
