@@ -3,6 +3,9 @@ const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 9300;
 
+// Nginx als Reverse Proxy vertrauen – nötig für korrekte IP-Erkennung durch express-rate-limit
+app.set('trust proxy', 1);
+
 app.use(cors());
 app.use(express.json());
 
@@ -19,8 +22,5 @@ app.use('/api/import', require('./routes/import'));
 app.get('/', (req, res) => res.send('Feuerwehr Verwaltung Backend läuft.'));
 
 sequelize.sync().then(() => {
-	//app.listen(PORT, () => console.log(`Backend läuft auf Port ${PORT}`));
 	app.listen(PORT, 'localhost', () => console.log(`Backend läuft auf Port ${PORT}`));
 });
-
-app.listen(PORT, () => console.log(`Backend läuft auf Port ${PORT}`));
