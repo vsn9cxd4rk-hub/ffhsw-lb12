@@ -11,7 +11,7 @@ import { formatDate } from '../../utils/format';
 import { generateInspectionReport } from '../../utils/pdfReport';
 import { useAuthStore } from '../../store/auth.store';
 
-export function ReportTab() {
+export function ReportTab({ search }: { search?: string }) {
   const [deviceClassId, setDeviceClassId] = useState<number | ''>('');
   const [year, setYear] = useState<number | ''>(new Date().getFullYear());
   const user = useAuthStore(s => s.user);
@@ -23,10 +23,11 @@ export function ReportTab() {
   const deviceClasses: DeviceClass[] = classesRes?.data?.data || [];
 
   const { data: reportRes, isLoading } = useQuery({
-    queryKey: ['inspection-report', deviceClassId, year],
+    queryKey: ['inspection-report', deviceClassId, year, search],
     queryFn: () => inspectionsApi.getReport({
       deviceClassId: deviceClassId || undefined,
       year: year || undefined,
+      search: search || undefined,
     }),
     enabled: !!year,
   });

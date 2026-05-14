@@ -22,7 +22,6 @@ function QrEtikett({ article, baseUrl }: QrEtikettProps) {
       <canvas ref={canvasRef} style={{ width: '20mm', height: '20mm' }} />
       <div style={{ textAlign: 'center', marginTop: '1mm' }}>
         <div style={{ fontSize: '7pt', fontWeight: 'bold' }}>{article.inventoryNumber}</div>
-        <div style={{ fontSize: '6pt', maxWidth: '36mm', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{article.name}</div>
         <div style={{ fontSize: '5pt', color: '#666' }}>{article.designationLB || 'LB12'}</div>
       </div>
     </div>
@@ -51,7 +50,6 @@ export function QrSingleView({ article, baseUrl, onPrint }: QrSingleProps) {
       {qrDataUrl && <img src={qrDataUrl} alt="QR-Code" className="w-48 h-48" />}
       <div className="text-center">
         <p className="text-sm font-bold text-gray-900">{article.inventoryNumber}</p>
-        <p className="text-sm text-gray-700">{article.name}</p>
         <p className="text-xs text-gray-500">{article.designationLB || 'LB12'}</p>
       </div>
       <p className="text-xs text-gray-400 break-all">{baseUrl}/scan/{article.inventoryNumber}</p>

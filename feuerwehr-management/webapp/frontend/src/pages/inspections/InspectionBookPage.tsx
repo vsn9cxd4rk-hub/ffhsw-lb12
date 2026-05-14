@@ -244,7 +244,7 @@ export function InspectionBookPage() {
 
       {tab === 'due' && <DueTab onInspect={openInspect} search={search} />}
       {tab === 'history' && <HistoryTab search={search} onEdit={openEdit} />}
-      {tab === 'report' && <ReportTab />}
+      {tab === 'report' && <ReportTab search={search} />}
 
       <CriteriaInspectionModal
         isOpen={showModal}

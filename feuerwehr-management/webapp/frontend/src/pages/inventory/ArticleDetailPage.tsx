@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeftIcon, PlusIcon, TrashIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, PlusIcon, TrashIcon, ArrowDownTrayIcon, ClipboardDocumentCheckIcon } from '@heroicons/react/24/outline';
 import { Article, ArticleInspection, ArticleDefect, ArticleRepair, ArticleInspectionStandard, ArticleInspectionSchedule, ArticleDocument, InspectionType } from '../../types';
 import { QrSingleView } from '../../components/inventory/QrPrintView';
 import { Table } from '../../components/ui/Table';
@@ -14,6 +14,7 @@ import { formatDate, formatCurrency } from '../../utils/format';
 import { inspectionsApi } from '../../api/inspections';
 import { defectsApi } from '../../api/defects';
 import { repairsApi } from '../../api/repairs';
+import { CriteriaInspectionModal } from '../../components/inspections/CriteriaInspectionModal';
 import { settingsApi } from '../../api/settings';
 import client from '../../api/client';
 
@@ -24,6 +25,7 @@ export function ArticleDetailPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<Tab>('stammdaten');
+  const [showInspection, setShowInspection] = useState(false);
 
   const { data: articleRes, isLoading } = useQuery({
     queryKey: ['article', id],
@@ -60,6 +62,11 @@ export function ArticleDetailPage() {
           </p>
         </div>
         {article.isDecommissioned && <Badge variant="default">Außer Dienst</Badge>}
+        <div className="ml-auto">
+          <Button variant="primary" size="sm" icon={<ClipboardDocumentCheckIcon />} onClick={() => setShowInspection(true)}>
+            Prüfung durchführen
+          </Button>
+        </div>
       </div>
 
       <div className="border-b border-gray-200">
@@ -80,6 +87,13 @@ export function ArticleDetailPage() {
       {tab === 'maengel' && <MaengelTab articleId={article.id} articleName={article.name} />}
       {tab === 'reparaturen' && <ReparaturenTab articleId={article.id} articleName={article.name} />}
       {tab === 'historie' && <HistorieTab articleId={article.id} />}
+
+      <CriteriaInspectionModal
+        isOpen={showInspection}
+        onClose={() => setShowInspection(false)}
+        preselectedArticle={article}
+        articles={[article]}
+      />
     </div>
   );
 }

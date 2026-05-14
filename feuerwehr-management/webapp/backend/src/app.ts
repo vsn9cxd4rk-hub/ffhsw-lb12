@@ -11,6 +11,9 @@ import { logger } from './utils/logger';
 
 const app = express();
 
+// Trust proxy (Nginx forwards requests)
+app.set('trust proxy', 1);
+
 // Security headers
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },

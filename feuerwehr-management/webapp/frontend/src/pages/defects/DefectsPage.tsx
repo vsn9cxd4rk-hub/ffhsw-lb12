@@ -572,13 +572,22 @@ function RepairsTab() {
 
   const { data: articles } = useArticles();
 
-  // Load open defects for linking
+  // Load open defects for linking (filtered by selected article/vehicle/sonstige)
+  const isArticleSelected = form.articleId && !form.articleId.startsWith('vehicle_') && form.articleId !== 'sonstige';
+  const defectFilterArticleId = isArticleSelected ? parseInt(form.articleId) : undefined;
+  const defectFilterSubject = !isArticleSelected && form.articleId ? subjectLabel || (form.articleId === 'sonstige' ? 'Sonstige' : '') : undefined;
+
   const { data: openDefectsData } = useQuery({
-    queryKey: ['defects', 'open-for-link'],
-    queryFn: () =>
-      defectsApi
-        .getAll({ limit: 1000, status: 'open' })
-        .then((r) => r.data.data),
+    queryKey: ['defects', 'open-for-link', defectFilterArticleId, defectFilterSubject],
+    queryFn: async () => {
+      const res = await defectsApi.getAll({ limit: 1000, status: 'open', articleId: defectFilterArticleId });
+      let defects = res.data.data || [];
+      if (defectFilterSubject) {
+        defects = defects.filter(d => d.subject === defectFilterSubject);
+      }
+      return defects;
+    },
+    enabled: !!form.articleId,
   });
 
   const { data, isLoading } = useQuery({
@@ -672,10 +681,11 @@ function RepairsTab() {
 
 
   const openDefects = openDefectsData || [];
-  const defectOptions = openDefects.map((d) => ({
-    value: d.id,
-    label: `#${d.id} - ${d.description.length > 50 ? d.description.slice(0, 50) + '...' : d.description}`,
-  }));
+  const defectOptions = openDefects.map((d) => {
+    const artName = d.article?.name || d.subject || '';
+    const desc = d.description.length > 40 ? d.description.slice(0, 40) + '...' : d.description;
+    return { value: d.id, label: artName ? `${artName}: ${desc}` : `#${d.id} - ${desc}` };
+  });
 
   return (
     <>
