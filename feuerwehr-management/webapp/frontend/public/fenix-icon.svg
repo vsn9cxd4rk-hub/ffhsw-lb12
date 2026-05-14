@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <title>FENIX - Feuerwehr Management System LB12</title>
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="38%" r="72%">
+      <stop offset="0%" stop-color="#C0392B"/>
+      <stop offset="100%" stop-color="#3D0000"/>
+    </radialGradient>
+    <radialGradient id="shine" cx="50%" cy="12%" r="38%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.18)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+    </radialGradient>
+  </defs>
+
+  <circle cx="256" cy="256" r="256" fill="url(#bg)"/>
+  <circle cx="256" cy="256" r="256" fill="url(#shine)"/>
+  <circle cx="256" cy="256" r="234" fill="none"
+          stroke="rgba(255,255,255,0.12)" stroke-width="2"/>
+
+  <!-- Linke Flamme -->
+  <path d="M 226,302
+           C 200,278 180,210 178,152
+           C 202,183 220,262 234,300 Z"
+        fill="white" opacity="0.87"/>
+
+  <!-- Rechte Flamme -->
+  <path d="M 286,302
+           C 312,278 332,210 334,152
+           C 310,183 292,262 278,300 Z"
+        fill="white" opacity="0.87"/>
+
+  <!-- Mittlere Flamme (groesste) -->
+  <path d="M 256,316
+           C 218,286 224,156 256,100
+           C 288,156 294,286 256,316 Z"
+        fill="white"/>
+
+  <!-- Schweiffedern -->
+  <path d="M 238,314
+           C 215,333 197,355 187,378
+           L 228,359 L 256,367 L 284,359 L 325,378
+           C 315,355 297,333 274,314 Z"
+        fill="white" opacity="0.68"/>
+
+  <text x="256" y="430"
+        text-anchor="middle"
+        font-family="'Arial Black','Arial Bold','Helvetica Neue',Arial,Helvetica,sans-serif"
+        font-weight="900"
+        font-size="78"
+        letter-spacing="5"
+        fill="white">FENIX</text>
+
+  <line x1="148" y1="443" x2="364" y2="443"
+        stroke="rgba(255,255,255,0.28)" stroke-width="1.5"/>
+
+  <text x="256" y="468"
+        text-anchor="middle"
+        font-family="Arial,Helvetica,sans-serif"
+        font-weight="300"
+        font-size="24"
+        letter-spacing="9"
+        fill="rgba(255,255,255,0.65)">LB 12</text>
+</svg>

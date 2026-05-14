@@ -56,15 +56,14 @@ export function AboutDialog({ isOpen, onClose }: AboutDialogProps) {
                 </div>
 
                 <div className="px-6 py-6 flex flex-col items-center text-center gap-4">
-                  <div className="h-16 w-16 rounded-full bg-red-600 flex items-center justify-center">
-                    <span className="text-white font-bold text-2xl">FF</span>
-                  </div>
+                  <img src="/fenix-icon.svg" alt="FENIX Logo" className="h-20 w-20 rounded-full" />
 
                   <div>
-                    <h2 className="text-lg font-semibold text-gray-900">
-                      Feuerwehr Management System
-                    </h2>
-                    <p className="text-sm text-gray-500 mt-0.5">Version 1.0.0</p>
+                    <h2 className="text-2xl font-black tracking-widest text-gray-900">FENIX</h2>
+                    <p className="text-[10px] text-red-600 tracking-wide mt-0.5 leading-tight">
+                      Feuerwehr-Einsatz-Netzwerk-<br />Informations-eXchange
+                    </p>
+                    <p className="text-xs text-gray-400 mt-2">Version 1.0.0 · LB 12</p>
                   </div>
 
                   <p className="text-sm text-gray-600 leading-relaxed">

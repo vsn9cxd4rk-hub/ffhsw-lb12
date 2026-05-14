@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { FireIcon } from '@heroicons/react/24/solid';
 import { useAuth } from '../../hooks/useAuth';
 import { useAuthStore } from '../../store/auth.store';
 import { Button } from '../../components/ui/Button';
@@ -30,9 +29,10 @@ export function LoginPage() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <img src="/LB12.png" alt="Feuerwehr Logo" className="mx-auto h-24 w-24 rounded-full object-contain bg-white p-1 mb-4" />
-          <h1 className="text-2xl font-bold text-white">Feuerwehr Management</h1>
-          <p className="text-gray-400 mt-1 text-sm">Bitte melden Sie sich an</p>
+          <img src="/fenix-icon.svg" alt="FENIX Logo" className="mx-auto h-24 w-24 rounded-full object-contain mb-4" />
+          <h1 className="text-3xl font-black text-white tracking-widest">FENIX</h1>
+          <p className="text-red-300 text-xs tracking-widest mt-0.5 uppercase">Feuerwehr-Einsatz-Netzwerk-Informations-eXchange</p>
+          <p className="text-gray-400 mt-3 text-sm">Bitte melden Sie sich an</p>
         </div>
 
         {/* Login Card */}

@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="38%" r="72%">
+      <stop offset="0%" stop-color="#C0392B"/>
+      <stop offset="100%" stop-color="#3D0000"/>
+    </radialGradient>
+  </defs>
+
+  <circle cx="50" cy="50" r="50" fill="url(#bg)"/>
+
+  <!-- Linke Flamme -->
+  <path d="M 43,61 C 37,55 33,39 33,28 C 38,36 41,52 44,60 Z"
+        fill="white" opacity="0.87"/>
+
+  <!-- Rechte Flamme -->
+  <path d="M 57,61 C 63,55 67,39 67,28 C 62,36 59,52 56,60 Z"
+        fill="white" opacity="0.87"/>
+
+  <!-- Mittlere Flamme -->
+  <path d="M 50,65 C 42,58 43,33 50,18 C 57,33 58,58 50,65 Z"
+        fill="white"/>
+
+  <!-- Schweif -->
+  <path d="M 46,64 C 41,69 37,74 35,79
+           L 43,75 L 50,77 L 57,75 L 65,79
+           C 63,74 59,69 54,64 Z"
+        fill="white" opacity="0.68"/>
+</svg>
