@@ -23,6 +23,7 @@ import { ChangePasswordPage } from './pages/auth/ChangePasswordPage';
 import { HelpPage } from './pages/help/HelpPage';
 import { UsersPage } from './pages/users/UsersPage';
 import { ScanPage } from './pages/scan/ScanPage';
+import { ThirdPartyLicensesPage } from './pages/about/ThirdPartyLicensesPage';
 
 export default function App() {
   return (
@@ -79,6 +80,9 @@ export default function App() {
 
           {/* Admin */}
           <Route path="/admin/users" element={<UsersPage />} />
+
+          {/* Third-party licenses */}
+          <Route path="/third-party-licenses" element={<ThirdPartyLicensesPage />} />
         </Route>
 
         {/* Catch all */}

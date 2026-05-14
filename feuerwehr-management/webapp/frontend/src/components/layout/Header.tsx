@@ -1,4 +1,4 @@
-import React, { Fragment } from 'react';
+import React, { Fragment, useState } from 'react';
 import { Menu, Transition, Popover } from '@headlessui/react';
 import {
   Bars3Icon,
@@ -15,6 +15,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import client from '../../api/client';
+import { AboutDialog } from '../ui/AboutDialog';
 
 interface Notification {
   id: string;
@@ -33,6 +34,7 @@ interface HeaderProps {
 export function Header({ onMenuClick, pageTitle }: HeaderProps) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [aboutOpen, setAboutOpen] = useState(false);
 
   const { data: notifications } = useQuery({
     queryKey: ['notifications'],
@@ -44,6 +46,7 @@ export function Header({ onMenuClick, pageTitle }: HeaderProps) {
   const hasRed = notifications?.some(n => n.severity === 'red');
 
   return (
+    <>
     <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-4 lg:px-6 sticky top-0 z-30">
       <div className="flex items-center gap-4">
         <button
@@ -56,6 +59,11 @@ export function Header({ onMenuClick, pageTitle }: HeaderProps) {
       </div>
 
       <div className="flex items-center gap-3">
+        {/* About */}
+        <button onClick={() => setAboutOpen(true)} className="p-2 rounded-md text-gray-500 hover:bg-gray-100" title="Über">
+          <InformationCircleIcon className="h-5 w-5" />
+        </button>
+
         {/* Help link */}
         <button onClick={() => navigate('/help')} className="p-2 rounded-md text-gray-500 hover:bg-gray-100" title="Hilfe">
           <QuestionMarkCircleIcon className="h-5 w-5" />
@@ -173,5 +181,8 @@ export function Header({ onMenuClick, pageTitle }: HeaderProps) {
         </Menu>
       </div>
     </header>
+
+    <AboutDialog isOpen={aboutOpen} onClose={() => setAboutOpen(false)} />
+    </>
   );
 }
