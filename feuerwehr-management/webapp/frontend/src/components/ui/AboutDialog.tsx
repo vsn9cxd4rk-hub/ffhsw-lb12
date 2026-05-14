@@ -63,7 +63,7 @@ export function AboutDialog({ isOpen, onClose }: AboutDialogProps) {
                     <p className="text-[10px] text-red-600 tracking-wide mt-0.5 leading-tight">
                       Feuerwehr-Einsatz-Netzwerk-<br />Informations-eXchange
                     </p>
-                    <p className="text-xs text-gray-400 mt-2">Version 1.0.0 · LB 12</p>
+                    <p className="text-xs text-gray-400 mt-2">Version {import.meta.env.VITE_APP_VERSION} · LB 12</p>
                   </div>
 
                   <p className="text-sm text-gray-600 leading-relaxed">
