@@ -40,7 +40,7 @@ cat > "$CRON_FILE" << 'EOF'
 SHELL=/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 
-30 3 * * * root bash /usr/local/sbin/feuerwehr-restore-auto.sh >> /var/log/feuerwehrmanagement/restore-auto.log 2>&1
+30 4 * * * root bash /usr/local/sbin/feuerwehr-restore-auto.sh >> /var/log/feuerwehrmanagement/restore-auto.log 2>&1
 EOF
 
 chmod 644 "$CRON_FILE"

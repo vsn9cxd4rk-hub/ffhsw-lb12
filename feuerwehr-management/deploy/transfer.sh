@@ -1,12 +1,12 @@
 #!/bin/bash
 
-BACKUP_DIR="/var/www/feuerwehr-management/backups/daily"
+BACKUP_DIR="/var/www/feuerwehrmanagement/backups/daily"
 DEST_USER="lb12admin"
 DEST_HOST="pcffwhswlb12-3.local"
-DEST_PATH="/var/www/feuerwehr-management/backups/daily"
+DEST_PATH="/var/www/feuerwehrmanagement/backups/daily"
 LOG="/var/log/scp_transfer.log"
 
-LATEST=$(ls -t "$BACKUP_DIR"/*.tgz 2>/dev/null | head -n 1)
+LATEST=$(ls -t "$BACKUP_DIR"/*.tar.gz 2>/dev/null | head -n 1)
 
 if [ -z "$LATEST" ]; then
     echo "$(date): FEHLER - Keine Backup-Datei gefunden in $BACKUP_DIR" >> "$LOG"
