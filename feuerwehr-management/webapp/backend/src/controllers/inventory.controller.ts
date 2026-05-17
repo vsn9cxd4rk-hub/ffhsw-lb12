@@ -456,11 +456,19 @@ export async function getDefects(req: Request, res: Response): Promise<void> {
     const status = req.query.status as string | undefined;
     const severity = req.query.severity as string | undefined;
     const articleId = req.query.articleId ? parseInt(req.query.articleId as string) : undefined;
+    // Kommagetrennte Artikel-IDs für Unterklassen-/Klassenfilter (z.B. "1,2,3")
+    const articleIds = req.query.articleIds
+      ? (req.query.articleIds as string).split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id))
+      : undefined;
 
     const where: Record<string, unknown> = {};
     if (status) where.status = status;
     if (severity) where.severity = severity;
-    if (articleId !== undefined) where.articleId = articleId;
+    if (articleIds && articleIds.length > 0) {
+      where.articleId = { in: articleIds };
+    } else if (articleId !== undefined) {
+      where.articleId = articleId;
+    }
 
     const [defects, total] = await Promise.all([
       prisma.articleDefect.findMany({

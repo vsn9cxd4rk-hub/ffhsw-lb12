@@ -1,6 +1,6 @@
 {
   "name": "feuerwehr-backend",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Feuerwehr Management System Backend",
   "main": "dist/server.js",
   "scripts": {

@@ -572,16 +572,44 @@ function RepairsTab() {
 
   const { data: articles } = useArticles();
 
-  // Load open defects for linking (filtered by selected article/vehicle/sonstige)
+  // Load active defects for linking (filtered by selected article/vehicle/sonstige)
   const isArticleSelected = form.articleId && !form.articleId.startsWith('vehicle_') && form.articleId !== 'sonstige';
   const defectFilterArticleId = isArticleSelected ? parseInt(form.articleId) : undefined;
   const defectFilterSubject = !isArticleSelected && form.articleId ? subjectLabel || (form.articleId === 'sonstige' ? 'Sonstige' : '') : undefined;
 
-  const { data: openDefectsData } = useQuery({
-    queryKey: ['defects', 'open-for-link', defectFilterArticleId, defectFilterSubject],
+  // Erweiterte Suche: alle Artikel derselben Unterklasse (oder Geräteklasse als
+  // Fallback) einbeziehen, damit Mängel von identisch benannten Artikeln, die
+  // sich nur durch die Artikelnummer unterscheiden, sichtbar sind.
+  const selectedArticle = (isArticleSelected && articles)
+    ? articles.find(a => a.id === defectFilterArticleId)
+    : null;
+  const subclassId = selectedArticle?.deviceSubclassId ?? null;
+  const classId = selectedArticle?.deviceSubclass?.deviceClass?.id ?? null;
+
+  const relatedArticleIds: number[] = isArticleSelected && articles
+    ? (subclassId
+        ? articles.filter(a => a.deviceSubclassId === subclassId)
+        : classId
+          ? articles.filter(a => a.deviceSubclass?.deviceClass?.id === classId)
+          : articles.filter(a => a.id === defectFilterArticleId)
+      ).map(a => a.id)
+    : [];
+
+  // Stabiler Query-Key als sortierter String der Artikel-IDs
+  const articleIdsParam = relatedArticleIds.length > 0
+    ? relatedArticleIds.slice().sort((x, y) => x - y).join(',')
+    : defectFilterArticleId !== undefined ? String(defectFilterArticleId) : undefined;
+
+  const { data: openDefectsData, isFetching: defectsFetching } = useQuery({
+    queryKey: ['defects', 'active-for-link', articleIdsParam ?? '', defectFilterSubject ?? ''],
     queryFn: async () => {
-      const res = await defectsApi.getAll({ limit: 1000, status: 'open', articleId: defectFilterArticleId });
-      let defects = res.data.data || [];
+      // Kein status-Filter auf API-Ebene: client-seitig werden 'open' und
+      // 'in_progress' zugelassen, damit Mängel in Bearbeitung ebenfalls
+      // verknüpft werden können.
+      const res = await defectsApi.getAll({ limit: 100, articleIds: articleIdsParam });
+      let defects = (res.data.data || []).filter(
+        (d) => d.status === 'open' || d.status === 'in_progress'
+      );
       if (defectFilterSubject) {
         defects = defects.filter(d => d.subject === defectFilterSubject);
       }
@@ -683,8 +711,13 @@ function RepairsTab() {
   const openDefects = openDefectsData || [];
   const defectOptions = openDefects.map((d) => {
     const artName = d.article?.name || d.subject || '';
+    const invNum = d.article?.inventoryNumber ? ` (${d.article.inventoryNumber})` : '';
     const desc = d.description.length > 40 ? d.description.slice(0, 40) + '...' : d.description;
-    return { value: d.id, label: artName ? `${artName}: ${desc}` : `#${d.id} - ${desc}` };
+    const statusSuffix = d.status === 'in_progress' ? ' [In Bearbeitung]' : '';
+    return {
+      value: d.id,
+      label: artName ? `${artName}${invNum}: ${desc}${statusSuffix}` : `#${d.id} - ${desc}${statusSuffix}`,
+    };
   });
 
   return (
@@ -779,7 +812,10 @@ function RepairsTab() {
         }
       >
         <div className="space-y-4">
-          <ArticleSelector value={form.articleId} onChange={(val, label) => { u('articleId', val); if (label) setSubjectLabel(label); else setSubjectLabel(''); }} required />
+          <ArticleSelector value={form.articleId} onChange={(val, label) => {
+            setForm((f: RepairForm) => ({ ...f, articleId: val, defectId: '' }));
+            setSubjectLabel(label || '');
+          }} required />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
               label="Datum"
@@ -810,13 +846,24 @@ function RepairsTab() {
               min="0"
               step="0.01"
             />
-            <Select
-              label="Verknüpfter Mangel"
-              value={form.defectId}
-              onChange={(e) => u('defectId', e.target.value)}
-              options={defectOptions}
-              placeholder="Keiner"
-            />
+            <div>
+              <Select
+                label="Verknüpfter Mangel"
+                value={form.defectId}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => u('defectId', e.target.value)}
+                options={defectOptions}
+                placeholder={
+                  !form.articleId
+                    ? '– Zuerst Artikel wählen –'
+                    : defectsFetching
+                    ? 'Wird geladen…'
+                    : defectOptions.length === 0
+                    ? 'Keine offenen Mängel vorhanden'
+                    : 'Keiner'
+                }
+                disabled={!form.articleId}
+              />
+            </div>
           </div>
           <Textarea
             label="Bemerkungen"

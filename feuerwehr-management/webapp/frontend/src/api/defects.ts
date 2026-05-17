@@ -2,7 +2,7 @@ import client from './client';
 import { ArticleDefect, PaginatedResponse } from '../types';
 
 export const defectsApi = {
-  getAll: (params?: { page?: number; limit?: number; status?: string; severity?: string; articleId?: number; search?: string }) =>
+  getAll: (params?: { page?: number; limit?: number; status?: string; severity?: string; articleId?: number; articleIds?: string; search?: string }) =>
     client.get<{ data: ArticleDefect[]; pagination: PaginatedResponse<ArticleDefect>['pagination'] }>('/inventory/defects', { params }),
 
   getById: (id: number) =>
