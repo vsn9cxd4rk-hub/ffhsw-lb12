@@ -1,0 +1,5 @@
+# Maven build output
+target/
+
+# Java compiled class files (safety net)
+*.class
