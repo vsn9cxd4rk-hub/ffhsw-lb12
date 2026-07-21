@@ -19,13 +19,13 @@ export const settingsApi = {
     const formData = new FormData();
     formData.append('name', name);
     formData.append('file', file);
-    return client.post('/settings/templates', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+    return client.post('/settings/templates', formData);
   },
   updateTemplate: (id: number, file?: File, name?: string) => {
     const formData = new FormData();
     if (name) formData.append('name', name);
     if (file) formData.append('file', file);
-    return client.put(`/settings/templates/${id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+    return client.put(`/settings/templates/${id}`, formData);
   },
   downloadTemplate: (id: number) => client.get(`/settings/templates/${id}/download`, { responseType: 'blob' }),
   deleteTemplate: (id: number) => client.delete(`/settings/templates/${id}`),

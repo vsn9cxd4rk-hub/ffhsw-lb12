@@ -36,7 +36,7 @@ export const inspectionsApi = {
   uploadDocument: (inspectionId: number, file: File) => {
     const formData = new FormData();
     formData.append('file', file);
-    return client.post(`/inspections/${inspectionId}/documents`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+    return client.post(`/inspections/${inspectionId}/documents`, formData);
   },
 
   downloadDocument: (docId: number) =>

@@ -3,7 +3,6 @@ import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse } from 
 const client: AxiosInstance = axios.create({
   baseURL: '/api',
   withCredentials: true,
-  headers: { 'Content-Type': 'application/json' },
 });
 
 // Request interceptor: attach access token, but skip if already logged out

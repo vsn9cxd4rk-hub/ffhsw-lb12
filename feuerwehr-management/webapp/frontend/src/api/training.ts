@@ -11,9 +11,7 @@ export const trainingApi = {
   uploadCertificate: (courseId: number, file: File) => {
     const formData = new FormData();
     formData.append('certificate', file);
-    return client.post(`/training/courses/${courseId}/certificate`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    return client.post(`/training/courses/${courseId}/certificate`, formData);
   },
   downloadCertificate: (courseId: number) =>
     client.get(`/training/courses/${courseId}/certificate`, { responseType: 'blob' }),

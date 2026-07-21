@@ -23,9 +23,7 @@ export const operationsApi = {
   uploadDocument: (id: number, file: File) => {
     const formData = new FormData();
     formData.append('file', file);
-    return client.post(`/operations/${id}/documents`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    return client.post(`/operations/${id}/documents`, formData);
   },
   downloadDocument: (operationId: number, docId: number) =>
     client.get(`/operations/${operationId}/documents/${docId}/download`, { responseType: 'blob' }),

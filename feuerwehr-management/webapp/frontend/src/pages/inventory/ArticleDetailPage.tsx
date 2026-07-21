@@ -170,7 +170,7 @@ function DokumenteTab({ articleId }: { articleId: number }) {
     mutationFn: (file: File) => {
       const fd = new FormData();
       fd.append('file', file);
-      return client.post(`/inventory/articles/${articleId}/documents`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+      return client.post(`/inventory/articles/${articleId}/documents`, fd);
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['article-documents', articleId] }),
   });
