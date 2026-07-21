@@ -184,8 +184,11 @@ function replaceOleWithVehicleTable(xml: string, times: TimeEntry[], leaderCount
 
   const table = `<w:tbl><w:tblPr><w:tblpPr w:leftFromText="142" w:rightFromText="142" w:vertAnchor="text" w:tblpY="1"/><w:tblOverlap w:val="never"/><w:tblW w:w="10000" w:type="dxa"/><w:tblBorders><w:top w:val="single" w:sz="4" w:space="0" w:color="000000"/><w:left w:val="single" w:sz="4" w:space="0" w:color="000000"/><w:bottom w:val="single" w:sz="4" w:space="0" w:color="000000"/><w:right w:val="single" w:sz="4" w:space="0" w:color="000000"/><w:insideH w:val="single" w:sz="4" w:space="0" w:color="000000"/><w:insideV w:val="single" w:sz="4" w:space="0" w:color="000000"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="1400"/><w:gridCol w:w="1400"/><w:gridCol w:w="1400"/><w:gridCol w:w="2000"/><w:gridCol w:w="1000"/><w:gridCol w:w="1400"/><w:gridCol w:w="1400"/></w:tblGrid>${headerRow}${dataRows}</w:tbl>`;
 
-  // Replace OLE paragraph with our table + empty paragraph for spacing
-  xml = xml.substring(0, pStart) + table + '<w:p/>' + xml.substring(pEnd);
+  // Replace OLE paragraph with our table, with empty paragraphs before/after for spacing.
+  // Two leading paragraphs: the floating table's vertAnchor="text" consumes/collapses the
+  // paragraph immediately preceding it as its anchor line, so a single blank paragraph there
+  // renders with zero height; the extra one keeps a visible gap.
+  xml = xml.substring(0, pStart) + '<w:p/><w:p/>' + table + '<w:p/>' + xml.substring(pEnd);
 
   return xml;
 }
