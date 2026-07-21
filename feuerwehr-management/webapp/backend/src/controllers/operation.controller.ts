@@ -70,7 +70,11 @@ export async function getOperations(req: Request, res: Response): Promise<void> 
 
 export async function createOperation(req: Request, res: Response): Promise<void> {
   try {
-    const op = await prisma.operation.create({ data: req.body });
+    const data = { ...req.body };
+    if (data.date && !data.date.includes('T')) {
+      data.date = new Date(data.date).toISOString();
+    }
+    const op = await prisma.operation.create({ data });
     sendSuccess(res, op, 201);
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -94,7 +98,11 @@ export async function getOperation(req: Request, res: Response): Promise<void> {
 export async function updateOperation(req: Request, res: Response): Promise<void> {
   try {
     const id = parseInt(req.params.id);
-    const op = await prisma.operation.update({ where: { id }, data: req.body });
+    const data = { ...req.body };
+    if (data.date && !data.date.includes('T')) {
+      data.date = new Date(data.date).toISOString();
+    }
+    const op = await prisma.operation.update({ where: { id }, data });
     sendSuccess(res, op);
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -243,6 +251,81 @@ export async function deleteDocument(req: Request, res: Response): Promise<void>
 
     await prisma.operationDocument.delete({ where: { id: doc.id } });
     sendSuccess(res, { message: 'Dokument gelöscht' });
+  } catch (err) {
+    sendError(res, (err as Error).message);
+  }
+}
+
+// Personnel
+export async function getPersonnel(req: Request, res: Response): Promise<void> {
+  try {
+    const operationId = parseInt(req.params.id);
+    const personnel = await prisma.operationPersonnel.findMany({
+      where: { operationId },
+      include: {
+        member: {
+          select: {
+            id: true, firstName: true, lastName: true,
+            qualAGT: true, qualGruppenfuehrer: true, qualZugfuehrer: true,
+            qualLicenseC: true, qualLicenseB: true,
+          },
+        },
+      },
+      orderBy: [{ section: 'asc' }, { id: 'asc' }],
+    });
+    sendSuccess(res, personnel);
+  } catch (err) {
+    sendError(res, (err as Error).message);
+  }
+}
+
+export async function addPersonnel(req: Request, res: Response): Promise<void> {
+  try {
+    const operationId = parseInt(req.params.id);
+    const { memberId, vehicleName, function: fn, section } = req.body;
+    const p = await prisma.operationPersonnel.create({
+      data: { operationId, memberId, vehicleName, function: fn, section: section || 'deployed' },
+      include: {
+        member: {
+          select: {
+            id: true, firstName: true, lastName: true,
+            qualAGT: true, qualGruppenfuehrer: true, qualZugfuehrer: true,
+            qualLicenseC: true, qualLicenseB: true,
+          },
+        },
+      },
+    });
+    sendSuccess(res, p, 201);
+  } catch (err) {
+    sendError(res, (err as Error).message);
+  }
+}
+
+export async function updatePersonnel(req: Request, res: Response): Promise<void> {
+  try {
+    const p = await prisma.operationPersonnel.update({
+      where: { id: parseInt(req.params.personnelId) },
+      data: req.body,
+      include: {
+        member: {
+          select: {
+            id: true, firstName: true, lastName: true,
+            qualAGT: true, qualGruppenfuehrer: true, qualZugfuehrer: true,
+            qualLicenseC: true, qualLicenseB: true,
+          },
+        },
+      },
+    });
+    sendSuccess(res, p);
+  } catch (err) {
+    sendError(res, (err as Error).message);
+  }
+}
+
+export async function deletePersonnel(req: Request, res: Response): Promise<void> {
+  try {
+    await prisma.operationPersonnel.delete({ where: { id: parseInt(req.params.personnelId) } });
+    sendSuccess(res, { message: 'Einsatzkraft entfernt' });
   } catch (err) {
     sendError(res, (err as Error).message);
   }

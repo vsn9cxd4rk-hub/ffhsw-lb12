@@ -358,8 +358,42 @@ export interface Operation {
   description: string | null;
   leaderCount: number;
   memberCount: number;
+  reportType: string | null;
+  ilsOrderNumber: string | null;
+  callerInfo: string | null;
+  policeInfo: string | null;
+  situationOnArrival: string | null;
+  actionsTaken: string | null;
+  resourcesUsed: string | null;
+  operationType: string | null;
+  rescuedPersons: number;
+  injuredFirefighters: number;
+  deceasedPersons: number;
+  deceasedFirefighters: number;
+  createdByName: string | null;
+  authorRole: string | null;
   times?: OperationTime[];
   reports?: OperationReport[];
+  personnel?: OperationPersonnel[];
+}
+
+export interface OperationPersonnel {
+  id: number;
+  operationId: number;
+  memberId: number;
+  vehicleName: string;
+  function: string;
+  section: string;
+  member: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    qualAGT: boolean;
+    qualGruppenfuehrer: boolean;
+    qualZugfuehrer: boolean;
+    qualLicenseC: boolean;
+    qualLicenseB: boolean;
+  };
 }
 
 export interface OperationTime {

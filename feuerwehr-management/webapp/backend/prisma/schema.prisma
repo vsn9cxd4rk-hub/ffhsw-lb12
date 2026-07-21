@@ -201,6 +201,7 @@ model Member {
   attendances  Attendance[]
   absences     Absence[]
   history      MemberHistory[]
+  operationPersonnel OperationPersonnel[]
 
   @@map("members")
 }
@@ -641,12 +642,27 @@ model Operation {
   commanderBfId   Int?
   categoryId      Int?
   tenantId        Int?
+  reportType          String?   @db.VarChar(30)
+  ilsOrderNumber      String?   @db.VarChar(50)
+  callerInfo          String?   @db.Text
+  policeInfo          String?   @db.Text
+  situationOnArrival  String?   @db.Text
+  actionsTaken        String?   @db.Text
+  resourcesUsed       String?   @db.Text
+  operationType       String?   @db.VarChar(100)
+  rescuedPersons      Int       @default(0)
+  injuredFirefighters Int       @default(0)
+  deceasedPersons     Int       @default(0)
+  deceasedFirefighters Int      @default(0)
+  createdByName       String?   @db.VarChar(100)
+  authorRole          String?   @db.VarChar(50)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
   times     OperationTime[]
   reports   OperationReport[]
   documents OperationDocument[]
+  personnel OperationPersonnel[]
 
   @@map("operations")
 }
@@ -692,6 +708,20 @@ model OperationDocument {
   operation Operation @relation(fields: [operationId], references: [id], onDelete: Cascade)
 
   @@map("operation_documents")
+}
+
+model OperationPersonnel {
+  id          Int    @id @default(autoincrement())
+  operationId Int
+  memberId    Int
+  vehicleName String @db.VarChar(100)
+  function    String @db.VarChar(50)
+  section     String @default("deployed") @db.VarChar(20)
+
+  operation Operation @relation(fields: [operationId], references: [id], onDelete: Cascade)
+  member    Member    @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@map("operation_personnel")
 }
 
 // ==================== EVENTS / VERANSTALTUNGEN ====================

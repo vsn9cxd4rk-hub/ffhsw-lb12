@@ -1,6 +1,6 @@
 {
   "name": "feuerwehr-backend",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "Feuerwehr Management System Backend",
   "main": "dist/server.js",
   "scripts": {
@@ -10,7 +10,10 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate deploy",
     "prisma:push": "prisma db push",
-    "prisma:seed": "ts-node-dev --transpile-only prisma/seed.ts"
+    "prisma:seed": "ts-node-dev --transpile-only prisma/seed.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:junit": "vitest run --reporter=junit --outputFile=test-results.xml"
   },
   "dependencies": {
     "@prisma/client": "^6.6.0",
@@ -27,6 +30,9 @@
     "morgan": "^1.10.0",
     "multer": "^2.0.1",
     "nodemailer": "^7.0.3",
+    "docxtemplater": "^3.50.0",
+    "exceljs": "^4.4.0",
+    "pizzip": "^3.1.7",
     "winston": "^3.17.0",
     "winston-daily-rotate-file": "^5.0.0"
   },
@@ -42,7 +48,10 @@
     "@types/node": "^22.15.0",
     "@types/nodemailer": "^6.4.17",
     "prisma": "^6.6.0",
+    "supertest": "^7.0.0",
+    "@types/supertest": "^6.0.2",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.0"
   }
 }

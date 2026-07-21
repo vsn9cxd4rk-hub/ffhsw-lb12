@@ -49,6 +49,9 @@ const libraries: Library[] = [
   { name: 'nodemailer', version: '^7.0.3', license: 'MIT', url: 'https://nodemailer.com', category: 'backend' },
   { name: 'winston', version: '^3.17.0', license: 'MIT', url: 'https://github.com/winstonjs/winston', category: 'backend' },
   { name: 'winston-daily-rotate-file', version: '^5.0.0', license: 'MIT', url: 'https://github.com/winstonjs/winston-daily-rotate-file', category: 'backend' },
+  { name: 'docxtemplater', version: '^3.50.0', license: 'MIT', url: 'https://docxtemplater.com', category: 'backend' },
+  { name: 'PizZip', version: '^3.1.7', license: 'MIT', url: 'https://github.com/open-xml-templating/pizzip', category: 'backend' },
+  { name: 'ExcelJS', version: '^4.4.0', license: 'MIT', url: 'https://github.com/exceljs/exceljs', category: 'backend' },
 ];
 
 const licenseBadgeColor: Record<string, string> = {

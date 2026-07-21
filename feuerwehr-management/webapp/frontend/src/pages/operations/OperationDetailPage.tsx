@@ -1,23 +1,25 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeftIcon, PlusIcon, TrashIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, PlusIcon, TrashIcon, ArrowDownTrayIcon, DocumentArrowDownIcon } from '@heroicons/react/24/outline';
 import { operationsApi } from '../../api/operations';
 import { settingsApi } from '../../api/settings';
-import { Operation, OperationDocument, Template } from '../../types';
+import { membersApi } from '../../api/members';
+import { Operation, OperationDocument, OperationPersonnel, Template } from '../../types';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Textarea } from '../../components/ui/Textarea';
 import { Card } from '../../components/ui/Card';
 import { Table } from '../../components/ui/Table';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
+import { Modal } from '../../components/ui/Modal';
 import { formatDate } from '../../utils/format';
 
 export function OperationDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [tab, setTab] = useState<'details' | 'times' | 'report' | 'documents'>('details');
+  const [tab, setTab] = useState<'details' | 'times' | 'personnel' | 'report' | 'documents'>('details');
 
   const { data: op, isLoading } = useQuery({
     queryKey: ['operation', id],
@@ -44,7 +46,7 @@ export function OperationDetailPage() {
 
       <div className="border-b border-gray-200">
         <nav className="flex gap-4 -mb-px">
-          {[{ id: 'details', label: 'Details' }, { id: 'times', label: 'Fahrzeugzeiten' }, { id: 'report', label: 'Bericht' }, { id: 'documents', label: 'Dokumente' }].map((t) => (
+          {[{ id: 'details', label: 'Details' }, { id: 'times', label: 'Fahrzeugzeiten' }, { id: 'personnel', label: 'Kräfte' }, { id: 'report', label: 'Bericht' }, { id: 'documents', label: 'Dokumente' }].map((t) => (
             <button key={t.id} onClick={() => setTab(t.id as typeof tab)}
               className={`pb-3 px-1 text-sm font-medium border-b-2 transition-colors ${tab === t.id ? 'border-primary-600 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
               {t.label}
@@ -55,11 +57,34 @@ export function OperationDetailPage() {
 
       {tab === 'details' && <OperationDetailsTab op={op} onSave={(d) => updateMutation.mutate(d)} saving={updateMutation.isPending} />}
       {tab === 'times' && <OperationTimesTab operationId={parseInt(id!)} times={op.times || []} />}
+      {tab === 'personnel' && <OperationPersonnelTab operationId={parseInt(id!)} />}
       {tab === 'report' && <OperationReportTab operationId={parseInt(id!)} report={op.reports?.[0]} />}
       {tab === 'documents' && <OperationDocumentsTab operationId={parseInt(id!)} />}
     </div>
   );
 }
+
+const OPERATION_TYPES = [
+  'Kleinbrand a', 'Kleinbrand b', 'Mittelbrand', 'Grossbrand',
+  'Katastr.-Einsatz', 'Techn. Hilfeleist.', 'Tiere/Insekten',
+  'NAW Einsatz', 'RTW Einsatz', 'Kranken-Transport',
+  'Sonstiger Einsatz', 'Blinder Alarm', 'Boeswilliger Alarm', 'Brandmelde Anlage',
+];
+
+const EINSATZSTICHWORTE = [
+  'Brand 1', 'Brand 2', 'Brand 3', 'Brand 4', 'Brand 5', 'Brand 6-8',
+  'Brand Fahrzeug gross', 'Brand Kamin', 'Brand Wald/Flache gross',
+  'Brand in E-Anlage', 'Brand Gefahrstoff klein', 'Brand Gefahrstoff gross',
+  'TH klein', 'Amtshilfe', 'Auslaufende Betriebsstoffe gross', 'Bombenfund',
+  'Einsatz Tier', 'Einsturzgefahr', 'Erdrutsch', 'Fahrzeug in Gewasser',
+  'Flugzeugabsturz klein', 'Flugzeugabsturz gross', 'Person droht/springt',
+  'Person in Aufzug', 'Person in Notlage', 'Person/Tier in Wasser',
+  'Person verschuttet', 'Tur Offnen', 'Unterstutzung RD Tragehilfe',
+  'Unterstutzung RD DLK', 'VU mit Person', 'VU mit Person gross',
+  'Wasserschaden klein', 'Wasserschaden gross', 'SRHT', 'Hochwasser',
+  'Schadstoff auf Gewasser', 'ABC messen', 'ABC 1', 'ABC 2',
+  'SONSTIGES nicht aufgefuhrt',
+];
 
 function OperationDetailsTab({ op, onSave, saving }: { op: Operation; onSave: (d: Partial<Operation>) => void; saving: boolean }) {
   const [form, setForm] = useState({
@@ -76,9 +101,31 @@ function OperationDetailsTab({ op, onSave, saving }: { op: Operation; onSave: (d
     memberCount: String(op.memberCount),
     description: op.description || '',
     vehicles: op.vehicles || '',
+    reportType: op.reportType || 'Einsatzbericht',
+    ilsOrderNumber: op.ilsOrderNumber || '',
+    callerInfo: op.callerInfo || '',
+    policeInfo: op.policeInfo || '',
+    situationOnArrival: op.situationOnArrival || '',
+    actionsTaken: op.actionsTaken || '',
+    resourcesUsed: op.resourcesUsed || '',
+    operationType: op.operationType || '',
+    rescuedPersons: String(op.rescuedPersons || 0),
+    injuredFirefighters: String(op.injuredFirefighters || 0),
+    deceasedPersons: String(op.deceasedPersons || 0),
+    deceasedFirefighters: String(op.deceasedFirefighters || 0),
+    createdByName: op.createdByName || '',
+    authorRole: op.authorRole || 'Einsatzleiter',
   });
 
   const u = (f: string, v: string) => setForm(p => ({ ...p, [f]: v }));
+
+  const selectedTypes = form.operationType ? form.operationType.split(',').map(t => t.trim()) : [];
+  const toggleOpType = (type: string) => {
+    const current = selectedTypes.includes(type)
+      ? selectedTypes.filter(t => t !== type)
+      : [...selectedTypes, type];
+    u('operationType', current.join(','));
+  };
 
   return (
     <Card>
@@ -91,16 +138,87 @@ function OperationDetailsTab({ op, onSave, saving }: { op: Operation; onSave: (d
         <Input label="Eingerückt" value={form.returnTime} onChange={(e) => u('returnTime', e.target.value)} type="time" />
         <Input label="Einsatzort" value={form.location} onChange={(e) => u('location', e.target.value)} required />
         <Input label="Stadtteil" value={form.district} onChange={(e) => u('district', e.target.value)} />
-        <Input label="Stichwort" value={form.keyword} onChange={(e) => u('keyword', e.target.value)} />
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Einsatzstichwort</label>
+          <select value={form.keyword} onChange={(e) => u('keyword', e.target.value)} className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
+            <option value="">-- Stichwort auswählen --</option>
+            {EINSATZSTICHWORTE.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </div>
         <Input label="Fahrzeuge" value={form.vehicles} onChange={(e) => u('vehicles', e.target.value)} />
         <Input label="GF-Stärke" value={form.leaderCount} onChange={(e) => u('leaderCount', e.target.value)} type="number" />
         <Input label="FM-Stärke" value={form.memberCount} onChange={(e) => u('memberCount', e.target.value)} type="number" />
-        <div className="col-span-full">
-          <Textarea label="Beschreibung" value={form.description} onChange={(e) => u('description', e.target.value)} rows={4} />
+
+        <div className="col-span-full border-t pt-4 mt-2">
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">Einsatzbericht-Details</h3>
         </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Berichtsart</label>
+          <select value={form.reportType} onChange={(e) => u('reportType', e.target.value)} className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
+            <option value="Einsatzbericht">Einsatzbericht</option>
+            <option value="Tätigkeitsbericht">Tätigkeitsbericht</option>
+          </select>
+        </div>
+        <Input label="ILS Auftragsnummer" value={form.ilsOrderNumber} onChange={(e) => u('ilsOrderNumber', e.target.value)} />
+        <Input label="Ersteller" value={form.createdByName} onChange={(e) => u('createdByName', e.target.value)} />
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Rolle des Erstellers</label>
+          <select value={form.authorRole} onChange={(e) => u('authorRole', e.target.value)} className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
+            <option value="Einsatzleiter">Einsatzleiter</option>
+            <option value="Einheitenführer LB Wahlschied">Einheitenführer LB Wahlschied</option>
+          </select>
+        </div>
+
+        <div className="col-span-full">
+          <Textarea label="Meldender (Name & Erreichbarkeit)" value={form.callerInfo} onChange={(e) => u('callerInfo', e.target.value)} rows={2} />
+        </div>
+        <div className="col-span-full">
+          <Textarea label="Beschreibung / Einsatzangaben" value={form.description} onChange={(e) => u('description', e.target.value)} rows={3} />
+        </div>
+        <div className="col-span-full">
+          <Textarea label="Polizei (Inspektion & Sachbearbeiter)" value={form.policeInfo} onChange={(e) => u('policeInfo', e.target.value)} rows={2} />
+        </div>
+        <div className="col-span-full">
+          <Textarea label="Lage bei Eintreffen" value={form.situationOnArrival} onChange={(e) => u('situationOnArrival', e.target.value)} rows={4} />
+        </div>
+        <div className="col-span-full">
+          <Textarea label="Durchgeführte Maßnahmen" value={form.actionsTaken} onChange={(e) => u('actionsTaken', e.target.value)} rows={4} />
+        </div>
+        <div className="col-span-full">
+          <Textarea label="Verbrauchte Einsatzmittel" value={form.resourcesUsed} onChange={(e) => u('resourcesUsed', e.target.value)} rows={2} />
+        </div>
+
+        <div className="col-span-full border-t pt-4 mt-2">
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">Einsatzart</h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+            {OPERATION_TYPES.map(type => (
+              <label key={type} className="flex items-center gap-2 text-sm cursor-pointer">
+                <input type="checkbox" checked={selectedTypes.includes(type)} onChange={() => toggleOpType(type)} className="rounded border-gray-300 text-primary-600 focus:ring-primary-500" />
+                {type}
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <div className="col-span-full border-t pt-4 mt-2">
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">Statistische Angaben</h3>
+        </div>
+        <Input label="Menschen gerettet" value={form.rescuedPersons} onChange={(e) => u('rescuedPersons', e.target.value)} type="number" />
+        <Input label="FW verletzt" value={form.injuredFirefighters} onChange={(e) => u('injuredFirefighters', e.target.value)} type="number" />
+        <Input label="Menschen tot" value={form.deceasedPersons} onChange={(e) => u('deceasedPersons', e.target.value)} type="number" />
+        <Input label="FW tot" value={form.deceasedFirefighters} onChange={(e) => u('deceasedFirefighters', e.target.value)} type="number" />
       </div>
       <div className="mt-6 flex justify-end">
-        <Button variant="primary" onClick={() => onSave({ ...form, leaderCount: parseInt(form.leaderCount) || 0, memberCount: parseInt(form.memberCount) || 0 } as Partial<Operation>)} loading={saving}>
+        <Button variant="primary" onClick={() => onSave({
+          ...form,
+          leaderCount: parseInt(form.leaderCount) || 0,
+          memberCount: parseInt(form.memberCount) || 0,
+          rescuedPersons: parseInt(form.rescuedPersons) || 0,
+          injuredFirefighters: parseInt(form.injuredFirefighters) || 0,
+          deceasedPersons: parseInt(form.deceasedPersons) || 0,
+          deceasedFirefighters: parseInt(form.deceasedFirefighters) || 0,
+        } as Partial<Operation>)} loading={saving}>
           Speichern
         </Button>
       </div>
@@ -302,6 +420,189 @@ function OperationDocumentsTab({ operationId }: { operationId: number }) {
         </ul>
       </Card>
     )}
+
+    <Card title="Berichte generieren">
+      <div className="flex flex-wrap gap-3">
+        <GenerateReportButton operationId={operationId} />
+        <GeneratePersonnelSheetButton operationId={operationId} />
+      </div>
+    </Card>
     </>
+  );
+}
+
+// Personnel Tab
+const FUNCTIONS = ['Gruppenfuehrer', 'Maschinist', 'Melder', 'AT-Fuehrer', 'AT-Mann', 'WT-Fuehrer', 'WT-Mann', 'ST-Fuehrer', 'ST-Mann'];
+
+function OperationPersonnelTab({ operationId }: { operationId: number }) {
+  const queryClient = useQueryClient();
+  const [showAdd, setShowAdd] = useState(false);
+  const [newEntry, setNewEntry] = useState({ memberId: 0, vehicleName: '', function: 'Gruppenfuehrer', section: 'deployed' });
+
+  const { data: personnel, isLoading } = useQuery({
+    queryKey: ['operation-personnel', operationId],
+    queryFn: () => operationsApi.getPersonnel(operationId).then(r => r.data.data),
+  });
+
+  const { data: members } = useQuery({
+    queryKey: ['members-list'],
+    queryFn: () => membersApi.getAll({ limit: 200 }).then(r => r.data.data?.items || r.data.data || []),
+  });
+
+  const addMutation = useMutation({
+    mutationFn: () => operationsApi.addPersonnel(operationId, newEntry),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['operation-personnel', operationId] }); setShowAdd(false); setNewEntry({ memberId: 0, vehicleName: '', function: 'Gruppenfuehrer', section: 'deployed' }); },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => operationsApi.deletePersonnel(operationId, id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['operation-personnel', operationId] }),
+  });
+
+  const deployed = (personnel || []).filter((p: OperationPersonnel) => p.section === 'deployed');
+  const reinforcement = (personnel || []).filter((p: OperationPersonnel) => p.section === 'reinforcement');
+
+  if (isLoading) return <LoadingSpinner />;
+
+  return (
+    <div className="space-y-4">
+      <Card title="Eingesetzte Kräfte" actions={<Button variant="secondary" size="sm" icon={<PlusIcon />} onClick={() => { setNewEntry(e => ({ ...e, section: 'deployed' })); setShowAdd(true); }}>Hinzufügen</Button>}>
+        {deployed.length === 0 ? (
+          <p className="text-sm text-gray-500">Keine Kräfte zugeordnet.</p>
+        ) : (
+          <Table
+            columns={[
+              { key: 'function', header: 'Funktion' },
+              { key: 'name', header: 'Name', render: (p: OperationPersonnel) => `${p.member.lastName}, ${p.member.firstName}` },
+              { key: 'vehicleName', header: 'Fahrzeug' },
+              { key: 'qualAGT', header: 'AGT', render: (p: OperationPersonnel) => p.member.qualAGT ? '✓' : '' },
+              { key: 'qualGF', header: 'GF', render: (p: OperationPersonnel) => p.member.qualGruppenfuehrer ? '✓' : '' },
+              { key: 'qualZF', header: 'ZF', render: (p: OperationPersonnel) => p.member.qualZugfuehrer ? '✓' : '' },
+              { key: 'licC', header: 'Kl.C', render: (p: OperationPersonnel) => p.member.qualLicenseC ? '✓' : '' },
+              { key: 'licB', header: 'Kl.B', render: (p: OperationPersonnel) => p.member.qualLicenseB ? '✓' : '' },
+              { key: 'actions', header: '', render: (p: OperationPersonnel) => (
+                <Button variant="ghost" size="sm" onClick={() => deleteMutation.mutate(p.id)}>
+                  <TrashIcon className="h-4 w-4 text-red-500" />
+                </Button>
+              )},
+            ]}
+            data={deployed}
+            keyExtractor={(p) => p.id}
+          />
+        )}
+      </Card>
+
+      <Card title="Nachgerückte Kräfte" actions={<Button variant="secondary" size="sm" icon={<PlusIcon />} onClick={() => { setNewEntry(e => ({ ...e, section: 'reinforcement' })); setShowAdd(true); }}>Hinzufügen</Button>}>
+        {reinforcement.length === 0 ? (
+          <p className="text-sm text-gray-500">Keine nachgerückten Kräfte.</p>
+        ) : (
+          <Table
+            columns={[
+              { key: 'function', header: 'Funktion' },
+              { key: 'name', header: 'Name', render: (p: OperationPersonnel) => `${p.member.lastName}, ${p.member.firstName}` },
+              { key: 'vehicleName', header: 'Fahrzeug' },
+              { key: 'qualAGT', header: 'AGT', render: (p: OperationPersonnel) => p.member.qualAGT ? '✓' : '' },
+              { key: 'qualGF', header: 'GF', render: (p: OperationPersonnel) => p.member.qualGruppenfuehrer ? '✓' : '' },
+              { key: 'actions', header: '', render: (p: OperationPersonnel) => (
+                <Button variant="ghost" size="sm" onClick={() => deleteMutation.mutate(p.id)}>
+                  <TrashIcon className="h-4 w-4 text-red-500" />
+                </Button>
+              )},
+            ]}
+            data={reinforcement}
+            keyExtractor={(p) => p.id}
+          />
+        )}
+      </Card>
+
+      <Modal isOpen={showAdd} onClose={() => setShowAdd(false)} title="Einsatzkraft hinzufügen" size="md"
+        footer={<><Button variant="secondary" onClick={() => setShowAdd(false)}>Abbrechen</Button><Button variant="primary" onClick={() => addMutation.mutate()} loading={addMutation.isPending} disabled={!newEntry.memberId}>Hinzufügen</Button></>}>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Mitglied</label>
+            <select value={newEntry.memberId} onChange={(e) => setNewEntry(p => ({ ...p, memberId: parseInt(e.target.value) }))} className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
+              <option value={0}>-- Mitglied auswählen --</option>
+              {(members || []).map((m: { id: number; firstName: string; lastName: string }) => (
+                <option key={m.id} value={m.id}>{m.lastName}, {m.firstName}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Funktion</label>
+            <select value={newEntry.function} onChange={(e) => setNewEntry(p => ({ ...p, function: e.target.value }))} className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
+              {FUNCTIONS.map(f => <option key={f} value={f}>{f}</option>)}
+            </select>
+          </div>
+          <Input label="Fahrzeug" value={newEntry.vehicleName} onChange={(e) => setNewEntry(p => ({ ...p, vehicleName: e.target.value }))} />
+        </div>
+      </Modal>
+    </div>
+  );
+}
+
+// Report generation buttons
+function GenerateReportButton({ operationId }: { operationId: number }) {
+  const queryClient = useQueryClient();
+  const [generating, setGenerating] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const handleGenerate = async () => {
+    setGenerating(true);
+    setError('');
+    setSuccess('');
+    try {
+      const res = await operationsApi.generateReport(operationId);
+      setSuccess(`Einsatzbericht generiert: ${(res.data as { data: { fileName: string } }).data.fileName}`);
+      queryClient.invalidateQueries({ queryKey: ['operation-documents', operationId] });
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Generierung fehlgeschlagen';
+      setError(msg);
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  return (
+    <div>
+      <Button variant="primary" icon={<DocumentArrowDownIcon />} onClick={handleGenerate} loading={generating}>
+        Einsatzbericht generieren
+      </Button>
+      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+      {success && <p className="mt-1 text-xs text-green-600">{success}</p>}
+    </div>
+  );
+}
+
+function GeneratePersonnelSheetButton({ operationId }: { operationId: number }) {
+  const queryClient = useQueryClient();
+  const [generating, setGenerating] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const handleGenerate = async () => {
+    setGenerating(true);
+    setError('');
+    setSuccess('');
+    try {
+      const res = await operationsApi.generatePersonnelSheet(operationId);
+      setSuccess(`Kräftenachweis generiert: ${(res.data as { data: { fileName: string } }).data.fileName}`);
+      queryClient.invalidateQueries({ queryKey: ['operation-documents', operationId] });
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Generierung fehlgeschlagen';
+      setError(msg);
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  return (
+    <div>
+      <Button variant="secondary" icon={<DocumentArrowDownIcon />} onClick={handleGenerate} loading={generating}>
+        Kräftenachweis generieren
+      </Button>
+      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+      {success && <p className="mt-1 text-xs text-green-600">{success}</p>}
+    </div>
   );
 }

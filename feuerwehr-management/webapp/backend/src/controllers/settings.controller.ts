@@ -22,9 +22,16 @@ export const templateUpload = multer({
   storage: templateStorage,
   limits: { fileSize: 20 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
-    const allowed = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    const allowed = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-excel.sheet.macroEnabled.12',
+    ];
     if (allowed.includes(file.mimetype)) cb(null, true);
-    else cb(new Error('Nur PDF- und Word-Dateien sind erlaubt'));
+    else cb(new Error('Nur PDF-, Word- und Excel-Dateien sind erlaubt'));
   },
 }).single('file');
 

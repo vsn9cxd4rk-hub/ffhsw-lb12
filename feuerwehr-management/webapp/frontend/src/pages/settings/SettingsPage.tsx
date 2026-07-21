@@ -263,7 +263,7 @@ function TemplatesSettings() {
             { key: 'updatedAt', header: 'Geändert am', render: (t: Template) => formatDate(t.updatedAt) },
             { key: 'actions', header: '', render: (t: Template) => (
               <div className="flex gap-2">
-                <input ref={selectedTemplate?.id === t.id ? replaceInputRef : undefined} type="file" accept=".pdf,.doc,.docx" onChange={handleReplace} className="hidden" />
+                <input ref={selectedTemplate?.id === t.id ? replaceInputRef : undefined} type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.xltm" onChange={handleReplace} className="hidden" />
                 <Button size="sm" variant="secondary" icon={<ArrowPathIcon />}
                   onClick={(e: React.MouseEvent) => { e.stopPropagation(); setSelectedTemplate(t); setTimeout(() => replaceInputRef.current?.click(), 50); }}
                   loading={uploading && selectedTemplate?.id === t.id}>
@@ -294,7 +294,7 @@ function TemplatesSettings() {
           <Input label="Template-Name" value={newName} onChange={(e) => setNewName(e.target.value)} required placeholder="z.B. Einsatzbericht-Vorlage" />
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Datei</label>
-            <input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx" onChange={(e) => setFileSelected(!!e.target.files?.length)} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100" />
+            <input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.xltm" onChange={(e) => setFileSelected(!!e.target.files?.length)} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100" />
           </div>
         </div>
       </Modal>

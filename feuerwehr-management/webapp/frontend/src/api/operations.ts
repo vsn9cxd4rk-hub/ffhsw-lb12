@@ -1,5 +1,5 @@
 import client from './client';
-import { Operation, OperationTime } from '../types';
+import { Operation, OperationTime, OperationPersonnel } from '../types';
 
 export const operationsApi = {
   getAll: (params?: Record<string, unknown>) => client.get('/operations', { params }),
@@ -31,4 +31,20 @@ export const operationsApi = {
     client.get(`/operations/${operationId}/documents/${docId}/download`, { responseType: 'blob' }),
   deleteDocument: (operationId: number, docId: number) =>
     client.delete(`/operations/${operationId}/documents/${docId}`),
+
+  // Personnel
+  getPersonnel: (operationId: number) =>
+    client.get<{ data: OperationPersonnel[] }>(`/operations/${operationId}/personnel`),
+  addPersonnel: (operationId: number, data: { memberId: number; vehicleName: string; function: string; section?: string }) =>
+    client.post<{ data: OperationPersonnel }>(`/operations/${operationId}/personnel`, data),
+  updatePersonnel: (operationId: number, personnelId: number, data: Partial<OperationPersonnel>) =>
+    client.put<{ data: OperationPersonnel }>(`/operations/${operationId}/personnel/${personnelId}`, data),
+  deletePersonnel: (operationId: number, personnelId: number) =>
+    client.delete(`/operations/${operationId}/personnel/${personnelId}`),
+
+  // Report generation
+  generateReport: (operationId: number) =>
+    client.post(`/operations/${operationId}/generate-report`),
+  generatePersonnelSheet: (operationId: number, vehicleFilter?: string) =>
+    client.post(`/operations/${operationId}/generate-personnel-sheet`, { vehicleFilter }),
 };
