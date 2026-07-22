@@ -1,0 +1,22 @@
+# Wird von beiden Dockerfiles unter deploy/docker/ genutzt (Build-Context ist
+# das feuerwehr-management/-Projektverzeichnis). Beide Dockerfiles kopieren
+# gezielt nur einzelne Unterpfade, daher reicht eine gemeinsame Ignore-Liste.
+
+**/node_modules
+**/dist
+**/.env
+**/.env.*
+**/*.log
+data/
+images/
+deploy/scripts/
+deploy/*.md
+deploy/INSTALL-*.md
+webapp/backend/uploads/
+webapp/frontend/test-results/
+webapp/frontend/playwright-report/
+webapp/frontend/tests/
+releases/
+.git/
+.vscode/
+.claude/
