@@ -1,0 +1,15 @@
+# --- Node.js build output ---
+node_modules/
+dist/
+build/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+
+# --- Java / Maven / Gradle build output ---
+target/
+*.class
+*.jar
+!local-maven-repo/**/*.jar
+.gradle/
