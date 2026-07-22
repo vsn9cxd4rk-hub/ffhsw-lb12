@@ -113,8 +113,8 @@ fi
 if [[ -d "${SOURCE_DIR}/deploy" ]]; then
   info "Hilfsskripte werden aktualisiert..."
   for script in backup.sh update.sh restore.sh check-health.sh; do
-    if [[ -f "${SOURCE_DIR}/deploy/${script}" ]]; then
-      cp "${SOURCE_DIR}/deploy/${script}" "${APP_DIR}/scripts/${script}"
+    if [[ -f "${SOURCE_DIR}/deploy/scripts/${script}" ]]; then
+      cp "${SOURCE_DIR}/deploy/scripts/${script}" "${APP_DIR}/scripts/${script}"
       chmod +x "${APP_DIR}/scripts/${script}"
     fi
   done

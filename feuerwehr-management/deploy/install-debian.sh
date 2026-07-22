@@ -261,9 +261,9 @@ fi
 # Hilfsskripte installieren
 # --------------------------------------------------------------------------
 info "Hilfsskripte werden installiert..."
-cp "$SCRIPT_DIR/backup.sh"      "$APP_DIR/scripts/backup.sh"
-cp "$SCRIPT_DIR/update.sh"      "$APP_DIR/scripts/update.sh"
-cp "$SCRIPT_DIR/check-health.sh" "$APP_DIR/scripts/check-health.sh" 2>/dev/null || true
+cp "$SCRIPT_DIR/scripts/backup.sh"      "$APP_DIR/scripts/backup.sh"
+cp "$SCRIPT_DIR/scripts/update.sh"      "$APP_DIR/scripts/update.sh"
+cp "$SCRIPT_DIR/scripts/check-health.sh" "$APP_DIR/scripts/check-health.sh" 2>/dev/null || true
 chmod +x "$APP_DIR/scripts/"*.sh
 chown "$APP_USER:$APP_USER" "$APP_DIR/scripts/"*.sh
 success "Hilfsskripte installiert"

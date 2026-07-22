@@ -5,6 +5,9 @@ node_modules/
 webapp/backend/dist/
 webapp/frontend/dist/
 
+# Release-Pakete (werden durch create-release.sh neu erzeugt)
+releases/
+
 # Environment / Secrets
 .env
 .env.local

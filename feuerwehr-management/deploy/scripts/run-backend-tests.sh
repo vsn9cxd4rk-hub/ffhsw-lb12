@@ -26,7 +26,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-PROJECT_DIR="${1:-$(cd "$(dirname "$0")/.." && pwd)}"
+PROJECT_DIR="${1:-$(cd "$(dirname "$0")/../.." && pwd)}"
 BACKEND_DIR="$PROJECT_DIR/webapp/backend"
 LOG_DIR="/var/log/feuerwehrmanagement"
 RESULT_FILE="$LOG_DIR/test-results.xml"
