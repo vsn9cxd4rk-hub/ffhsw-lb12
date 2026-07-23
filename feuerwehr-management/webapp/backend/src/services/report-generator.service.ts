@@ -215,6 +215,37 @@ const EINSATZBERICHT_PLACEHOLDERS: Record<string, string> = {
   'FW tot': 'Zahl',
 };
 
+function formatDateForFileName(date: Date): string {
+  const d = new Date(date);
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  return `${dd}${mm}${d.getFullYear()}`;
+}
+
+function sanitizeFileNamePart(value: string): string {
+  return value.replace(/[\\/:*?"<>|]/g, '').trim();
+}
+
+/**
+ * Dateinamensschema: Einsatzdatum(ohne Punkte)_Einsatznummer_Einsatzstichwort_
+ * ErstellerName(ohne Leerzeichen)_Löschbezirk_ArtDesBerichtes
+ */
+function buildReportFileName(
+  op: { date: Date; operationNumber: string | null; keyword: string | null; createdByName: string | null },
+  operationId: number,
+  art: 'Einsatzbericht' | 'Kraeftenachweis'
+): string {
+  const parts = [
+    formatDateForFileName(op.date),
+    sanitizeFileNamePart(op.operationNumber || String(operationId)),
+    sanitizeFileNamePart(op.keyword || ''),
+    sanitizeFileNamePart(op.createdByName || '').replace(/\s+/g, ''),
+    'LB12',
+    art,
+  ].filter(Boolean);
+  return parts.join('_');
+}
+
 export async function generateOperationReport(operationId: number): Promise<{ filePath: string; fileName: string }> {
   ensureTempDir();
 
@@ -380,13 +411,14 @@ export async function generateOperationReport(operationId: number): Promise<{ fi
   let finalPath: string;
   let fileName: string;
 
+  const baseFileName = buildReportFileName(op, operationId, 'Einsatzbericht');
   try {
     finalPath = await convertToPdf(docxPath);
-    fileName = `Einsatzbericht_${op.operationNumber || operationId}.pdf`;
+    fileName = `${baseFileName}.pdf`;
   } catch (err) {
     logger.warn(`PDF-Konvertierung fehlgeschlagen, liefere docx: ${(err as Error).message}`);
     finalPath = docxPath;
-    fileName = `Einsatzbericht_${op.operationNumber || operationId}.docx`;
+    fileName = `${baseFileName}.docx`;
   }
 
   const destDir = path.join(uploadDir, 'operations', String(operationId));
@@ -477,6 +509,21 @@ export async function generatePersonnelSheet(operationId: number, vehicleFilter?
     if (p.member.qualLicenseB) sheet.getCell(`H${row}`).value = 'X';
   }
 
+  // Alles auf eine Seitenbreite skalieren (Template hat sonst fitToPage=false,
+  // wodurch die letzten Spalten auf eine zusätzliche Seite umbrechen)
+  sheet.pageSetup = {
+    ...sheet.pageSetup,
+    fitToPage: true,
+    fitToWidth: 1,
+    fitToHeight: 0,
+  };
+
+  // Dropdown-Hilfsblätter (Fahrzeuge/Funktion/Mannschaft) ausblenden, damit sie
+  // beim PDF-Export nicht als zusätzliche Seiten mit ausgegeben werden
+  workbook.eachSheet(s => {
+    if (s !== sheet) s.state = 'hidden';
+  });
+
   const timestamp = Date.now();
   const xlsxPath = path.join(tempDir, `kraeftenachweis_${operationId}_${timestamp}.xlsx`);
   await workbook.xlsx.writeFile(xlsxPath);
@@ -484,13 +531,14 @@ export async function generatePersonnelSheet(operationId: number, vehicleFilter?
   let finalPath: string;
   let fileName: string;
 
+  const baseFileName = buildReportFileName(op, operationId, 'Kraeftenachweis');
   try {
     finalPath = await convertToPdf(xlsxPath);
-    fileName = `Kraeftenachweis_${op.operationNumber || operationId}.pdf`;
+    fileName = `${baseFileName}.pdf`;
   } catch (err) {
     logger.warn(`PDF-Konvertierung fehlgeschlagen, liefere xlsx: ${(err as Error).message}`);
     finalPath = xlsxPath;
-    fileName = `Kraeftenachweis_${op.operationNumber || operationId}.xlsx`;
+    fileName = `${baseFileName}.xlsx`;
   }
 
   const destDir = path.join(uploadDir, 'operations', String(operationId));
