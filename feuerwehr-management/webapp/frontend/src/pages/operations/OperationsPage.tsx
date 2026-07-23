@@ -23,6 +23,7 @@ function OperationCreateModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
     memberCount: '0',
   });
 
+  const navigate = useNavigate();
   const mutation = useMutation({
     mutationFn: () => operationsApi.create({
       ...form,
@@ -33,6 +34,8 @@ function OperationCreateModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['operations'] });
       onClose();
+      const newId = res.data?.data?.id;
+      if (newId) navigate(`/operations/${newId}`);
     },
   });
 

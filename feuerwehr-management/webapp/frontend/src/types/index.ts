@@ -6,7 +6,9 @@ export interface User {
   isAdmin: boolean;
   isActive: boolean;
   groupId: number | null;
+  memberId?: number | null;
   group?: PermissionGroup;
+  member?: { id: number; firstName: string; lastName: string } | null;
   permissions: Record<string, boolean>;
   createdAt: string;
 }
@@ -372,6 +374,8 @@ export interface Operation {
   deceasedFirefighters: number;
   createdByName: string | null;
   authorRole: string | null;
+  operationResult: string | null;
+  wasActivelyInvolved: boolean;
   times?: OperationTime[];
   reports?: OperationReport[];
   personnel?: OperationPersonnel[];
@@ -491,6 +495,7 @@ export interface CourseCategory {
   id: number;
   name: string;
   description: string | null;
+  qualificationField: string | null;
 }
 
 export interface Course {

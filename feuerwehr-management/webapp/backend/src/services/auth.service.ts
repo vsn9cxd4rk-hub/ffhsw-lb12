@@ -61,6 +61,7 @@ export class AuthService {
         name: user.name,
         isAdmin: user.isAdmin,
         groupId: user.groupId,
+        memberId: user.memberId,
         permissions,
       },
     };

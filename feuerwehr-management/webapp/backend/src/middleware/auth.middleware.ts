@@ -39,6 +39,7 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
       name: user.name,
       isAdmin: user.isAdmin,
       groupId: user.groupId,
+      memberId: user.memberId,
       permissions,
     };
 

@@ -115,6 +115,8 @@ function OperationDetailsTab({ op, onSave, saving }: { op: Operation; onSave: (d
     deceasedFirefighters: String(op.deceasedFirefighters || 0),
     createdByName: op.createdByName || '',
     authorRole: op.authorRole || 'Einsatzleiter',
+    operationResult: op.operationResult || '',
+    wasActivelyInvolved: op.wasActivelyInvolved !== false ? 'JA' : 'NEIN',
   });
 
   const u = (f: string, v: string) => setForm(p => ({ ...p, [f]: v }));
@@ -169,6 +171,24 @@ function OperationDetailsTab({ op, onSave, saving }: { op: Operation; onSave: (d
             <option value="Einheitenführer LB Wahlschied">Einheitenführer LB Wahlschied</option>
           </select>
         </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Einsatzresultat</label>
+          <select value={form.operationResult} onChange={(e) => u('operationResult', e.target.value)} className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
+            <option value="">-- Auswählen --</option>
+            <option value="Brand Real">Brand Real</option>
+            <option value="THL Real">THL Real</option>
+            <option value="Brand Fehl">Brand Fehl</option>
+            <option value="THL Fehl">THL Fehl</option>
+            <option value="BMA Fehl">BMA Fehl</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">LB aktiv tätig gewesen?</label>
+          <select value={form.wasActivelyInvolved} onChange={(e) => u('wasActivelyInvolved', e.target.value)} className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
+            <option value="JA">Ja</option>
+            <option value="NEIN">Nein</option>
+          </select>
+        </div>
 
         <div className="col-span-full">
           <Textarea label="Meldender (Name & Erreichbarkeit)" value={form.callerInfo} onChange={(e) => u('callerInfo', e.target.value)} rows={2} />
@@ -218,6 +238,7 @@ function OperationDetailsTab({ op, onSave, saving }: { op: Operation; onSave: (d
           injuredFirefighters: parseInt(form.injuredFirefighters) || 0,
           deceasedPersons: parseInt(form.deceasedPersons) || 0,
           deceasedFirefighters: parseInt(form.deceasedFirefighters) || 0,
+          wasActivelyInvolved: form.wasActivelyInvolved === 'JA',
         } as Partial<Operation>)} loading={saving}>
           Speichern
         </Button>
@@ -442,6 +463,7 @@ function OperationPersonnelTab({ operationId }: { operationId: number }) {
   const { data: personnel, isLoading } = useQuery({
     queryKey: ['operation-personnel', operationId],
     queryFn: () => operationsApi.getPersonnel(operationId).then(r => r.data.data),
+    refetchOnMount: 'always',
   });
 
   const { data: members } = useQuery({

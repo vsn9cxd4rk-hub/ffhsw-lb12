@@ -13,8 +13,10 @@ import { DeviceInspectionSettings } from './DeviceInspectionSettings';
 import { DataImportSettings } from './DataImportSettings';
 import { WarehouseSettings } from './WarehouseSettings';
 import { InspectionTypeSettings } from './InspectionTypeSettings';
+import { CourseCategorySettings } from './CourseCategorySettings';
+import { PermissionGroupSettings } from './PermissionGroupSettings';
 
-type Tab = 'allgemein' | 'dienstgrade' | 'jahre' | 'templates' | 'geraetepruefung' | 'lagerorte' | 'pruefarten' | 'datenimport';
+type Tab = 'allgemein' | 'dienstgrade' | 'jahre' | 'templates' | 'geraetepruefung' | 'lagerorte' | 'pruefarten' | 'lehrgaenge' | 'berechtigungen' | 'datenimport';
 
 export function SettingsPage() {
   const [tab, setTab] = useState<Tab>('allgemein');
@@ -23,7 +25,7 @@ export function SettingsPage() {
     <div className="space-y-4">
       <div className="border-b border-gray-200">
         <nav className="flex gap-4 -mb-px">
-          {[{ id: 'allgemein', label: 'Allgemein' }, { id: 'dienstgrade', label: 'Dienstgrade' }, { id: 'jahre', label: 'Jahre' }, { id: 'templates', label: 'Templates' }, { id: 'geraetepruefung', label: 'Geräteprüfung' }, { id: 'lagerorte', label: 'Lagerorte' }, { id: 'pruefarten', label: 'Prüfarten' }, { id: 'datenimport', label: 'Datenimport' }].map((t) => (
+          {[{ id: 'allgemein', label: 'Allgemein' }, { id: 'dienstgrade', label: 'Dienstgrade' }, { id: 'jahre', label: 'Jahre' }, { id: 'templates', label: 'Templates' }, { id: 'geraetepruefung', label: 'Geräteprüfung' }, { id: 'lagerorte', label: 'Lagerorte' }, { id: 'pruefarten', label: 'Prüfarten' }, { id: 'lehrgaenge', label: 'Lehrgänge' }, { id: 'berechtigungen', label: 'Berechtigungsgruppen' }, { id: 'datenimport', label: 'Datenimport' }].map((t) => (
             <button key={t.id} onClick={() => setTab(t.id as Tab)}
               className={`pb-3 px-1 text-sm font-medium border-b-2 transition-colors ${tab === t.id ? 'border-primary-600 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
               {t.label}
@@ -39,6 +41,8 @@ export function SettingsPage() {
       {tab === 'geraetepruefung' && <DeviceInspectionSettings />}
       {tab === 'lagerorte' && <WarehouseSettings />}
       {tab === 'pruefarten' && <InspectionTypeSettings />}
+      {tab === 'lehrgaenge' && <CourseCategorySettings />}
+      {tab === 'berechtigungen' && <PermissionGroupSettings />}
       {tab === 'datenimport' && <DataImportSettings />}
     </div>
   );

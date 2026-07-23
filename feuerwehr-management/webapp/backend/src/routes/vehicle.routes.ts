@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import { authenticate } from '../middleware/auth.middleware';
+import { requirePermission } from '../middleware/permission.middleware';
+import { BIT_VEHICLES } from '../config/permissionBits';
 import {
   getVehicles, createVehicle, getVehicle, updateVehicle, deleteVehicle,
   upsertVehicleInspection,
@@ -10,6 +12,7 @@ import {
 const router = Router();
 
 router.use(authenticate);
+router.use(requirePermission(BIT_VEHICLES));
 
 router.get('/', getVehicles);
 router.post('/', createVehicle);

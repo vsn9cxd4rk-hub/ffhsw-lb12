@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeftIcon, TrashIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, ChevronLeftIcon, ChevronRightIcon, TrashIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { membersApi } from '../../api/members';
 import { trainingApi } from '../../api/training';
 import { Member, MemberFamily, CourseCategory } from '../../types';
@@ -29,6 +29,20 @@ export function MemberDetailPage() {
     queryKey: ['member', id],
     queryFn: () => membersApi.getById(parseInt(id!)).then((r) => r.data.data),
   });
+
+  const { data: allMemberIds } = useQuery({
+    queryKey: ['member-ids-all'],
+    queryFn: () => membersApi.getAll({ limit: 10000, isInactive: false }).then((r) => {
+      const list: Member[] = r.data.data || [];
+      return list.map((m) => m.id);
+    }),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const memberIds: number[] = allMemberIds || [];
+  const currentIndex = memberIds.indexOf(parseInt(id!));
+  const prevMemberId = currentIndex > 0 ? memberIds[currentIndex - 1] : null;
+  const nextMemberId = currentIndex < memberIds.length - 1 ? memberIds[currentIndex + 1] : null;
 
   const { data: groups } = useQuery({
     queryKey: ['member-groups'],
@@ -78,14 +92,32 @@ export function MemberDetailPage() {
             {member.isInactive ? 'Inaktiv' : 'Aktiv'}
           </Badge>
         </div>
-        <Button
-          variant="danger"
-          size="sm"
-          icon={<TrashIcon />}
-          onClick={() => setDeleteOpen(true)}
-        >
-          Löschen
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            icon={<ChevronLeftIcon />}
+            onClick={() => prevMemberId && navigate(`/members/${prevMemberId}`)}
+            disabled={!prevMemberId}
+            title="Vorheriges Mitglied"
+          />
+          <Button
+            variant="ghost"
+            size="sm"
+            icon={<ChevronRightIcon />}
+            onClick={() => nextMemberId && navigate(`/members/${nextMemberId}`)}
+            disabled={!nextMemberId}
+            title="Nächstes Mitglied"
+          />
+          <Button
+            variant="danger"
+            size="sm"
+            icon={<TrashIcon />}
+            onClick={() => setDeleteOpen(true)}
+          >
+            Löschen
+          </Button>
+        </div>
       </div>
 
       {/* Tabs */}
@@ -112,7 +144,7 @@ export function MemberDetailPage() {
         <StammdatenTab member={member} groups={groups || []} onSave={(data) => updateMutation.mutate(data)} saving={updateMutation.isPending} />
       )}
       {tab === 'untersuchungen' && (
-        <UntersuchungenTab examination={member.examination ?? null} onSave={(data) => updateExamMutation.mutate(data)} saving={updateExamMutation.isPending} />
+        <UntersuchungenTab examination={member.examination ?? null} onSave={(data) => updateExamMutation.mutate(data)} saving={updateExamMutation.isPending} memberId={parseInt(id!)} birthDate={member.birthDate} />
       )}
       {tab === 'laufbahn' && <LaufbahnTab courses={member.courses || []} memberId={parseInt(id!)} />}
       {tab === 'kontakt' && <KontaktTab member={member} memberId={parseInt(id!)} />}
@@ -243,11 +275,53 @@ function StammdatenTab({ member, groups, onSave, saving }: {
   );
 }
 
-function UntersuchungenTab({ examination, onSave, saving }: {
+const AGT_TYPES = [
+  { value: 'g26', label: 'G26 Untersuchung' },
+  { value: 'belastung', label: 'AGT Belastungsübung' },
+  { value: 'einsatzuebung', label: 'AGT Einsatzübung' },
+  { value: 'einsatz', label: 'AGT Einsatz' },
+];
+
+function getAgtTypeLabel(type: string): string {
+  return AGT_TYPES.find(t => t.value === type)?.label || type;
+}
+
+function calculateAgtStatus(records: Array<{ type: string; date: string; result?: string | null }>, birthDate: string | null): { tauglich: boolean; reasons: string[] } {
+  const now = new Date();
+  const reasons: string[] = [];
+
+  const latestG26 = records.filter(r => r.type === 'g26' && r.result === 'geeignet').sort((a, b) => b.date.localeCompare(a.date))[0];
+  const latestBelastung = records.filter(r => r.type === 'belastung').sort((a, b) => b.date.localeCompare(a.date))[0];
+  const latestEinsatzuebung = records.filter(r => r.type === 'einsatzuebung').sort((a, b) => b.date.localeCompare(a.date))[0];
+  const latestEinsatz = records.filter(r => r.type === 'einsatz').sort((a, b) => b.date.localeCompare(a.date))[0];
+
+  if (!latestG26) { return { tauglich: false, reasons: ['Keine gültige G26 Untersuchung vorhanden'] }; }
+
+  const age = birthDate ? Math.floor((now.getTime() - new Date(birthDate).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : 0;
+  const g26Age = (now.getTime() - new Date(latestG26.date).getTime()) / (365.25 * 24 * 60 * 60 * 1000);
+
+  if (age < 50 && g26Age > 3) reasons.push('G26 älter als 3 Jahre (Alter < 50)');
+  if (age >= 50 && g26Age > 1) reasons.push('G26 älter als 1 Jahr (Alter >= 50)');
+
+  const belastungAge = latestBelastung ? (now.getTime() - new Date(latestBelastung.date).getTime()) / (365.25 * 24 * 60 * 60 * 1000) : Infinity;
+  if (belastungAge > 1) reasons.push('Belastungsübung älter als 1 Jahr');
+
+  const einsatzuebungAge = latestEinsatzuebung ? (now.getTime() - new Date(latestEinsatzuebung.date).getTime()) / (365.25 * 24 * 60 * 60 * 1000) : Infinity;
+  const einsatzAge = latestEinsatz ? (now.getTime() - new Date(latestEinsatz.date).getTime()) / (365.25 * 24 * 60 * 60 * 1000) : Infinity;
+
+  if (einsatzuebungAge > 1 && einsatzAge > 1) reasons.push('Weder Einsatzübung noch Einsatz innerhalb 1 Jahr');
+
+  return { tauglich: reasons.length === 0, reasons };
+}
+
+function UntersuchungenTab({ examination, onSave, saving, memberId, birthDate }: {
   examination: { g25Date: string | null; g26Date: string | null; g30Date: string | null; agtTrainingDate: string | null; lkwLicenseExpiry: string | null } | null;
   onSave: (data: Record<string, string | null>) => void;
   saving: boolean;
+  memberId: number;
+  birthDate: string | null;
 }) {
+  const queryClient = useQueryClient();
   const [form, setForm] = useState({
     g25Date: examination?.g25Date?.substring(0, 10) || '',
     g26Date: examination?.g26Date?.substring(0, 10) || '',
@@ -256,25 +330,138 @@ function UntersuchungenTab({ examination, onSave, saving }: {
     lkwLicenseExpiry: examination?.lkwLicenseExpiry?.substring(0, 10) || '',
   });
 
+  const [agtForm, setAgtForm] = useState({ type: 'g26', date: '', result: '', notes: '' });
+  const [showAgtForm, setShowAgtForm] = useState(false);
+
+  const { data: agtRecords } = useQuery({
+    queryKey: ['agt-records', memberId],
+    queryFn: () => membersApi.getAgtRecords(memberId).then(r => r.data.data),
+  });
+
+  const createAgtMutation = useMutation({
+    mutationFn: () => membersApi.createAgtRecord(memberId, {
+      type: agtForm.type,
+      date: agtForm.date,
+      result: agtForm.result || undefined,
+      notes: agtForm.notes || undefined,
+    }),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['agt-records', memberId] }); setShowAgtForm(false); setAgtForm({ type: 'g26', date: '', result: '', notes: '' }); },
+  });
+
+  const deleteAgtMutation = useMutation({
+    mutationFn: (recordId: number) => membersApi.deleteAgtRecord(memberId, recordId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['agt-records', memberId] }),
+  });
+
+  const agtStatus = calculateAgtStatus(agtRecords || [], birthDate);
+
   return (
-    <Card title="Arbeitsmedizinische Untersuchungen">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Input label="G25 (Fahrtauglichkeit)" value={form.g25Date} onChange={(e) => setForm(f => ({ ...f, g25Date: e.target.value }))} type="date" />
-        <Input label="G26 (Atemschutz)" value={form.g26Date} onChange={(e) => setForm(f => ({ ...f, g26Date: e.target.value }))} type="date" />
-        <Input label="G30 (Gefahrstoffe)" value={form.g30Date} onChange={(e) => setForm(f => ({ ...f, g30Date: e.target.value }))} type="date" />
-        <Input label="AGT Ausbildung" value={form.agtTrainingDate} onChange={(e) => setForm(f => ({ ...f, agtTrainingDate: e.target.value }))} type="date" />
-        <Input label="LKW-Führerschein gültig bis" value={form.lkwLicenseExpiry} onChange={(e) => setForm(f => ({ ...f, lkwLicenseExpiry: e.target.value }))} type="date" />
-      </div>
-      <div className="mt-6 flex justify-end">
-        <Button variant="primary" onClick={() => onSave({
-          g25Date: form.g25Date || null,
-          g26Date: form.g26Date || null,
-          g30Date: form.g30Date || null,
-          agtTrainingDate: form.agtTrainingDate || null,
-          lkwLicenseExpiry: form.lkwLicenseExpiry || null,
-        })} loading={saving}>Speichern</Button>
-      </div>
-    </Card>
+    <div className="space-y-6">
+      <Card title="Arbeitsmedizinische Untersuchungen">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Input label="G25 (Fahrtauglichkeit)" value={form.g25Date} onChange={(e) => setForm(f => ({ ...f, g25Date: e.target.value }))} type="date" />
+          <Input label="G26 (Atemschutz)" value={form.g26Date} onChange={(e) => setForm(f => ({ ...f, g26Date: e.target.value }))} type="date" />
+          <Input label="G30 (Gefahrstoffe)" value={form.g30Date} onChange={(e) => setForm(f => ({ ...f, g30Date: e.target.value }))} type="date" />
+          <Input label="AGT Ausbildung" value={form.agtTrainingDate} onChange={(e) => setForm(f => ({ ...f, agtTrainingDate: e.target.value }))} type="date" />
+          <Input label="LKW-Führerschein gültig bis" value={form.lkwLicenseExpiry} onChange={(e) => setForm(f => ({ ...f, lkwLicenseExpiry: e.target.value }))} type="date" />
+        </div>
+        <div className="mt-6 flex justify-end">
+          <Button variant="primary" onClick={() => onSave({
+            g25Date: form.g25Date || null,
+            g26Date: form.g26Date || null,
+            g30Date: form.g30Date || null,
+            agtTrainingDate: form.agtTrainingDate || null,
+            lkwLicenseExpiry: form.lkwLicenseExpiry || null,
+          })} loading={saving}>Speichern</Button>
+        </div>
+      </Card>
+
+      <Card title="AGT-Tauglichkeit">
+        <div className={`mb-4 p-4 rounded-lg border ${agtStatus.tauglich ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+          <div className="flex items-center gap-2">
+            <span className={`inline-block h-3 w-3 rounded-full ${agtStatus.tauglich ? 'bg-green-500' : 'bg-red-500'}`} />
+            <span className={`font-semibold ${agtStatus.tauglich ? 'text-green-800' : 'text-red-800'}`}>
+              {agtStatus.tauglich ? 'AGT tauglich' : 'AGT nicht tauglich'}
+            </span>
+          </div>
+          {agtStatus.reasons.length > 0 && (
+            <ul className="mt-2 text-sm text-red-700 list-disc list-inside">
+              {agtStatus.reasons.map((r, i) => <li key={i}>{r}</li>)}
+            </ul>
+          )}
+        </div>
+
+        <div className="flex justify-between items-center mb-3">
+          <h4 className="text-sm font-medium text-gray-700">Nachweise</h4>
+          <Button variant="secondary" size="sm" icon={<PlusIcon />} onClick={() => setShowAgtForm(true)}>Eintrag hinzufügen</Button>
+        </div>
+
+        {showAgtForm && (
+          <div className="border border-gray-200 rounded-lg p-4 mb-4 bg-gray-50 space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Typ</label>
+                <select value={agtForm.type} onChange={(e) => setAgtForm(f => ({ ...f, type: e.target.value }))}
+                  className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm">
+                  {AGT_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                </select>
+              </div>
+              <Input label="Datum" value={agtForm.date} onChange={(e) => setAgtForm(f => ({ ...f, date: e.target.value }))} type="date" required />
+              {agtForm.type === 'g26' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Ergebnis</label>
+                  <select value={agtForm.result} onChange={(e) => setAgtForm(f => ({ ...f, result: e.target.value }))}
+                    className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm">
+                    <option value="">-- Bitte wählen --</option>
+                    <option value="geeignet">Geeignet</option>
+                    <option value="nicht_geeignet">Nicht geeignet</option>
+                  </select>
+                </div>
+              )}
+              <Input label="Bemerkung" value={agtForm.notes} onChange={(e) => setAgtForm(f => ({ ...f, notes: e.target.value }))} />
+            </div>
+            <div className="flex gap-2">
+              <Button variant="primary" onClick={() => createAgtMutation.mutate()} loading={createAgtMutation.isPending} disabled={!agtForm.date}>Speichern</Button>
+              <Button variant="secondary" onClick={() => setShowAgtForm(false)}>Abbrechen</Button>
+            </div>
+          </div>
+        )}
+
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200 text-sm">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-2 text-left font-medium text-gray-500">Typ</th>
+                <th className="px-4 py-2 text-left font-medium text-gray-500">Datum</th>
+                <th className="px-4 py-2 text-left font-medium text-gray-500">Ergebnis</th>
+                <th className="px-4 py-2 text-left font-medium text-gray-500">Bemerkung</th>
+                <th className="px-4 py-2"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {(agtRecords || []).map((rec: { id: number; type: string; date: string; result: string | null; notes: string | null }) => (
+                <tr key={rec.id}>
+                  <td className="px-4 py-2">{getAgtTypeLabel(rec.type)}</td>
+                  <td className="px-4 py-2">{formatDate(rec.date)}</td>
+                  <td className="px-4 py-2">
+                    {rec.result === 'geeignet' && <Badge variant="success">Geeignet</Badge>}
+                    {rec.result === 'nicht_geeignet' && <Badge variant="danger">Nicht geeignet</Badge>}
+                    {!rec.result && '-'}
+                  </td>
+                  <td className="px-4 py-2 text-gray-500">{rec.notes || '-'}</td>
+                  <td className="px-4 py-2">
+                    <button onClick={() => deleteAgtMutation.mutate(rec.id)} className="text-red-500 hover:text-red-700 text-xs">Löschen</button>
+                  </td>
+                </tr>
+              ))}
+              {(!agtRecords || agtRecords.length === 0) && (
+                <tr><td colSpan={5} className="px-4 py-4 text-center text-gray-400">Keine AGT-Nachweise vorhanden</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+    </div>
   );
 }
 

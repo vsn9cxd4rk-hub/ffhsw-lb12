@@ -245,6 +245,155 @@ Das Update-Skript führt folgendes aus:
 7. Hilfsskripte aktualisieren
 8. Backend per `pm2 reload` neu starten (ohne Downtime)
 
+### Datenbankmigrationen manuell ausführen
+
+Bei einem Update auf eine Version mit neuen Datenbankfeldern muss die Migration eingespielt werden:
+
+```bash
+mysql -u FFWVSLB12 -p FFWVSLB12 < deploy/migrate-add-report-fields.sql
+```
+
+Die Migration ist idempotent (kann mehrfach ausgeführt werden).
+
+---
+
+## Funktionsübersicht (FENIX-Erweiterungen)
+
+### Einsatzberichte & Kräftenachweis
+
+Der Einsatzbereich enthält ein vollständiges Berichtsystem:
+
+**Einsatzdetails (erweiterte Felder):**
+
+| Feld | Beschreibung |
+|---|---|
+| Berichtsart | "Einsatzbericht" oder "Tätigkeitsbericht" |
+| ILS Auftragsnummer | Auftragsnummer der Integrierten Leitstelle |
+| Meldender | Name & Erreichbarkeit des Anrufers |
+| Polizei | Zuständige Inspektion & Sachbearbeiter |
+| Lage bei Eintreffen | Freitext-Beschreibung der Lage |
+| Durchgeführte Maßnahmen | Freitext |
+| Verbrauchte Einsatzmittel | Freitext |
+| Einsatzart | Checkbox-Auswahl (Brand, THL, Gefahrstoff, etc.) |
+| Statistische Angaben | Gerettete Personen, Verletzte/Tote FW, Tote Personen |
+| Ersteller / Rolle | Name + Rolle (Einsatzleiter / Einheitenführer) |
+
+**Kräftenachweis (operation_personnel):**
+
+Pro Einsatz wird das eingesetzte Personal erfasst mit:
+- Mitglied (aus Mitgliederstamm)
+- Fahrzeug (Zuordnung)
+- Funktion (Gruppenführer, Maschinist, AT-Führer, AT-Mann, WT-Führer, WT-Mann, etc.)
+- Sektion (Eingesetzte Kräfte / Nachgerückte Kräfte)
+
+**Dokumentengenerierung:**
+
+Über Buttons im Einsatz-Detail können automatisch generiert werden:
+- **Einsatzbericht** (Word-Dokument aus Template)
+- **Kräftenachweis** (Excel-Dokument mit Personalaufstellung)
+
+Die generierten Dokumente werden als Download bereitgestellt und erscheinen in der Dokumentenliste des Einsatzes.
+
+### Berechtigungskonzept
+
+Jeder Login-Benutzer gehört zu genau einer Berechtigungsgruppe (`groupId`). Eine Gruppe ist aber kein starrer Rollenname, sondern eine frei kombinierbare Sammlung von **Fähigkeiten-Bits** (`br0`-`br75` in der `permission_groups`-Tabelle). Aktuell sind drei Bits mit fester Bedeutung belegt:
+
+| Bit | Fähigkeit | Freigeschaltete Bereiche |
+|-----|-----------|--------------------------|
+| `br1` | Fahrzeuge | Fahrzeuge, Fahrtenbuch |
+| `br2` | Einsätze | Einsätze, Statistik, Personalliste für Kräftenachweis |
+| `br3` | Gerätewart-Bereich | Bestandsliste, Prüfbuch, Mängel |
+
+Ein Administrator (`isAdmin = true`) umgeht alle Bit-Prüfungen und hat immer Vollzugriff, inklusive Personal (Mitgliederakte) und Einstellungen — das ist weiterhin **nicht** über Bits, sondern separat an `isAdmin` gebunden, weil dort sensible Daten (Gesundheitsdaten, Bankverbindung, Familienkontakte) liegen. Veranstaltungen und Ausbildung sind für alle angemeldeten Benutzer offen.
+
+Mitgelieferte Standardgruppen (Einstellungen → Berechtigungsgruppen):
+
+| Gruppe | br1 (Fahrzeuge) | br2 (Einsätze) | br3 (Gerätewart) |
+|--------|:---:|:---:|:---:|
+| Administrator | - (isAdmin) | - (isAdmin) | - (isAdmin) |
+| Gerätewarte | ✓ | | ✓ |
+| Benutzer | | | |
+| Maschinisten | ✓ | | |
+| Gruppenführer | | ✓ | |
+| Gerätewart + Gruppenführer | ✓ | ✓ | ✓ |
+
+Weil die Bits pro Gruppe frei kombinierbar sind, lassen sich beliebige Rollenkombinationen abbilden (z.B. ein Mitglied, das sowohl Gerätewart als auch Gruppenführer ist) — dafür einfach eine neue Gruppe mit den passenden Häkchen anlegen (oder die mitgelieferte Gruppe "Gerätewart + Gruppenführer" verwenden) und den Benutzer dieser einen Gruppe zuordnen. Ein Benutzer bleibt weiterhin genau einer Gruppe zugeordnet — die Gruppe selbst trägt die Kombination.
+
+### User-Member-Verknüpfung
+
+Jeder System-Benutzer (Login-Konto) kann optional einem Mitglied (Personalstammdaten) zugeordnet werden. Die Zuordnung erfolgt in der Admin-Oberfläche unter **Benutzerverwaltung** via Dropdown "Verknüpftes Mitglied".
+
+- Beziehung ist 1:1 (ein Mitglied hat max. einen User-Account)
+- Nicht jeder User muss ein Mitglied sein (z.B. reine Admin-Accounts)
+- Nicht jedes Mitglied muss einen User haben (passive Mitglieder)
+
+### Lehrgänge → Qualifikationen (automatisch)
+
+Unter **Einstellungen → Lehrgänge** kann jeder Lehrgangskategorie eine Qualifikation zugeordnet werden. Wenn ein Lehrgang den Status "Abgeschlossen" erhält, wird die entsprechende Qualifikation automatisch beim Mitglied auf `true` gesetzt.
+
+Beispiel-Zuordnungen (standardmäßig vorkonfiguriert):
+| Lehrgangskategorie | Qualifikation |
+|---|---|
+| Atemschutzgeräteträger | qualAGT |
+| Truppführer | qualTruppfuehrer |
+| Gruppenführer | qualGruppenfuehrer |
+| Sprechfunker | qualRadioOperator |
+| Maschinisten | qualMachinist |
+
+### Einsatzstatistik
+
+Unter dem Menüpunkt **Statistik** (nur für Administratoren und Gruppenführer sichtbar) werden die Einsatzdaten eines Jahres automatisch ausgewertet — als Ersatz für die bisher manuell gepflegte Excel-Statistik.
+
+**Auswertungen:**
+
+| Diagramm | Beschreibung |
+|---|---|
+| KPI-Übersicht | Gesamt-Einsätze, Real-Einsätze, Fehlalarme, aktiv tätig |
+| Monatsverlauf | Liniendiagramm der Einsätze pro Monat |
+| Ortsteile | Balkendiagramm: welcher Stadtteil wie oft betroffen |
+| Einsatzstichworte | Häufigkeit der Alarmstichwörter (ILS) |
+| Einsatzresultate | Kreisdiagramm: Brand Real/Fehl, THL Real/Fehl, BMA Fehl |
+| Tageszeit-Analyse | Verteilung FRÜH/MITTAG/SPÄT + Ø-Stärke + Risikoampel |
+| Wochentage | Gestapelte Balken: Mo–So × Tageszeit-Intervall |
+| Personal Top-10 | Horizontale Balken: meisteingesetzte Kräfte mit Funktionsaufteilung |
+
+**Risikoanalyse (Tageszeit):**
+- 🔴 KRITISCH: Durchschnittsstärke < 6 (unter Staffel-Minimum)
+- 🟡 AKZEPTABEL: 6–8 (Staffel+)
+- 🟢 KEIN RISIKO: ≥ 9 (Gruppe)
+
+**Zusätzliche Felder in Einsatz-Details:**
+
+| Feld | Beschreibung |
+|---|---|
+| Einsatzresultat | Dropdown: Brand Real, THL Real, Brand Fehl, THL Fehl, BMA Fehl |
+| LB aktiv tätig gewesen? | Dropdown: Ja / Nein |
+
+Die Statistik-Seite nutzt die Bibliothek **Recharts** für interaktive Diagramme und bietet eine Jahresauswahl (aktuelles Jahr als Standard, 5 Jahre zurück).
+
+### AGT-Tauglichkeit
+
+Im Bereich **Mitgliederakte → Untersuchungen** gibt es eine laufende Tabelle "AGT-Tauglichkeit" für jeden AGT. Dort werden erfasst:
+
+| Typ | Beschreibung |
+|---|---|
+| G26 Untersuchung | Arbeitsmed. Untersuchung (mit Ergebnis: geeignet/nicht geeignet) |
+| AGT Belastungsübung | Jährliche Belastungsübung auf der Atemschutzstrecke |
+| AGT Einsatzübung | Praktische Einsatzübung unter Atemschutz |
+| AGT Einsatz | Realer Einsatz unter Atemschutz |
+
+Die **Tauglichkeit wird automatisch berechnet** nach folgenden Regeln:
+
+```
+NICHT TAUGLICH wenn:
+- Alter < 50 UND G26 älter als 3 Jahre
+- Alter >= 50 UND G26 älter als 1 Jahr
+- Belastungsübung älter als 1 Jahr
+- Einsatzübung UND Einsatz beide älter als 1 Jahr
+```
+
+Die Ampel (grün/rot) zeigt den aktuellen Status mit Begründung an.
+
 ---
 
 ## Migration vom Java-System

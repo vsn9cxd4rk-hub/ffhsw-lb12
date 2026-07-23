@@ -469,5 +469,33 @@ sudo systemctl status nginx
 
 ---
 
+---
+
+## Update: Modul "Einsatzstatistik" (v1.1.0)
+
+Die Einsatzstatistik bietet interaktive Diagramme und Auswertungen
+(Ortsteile, Stichworte, Tageszeiten, Wochentage, Personal-Einsaetze).
+
+### Voraussetzungen
+
+- Migration `deploy/migrate-add-report-fields.sql` muss ausgefuehrt sein
+- Frontend: `npm install` (installiert Recharts-Bibliothek)
+
+### Zugriff
+
+Nur **Administratoren** und **Gruppenfuehrer** sehen den Menuepunkt "Statistik".
+
+### Backend-Tests ausfuehren (Nightly auf Backup-System)
+
+```bash
+chmod +x scripts/run-backend-tests.sh
+./scripts/run-backend-tests.sh --notify
+
+# Als Cron (05:00, nach naechtlichem Restore):
+# 0 5 * * * /var/www/feuerwehrmanagement/scripts/run-backend-tests.sh --notify
+```
+
+---
+
 *Feuerwehr Management System - Installationsanleitung fuer Manjaro Linux*
-*Erstellt: April 2026*
+*Erstellt: April 2026 | Aktualisiert: Juli 2026*

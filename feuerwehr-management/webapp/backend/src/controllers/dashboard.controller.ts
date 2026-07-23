@@ -193,27 +193,193 @@ export async function getStatistics(req: Request, res: Response): Promise<void> 
     } else if (type === 'operations') {
       const operations = await prisma.operation.findMany({
         where: { date: { gte: yearStart, lt: yearEnd } },
-        select: { id: true, date: true, keyword: true, leaderCount: true, memberCount: true },
+        select: {
+          id: true,
+          date: true,
+          keyword: true,
+          alarmTime: true,
+          district: true,
+          operationResult: true,
+          wasActivelyInvolved: true,
+          leaderCount: true,
+          memberCount: true,
+        },
         orderBy: { date: 'asc' },
       });
 
-      const byMonth = Array.from({ length: 12 }, (_, i) => ({
-        month: i + 1,
-        count: operations.filter(op => op.date.getMonth() === i).length,
-      }));
+      // --- byMonth (number[]) ---
+      const byMonth = Array.from({ length: 12 }, (_, i) =>
+        operations.filter(op => op.date.getMonth() === i).length
+      );
 
+      // --- byKeyword ---
       const byKeyword = operations.reduce<Record<string, number>>((acc, op) => {
         const key = op.keyword || 'Unbekannt';
         acc[key] = (acc[key] || 0) + 1;
         return acc;
       }, {});
 
+      // --- byDistrict ---
+      const districtCounts = operations.reduce<Record<string, number>>((acc, op) => {
+        const key = op.district || 'Unbekannt';
+        acc[key] = (acc[key] || 0) + 1;
+        return acc;
+      }, {});
+      const byDistrict = Object.entries(districtCounts)
+        .map(([district, count]) => ({
+          district,
+          count,
+          percent: operations.length > 0 ? Math.round((count / operations.length) * 10000) / 100 : 0,
+        }))
+        .sort((a, b) => b.count - a.count);
+
+      // --- byResult ---
+      const resultCounts = operations.reduce<Record<string, number>>((acc, op) => {
+        const key = op.operationResult || 'Unbekannt';
+        acc[key] = (acc[key] || 0) + 1;
+        return acc;
+      }, {});
+      const byResult = Object.entries(resultCounts)
+        .map(([result, count]) => ({
+          result,
+          count,
+          percent: operations.length > 0 ? Math.round((count / operations.length) * 10000) / 100 : 0,
+        }))
+        .sort((a, b) => b.count - a.count);
+
+      // --- byTimeOfDay ---
+      type TimeInterval = 'FRUEH' | 'MITTAG' | 'SPAET';
+      const getInterval = (alarmTime: string | null): TimeInterval | null => {
+        if (!alarmTime) return null;
+        const parts = alarmTime.split(':');
+        if (parts.length < 2) return null;
+        const hour = parseInt(parts[0], 10);
+        if (isNaN(hour)) return null;
+        if (hour >= 6 && hour < 14) return 'FRUEH';
+        if (hour >= 14 && hour < 22) return 'MITTAG';
+        return 'SPAET';
+      };
+
+      const intervalData: Record<TimeInterval, { count: number; totalPersonnel: number }> = {
+        FRUEH: { count: 0, totalPersonnel: 0 },
+        MITTAG: { count: 0, totalPersonnel: 0 },
+        SPAET: { count: 0, totalPersonnel: 0 },
+      };
+
+      for (const op of operations) {
+        const interval = getInterval(op.alarmTime);
+        if (!interval) continue;
+        intervalData[interval].count++;
+        intervalData[interval].totalPersonnel += (op.leaderCount + op.memberCount);
+      }
+
+      const getRisk = (avg: number): string => {
+        if (avg < 6) return 'KRITISCH';
+        if (avg <= 8) return 'AKZEPTABEL';
+        return 'KEIN RISIKO';
+      };
+
+      const byTimeOfDay = (['FRUEH', 'MITTAG', 'SPAET'] as TimeInterval[]).map(interval => {
+        const data = intervalData[interval];
+        const avgPersonnel = data.count > 0 ? Math.round((data.totalPersonnel / data.count) * 100) / 100 : 0;
+        return {
+          interval,
+          count: data.count,
+          avgPersonnel,
+          risk: data.count > 0 ? getRisk(avgPersonnel) : 'KEIN RISIKO',
+        };
+      });
+
+      // --- byDayOfWeek ---
+      const dayNames = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
+      const dayOrder = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
+      const dayIntervalCounts: Record<string, { frueh: number; mittag: number; spaet: number; total: number }> = {};
+      for (const day of dayOrder) {
+        dayIntervalCounts[day] = { frueh: 0, mittag: 0, spaet: 0, total: 0 };
+      }
+
+      for (const op of operations) {
+        const dayIndex = op.date.getDay(); // 0=Sunday
+        const day = dayNames[dayIndex];
+        const interval = getInterval(op.alarmTime);
+        dayIntervalCounts[day].total++;
+        if (interval === 'FRUEH') dayIntervalCounts[day].frueh++;
+        else if (interval === 'MITTAG') dayIntervalCounts[day].mittag++;
+        else if (interval === 'SPAET') dayIntervalCounts[day].spaet++;
+      }
+
+      const byDayOfWeek = dayOrder.map(day => ({
+        day,
+        frueh: dayIntervalCounts[day].frueh,
+        mittag: dayIntervalCounts[day].mittag,
+        spaet: dayIntervalCounts[day].spaet,
+        total: dayIntervalCounts[day].total,
+      }));
+
+      // --- byPersonnel ---
+      const personnelRecords = await prisma.operationPersonnel.findMany({
+        where: { operation: { date: { gte: yearStart, lt: yearEnd } } },
+        select: {
+          memberId: true,
+          function: true,
+          member: { select: { firstName: true, lastName: true } },
+        },
+      });
+
+      const personnelMap: Record<number, { name: string; total: number; positions: Record<string, number> }> = {};
+      for (const rec of personnelRecords) {
+        if (!personnelMap[rec.memberId]) {
+          personnelMap[rec.memberId] = {
+            name: `${rec.member.firstName} ${rec.member.lastName}`,
+            total: 0,
+            positions: { GF: 0, MA: 0, ME: 0, AT: 0, WT: 0, ST: 0 },
+          };
+        }
+        personnelMap[rec.memberId].total++;
+
+        // Map function strings to position abbreviations
+        const fnUpper = rec.function.toUpperCase();
+        if (fnUpper.includes('GRUPPENFUEHRER') || fnUpper.includes('GRUPPENFÜHRER')) {
+          personnelMap[rec.memberId].positions.GF++;
+        } else if (fnUpper.includes('MASCHINIST')) {
+          personnelMap[rec.memberId].positions.MA++;
+        } else if (fnUpper.includes('MELDER')) {
+          personnelMap[rec.memberId].positions.ME++;
+        } else if (fnUpper.includes('ATEMSCHUTZ') || fnUpper.includes('ANGRIFFSTRUPP')) {
+          personnelMap[rec.memberId].positions.AT++;
+        } else if (fnUpper.includes('WASSERTRUPP')) {
+          personnelMap[rec.memberId].positions.WT++;
+        } else if (fnUpper.includes('SCHLAUCHTRUPP')) {
+          personnelMap[rec.memberId].positions.ST++;
+        }
+      }
+
+      const byPersonnel = Object.values(personnelMap)
+        .sort((a, b) => b.total - a.total);
+
+      // --- activeInvolved ---
+      const activeYes = operations.filter(op => op.wasActivelyInvolved === true).length;
+      const activeNo = operations.filter(op => op.wasActivelyInvolved === false).length;
+      const activeInvolved = { yes: activeYes, no: activeNo };
+
+      // --- totalReal / totalFalse ---
+      const totalReal = operations.filter(op => op.operationResult && op.operationResult.includes('Real')).length;
+      const totalFalse = operations.filter(op => op.operationResult && op.operationResult.includes('Fehl')).length;
+
       sendSuccess(res, {
         total: operations.length,
+        totalReal,
+        totalFalse,
+        activeInvolved,
         byMonth,
         byKeyword: Object.entries(byKeyword)
           .map(([keyword, count]) => ({ keyword, count }))
           .sort((a, b) => b.count - a.count),
+        byDistrict,
+        byResult,
+        byTimeOfDay,
+        byDayOfWeek,
+        byPersonnel,
       });
 
     } else if (type === 'training') {

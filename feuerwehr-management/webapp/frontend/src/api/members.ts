@@ -32,6 +32,13 @@ export const membersApi = {
   updateCourse: (memberId: number, courseId: number, data: Partial<Course>) =>
     client.put(`/members/${memberId}/courses/${courseId}`, data),
 
+  // AGT Records
+  getAgtRecords: (memberId: number) => client.get(`/members/${memberId}/agt-records`),
+  createAgtRecord: (memberId: number, data: { type: string; date: string; result?: string; notes?: string }) =>
+    client.post(`/members/${memberId}/agt-records`, data),
+  deleteAgtRecord: (memberId: number, recordId: number) =>
+    client.delete(`/members/${memberId}/agt-records/${recordId}`),
+
   // Groups
   getGroups: () => client.get<{ data: MemberGroup[] }>('/members/groups'),
   createGroup: (data: Partial<MemberGroup>) => client.post('/members/groups', data),

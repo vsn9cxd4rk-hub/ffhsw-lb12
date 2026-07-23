@@ -90,13 +90,18 @@ CREATE TABLE IF NOT EXISTS `users` (
   `isAdmin`   TINYINT(1)   NOT NULL DEFAULT 0,
   `isActive`  TINYINT(1)   NOT NULL DEFAULT 1,
   `groupId`   INT          NULL,
+  `memberId`  INT          NULL,
   `createdAt` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updatedAt` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `users_username_key` (`username`),
   UNIQUE KEY `users_email_key` (`email`),
+  UNIQUE KEY `users_memberId_key` (`memberId`),
   CONSTRAINT `users_groupId_fkey`
     FOREIGN KEY (`groupId`) REFERENCES `permission_groups` (`id`)
+    ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `users_memberId_fkey`
+    FOREIGN KEY (`memberId`) REFERENCES `members` (`id`)
     ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -256,6 +261,26 @@ CREATE TABLE IF NOT EXISTS `member_examinations` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `member_examinations_memberId_key` (`memberId`),
   CONSTRAINT `member_examinations_memberId_fkey`
+    FOREIGN KEY (`memberId`) REFERENCES `members` (`id`)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------------------------
+-- AGT-Nachweise (Atemschutzgeräteträger-Tauglichkeit)
+-- Laufende Tabelle: G26 Untersuchungen, Belastungsübungen, Einsatzübungen, Einsätze
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `agt_records` (
+  `id`        INT          NOT NULL AUTO_INCREMENT,
+  `memberId`  INT          NOT NULL,
+  `type`      VARCHAR(50)  NOT NULL COMMENT 'g26, belastung, einsatzuebung, einsatz',
+  `date`      DATETIME     NOT NULL,
+  `result`    VARCHAR(50)  NULL COMMENT 'geeignet / nicht_geeignet (nur bei g26)',
+  `notes`     VARCHAR(500) NULL,
+  `createdAt` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  INDEX `idx_agt_records_member` (`memberId`),
+  INDEX `idx_agt_records_type_date` (`memberId`, `type`, `date` DESC),
+  CONSTRAINT `agt_records_memberId_fkey`
     FOREIGN KEY (`memberId`) REFERENCES `members` (`id`)
     ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -866,9 +891,10 @@ CREATE TABLE IF NOT EXISTS `fire_watches` (
 -- Ausbildungs-Kategorien (Lehrgänge)
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `course_categories` (
-  `id`          INT          NOT NULL AUTO_INCREMENT,
-  `name`        VARCHAR(100) NOT NULL,
-  `description` VARCHAR(500) NULL,
+  `id`                 INT          NOT NULL AUTO_INCREMENT,
+  `name`               VARCHAR(100) NOT NULL,
+  `description`        VARCHAR(500) NULL,
+  `qualificationField` VARCHAR(50)  NULL COMMENT 'Auto-set qualification on course completion',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -966,9 +992,9 @@ VALUES
    1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,
    1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,
    1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1),
-  -- Gerätewarte: Fahrzeuge, Bestandsliste, Prüfbuch (kein Personal/Einsätze/Veranstaltungen/Ausbildung)
+  -- Gerätewarte: Fahrzeuge (br1), Gerätewart-Bereich (br3) = Bestandsliste/Prüfbuch/Mängel
   (2, 'Gerätewarte', 'Zugriff auf Fahrzeuge, Bestandsliste und Prüfbuch',
-   0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
+   0,1,0,1,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0),
@@ -978,15 +1004,21 @@ VALUES
    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0),
-  -- Maschinisten: wie Benutzer + Fahrzeuge/Fahrtenbuch
+  -- Maschinisten: wie Benutzer + Fahrzeuge/Fahrtenbuch (br1)
   (4, 'Maschinisten', 'Wie Benutzer, zusätzlich Fahrzeuge und Fahrtenbuch',
-   0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
+   0,1,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0),
-  -- Gruppenführer: wie Benutzer + Einsätze/Veranstaltungen (Berichte anlegen)
+  -- Gruppenführer: wie Benutzer + Einsätze/Statistik/Veranstaltungen (br2)
   (5, 'Gruppenführer', 'Wie Benutzer, zusätzlich Berichte bei Einsätzen und Veranstaltungen',
+   0,0,1,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
+   0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
+   0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0),
+  -- Gerätewart + Gruppenführer: Beispiel-Kombigruppe (br1+br2+br3 frei kombiniert)
+  (6, 'Gerätewart + Gruppenführer', 'Fahrzeuge, Gerätewart-Bereich und Einsätze kombiniert',
+   0,1,1,1,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0);
@@ -1023,27 +1055,27 @@ INSERT IGNORE INTO `ranks` (`id`, `name`, `abbreviation`, `sortOrder`) VALUES
 -- -----------------------------------------------------------------------------
 -- Ausbildungs-Kategorien
 -- -----------------------------------------------------------------------------
-INSERT IGNORE INTO `course_categories` (`id`, `name`, `description`) VALUES
-  (1,  'Führerschein',                       'Führerscheinausbildung'),
-  (2,  'Erste Hilfe',                        'Erste-Hilfe-Kurs'),
-  (3,  'Truppführer',                        'Truppführer-Lehrgang'),
-  (4,  'Gruppenführer',                      'Gruppenführer-Lehrgang'),
-  (5,  'Zugführer',                          'Zugführer-Lehrgang'),
-  (6,  'Sprechfunker',                       'Sprechfunker-Ausbildung'),
-  (7,  'Atemschutzgeräteträger',             'Atemschutz-Ausbildung'),
-  (8,  'Absturzsicherung',                   'Absturzsicherungs-Ausbildung'),
-  (9,  'Kettensäge',                         'Kettensägen-Ausbildung'),
-  (10, 'TM1',                                'Truppmann Lehrgang Teil 1'),
-  (11, 'CBRN-Schutz',                        'CBRN-Schutz-Ausbildung'),
-  (12, 'Wasserrettung',                      'Wasserrettungs-Ausbildung'),
-  (13, 'Maschinisten',                       'Maschinisten-Ausbildung'),
-  (14, 'Drehleiter',                         'Drehleiter-Ausbildung'),
-  (15, 'Sonstiges',                          'Sonstige Ausbildungen'),
-  (16, 'G26.3 Untersuchung',                 'Arbeitsmedizinische Vorsorgeuntersuchung G26.3 für Atemschutzgeräteträger'),
-  (17, 'LKW-Führerschein Folgeuntersuchung', 'Ärztliche Untersuchung zur Verlängerung der Fahrerlaubnis Klasse C/CE'),
-  (18, 'TM2',                                'Truppmann Lehrgang Teil 2'),
-  (19, 'TH 1/2',                             'Technische Hilfe Ausbildung'),
-  (20, 'Patientengerechtes Retten',          'Patientengerechtes Retten Ausbildung');
+INSERT IGNORE INTO `course_categories` (`id`, `name`, `description`, `qualificationField`) VALUES
+  (1,  'Führerschein',                       'Führerscheinausbildung',           'qualLicenseB'),
+  (2,  'Erste Hilfe',                        'Erste-Hilfe-Kurs',                 'qualFirstAid'),
+  (3,  'Truppführer',                        'Truppführer-Lehrgang',             'qualTruppfuehrer'),
+  (4,  'Gruppenführer',                      'Gruppenführer-Lehrgang',           'qualGruppenfuehrer'),
+  (5,  'Zugführer',                          'Zugführer-Lehrgang',               'qualZugfuehrer'),
+  (6,  'Sprechfunker',                       'Sprechfunker-Ausbildung',          'qualRadioOperator'),
+  (7,  'Atemschutzgeräteträger',             'Atemschutz-Ausbildung',            'qualAGT'),
+  (8,  'Absturzsicherung',                   'Absturzsicherungs-Ausbildung',     NULL),
+  (9,  'Kettensäge',                         'Kettensägen-Ausbildung',           NULL),
+  (10, 'TM1',                                'Truppmann Lehrgang Teil 1',        'qualTruppmann'),
+  (11, 'CBRN-Schutz',                        'CBRN-Schutz-Ausbildung',          NULL),
+  (12, 'Wasserrettung',                      'Wasserrettungs-Ausbildung',        NULL),
+  (13, 'Maschinisten',                       'Maschinisten-Ausbildung',          'qualMachinist'),
+  (14, 'Drehleiter',                         'Drehleiter-Ausbildung',            NULL),
+  (15, 'Sonstiges',                          'Sonstige Ausbildungen',            NULL),
+  (16, 'G26.3 Untersuchung',                 'Arbeitsmedizinische Vorsorgeuntersuchung G26.3 für Atemschutzgeräteträger', NULL),
+  (17, 'LKW-Führerschein Folgeuntersuchung', 'Ärztliche Untersuchung zur Verlängerung der Fahrerlaubnis Klasse C/CE', 'qualLicenseC'),
+  (18, 'TM2',                                'Truppmann Lehrgang Teil 2',        NULL),
+  (19, 'TH 1/2',                             'Technische Hilfe Ausbildung',      'qualTH1'),
+  (20, 'Patientengerechtes Retten',          'Patientengerechtes Retten Ausbildung', NULL);
 
 -- -----------------------------------------------------------------------------
 -- Feste Lagerorte
@@ -1219,6 +1251,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 --    member_work         - Arbeitgeber
 --    member_bank         - Bankdaten (IBAN/BIC)
 --    member_examinations - G25/G26/G30-Untersuchungen
+--    agt_records         - AGT-Tauglichkeitsnachweise (G26, Übungen, Einsätze)
 --    member_availability - Verfügbarkeitsstatus
 --    member_history      - Änderungsprotokoll
 --

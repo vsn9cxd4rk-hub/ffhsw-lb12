@@ -1,5 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { authenticate } from '../middleware/auth.middleware';
+import { requirePermission } from '../middleware/permission.middleware';
+import { BIT_OPERATIONS } from '../config/permissionBits';
 import {
   getOperations, createOperation, getOperation, updateOperation, deleteOperation,
   createOperationTime, updateOperationTime, deleteOperationTime,
@@ -12,6 +14,7 @@ import { sendSuccess, sendError } from '../utils/response';
 
 const router = Router();
 router.use(authenticate);
+router.use(requirePermission(BIT_OPERATIONS));
 
 router.get('/', getOperations);
 router.post('/', createOperation);

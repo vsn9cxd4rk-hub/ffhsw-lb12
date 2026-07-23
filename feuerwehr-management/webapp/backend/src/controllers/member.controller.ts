@@ -293,6 +293,24 @@ export async function getMemberCourses(req: Request, res: Response): Promise<voi
   }
 }
 
+const VALID_QUALIFICATION_FIELDS = [
+  'qualLicenseB', 'qualLicenseC', 'qualFirstAid', 'qualRadioOperator',
+  'qualMachinist', 'qualTruppmann', 'qualTruppfuehrer', 'qualGruppenfuehrer',
+  'qualZugfuehrer', 'qualRettSan', 'qualFwSan', 'qualVerbandfuehrer',
+  'qualAGT', 'qualTH1',
+];
+
+async function applyQualificationFromCourse(memberId: number, categoryId: number, status: string) {
+  if (status !== 'completed') return;
+  const category = await prisma.courseCategory.findUnique({ where: { id: categoryId } });
+  if (!category?.qualificationField) return;
+  if (!VALID_QUALIFICATION_FIELDS.includes(category.qualificationField)) return;
+  await prisma.member.update({
+    where: { id: memberId },
+    data: { [category.qualificationField]: true },
+  });
+}
+
 export async function createMemberCourse(req: Request, res: Response): Promise<void> {
   try {
     const memberId = parseInt(req.params.id);
@@ -300,6 +318,7 @@ export async function createMemberCourse(req: Request, res: Response): Promise<v
       data: { ...req.body, memberId },
       include: { category: true },
     });
+    await applyQualificationFromCourse(memberId, course.categoryId, course.status);
     sendSuccess(res, course, 201);
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -314,6 +333,7 @@ export async function updateMemberCourse(req: Request, res: Response): Promise<v
       data: req.body,
       include: { category: true },
     });
+    await applyQualificationFromCourse(course.memberId, course.categoryId, course.status);
     sendSuccess(res, course);
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -344,6 +364,43 @@ export async function updateMemberGroup(req: Request, res: Response): Promise<vo
     const id = parseInt(req.params.groupId);
     const group = await prisma.memberGroup.update({ where: { id }, data: req.body });
     sendSuccess(res, group);
+  } catch (err) {
+    sendError(res, (err as Error).message);
+  }
+}
+
+// AGT Records
+export async function getAgtRecords(req: Request, res: Response): Promise<void> {
+  try {
+    const memberId = parseInt(req.params.id);
+    const records = await prisma.agtRecord.findMany({
+      where: { memberId },
+      orderBy: { date: 'desc' },
+    });
+    sendSuccess(res, records);
+  } catch (err) {
+    sendError(res, (err as Error).message);
+  }
+}
+
+export async function createAgtRecord(req: Request, res: Response): Promise<void> {
+  try {
+    const memberId = parseInt(req.params.id);
+    const { type, date, result, notes } = req.body;
+    const record = await prisma.agtRecord.create({
+      data: { memberId, type, date: new Date(date), result: result || null, notes: notes || null },
+    });
+    sendSuccess(res, record, 201);
+  } catch (err) {
+    sendError(res, (err as Error).message);
+  }
+}
+
+export async function deleteAgtRecord(req: Request, res: Response): Promise<void> {
+  try {
+    const id = parseInt(req.params.recordId);
+    await prisma.agtRecord.delete({ where: { id } });
+    sendSuccess(res, { message: 'Eintrag gelöscht' });
   } catch (err) {
     sendError(res, (err as Error).message);
   }

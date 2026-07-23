@@ -18,10 +18,12 @@ model User {
   isAdmin   Boolean  @default(false)
   isActive  Boolean  @default(true)
   groupId   Int?
+  memberId  Int?     @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   group         PermissionGroup? @relation(fields: [groupId], references: [id])
+  member        Member?          @relation(fields: [memberId], references: [id])
   refreshTokens RefreshToken[]
 
   @@map("users")
@@ -192,10 +194,12 @@ model Member {
   deletedAt       DateTime?
 
   group        MemberGroup?       @relation(fields: [groupId], references: [id])
+  user         User?
   family       MemberFamily[]
   work         MemberWork?
   bank         MemberBank?
   examination  MemberExamination?
+  agtRecords   AgtRecord[]
   availability MemberAvailability[]
   courses      Course[]
   attendances  Attendance[]
@@ -263,6 +267,20 @@ model MemberExamination {
   member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
 
   @@map("member_examinations")
+}
+
+model AgtRecord {
+  id         Int      @id @default(autoincrement())
+  memberId   Int
+  type       String   @db.VarChar(50) // g26, belastung, einsatzuebung, einsatz
+  date       DateTime
+  result     String?  @db.VarChar(50) // geeignet, nicht_geeignet (only for g26)
+  notes      String?  @db.VarChar(500)
+  createdAt  DateTime @default(now())
+
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@map("agt_records")
 }
 
 model MemberAvailability {
@@ -656,6 +674,8 @@ model Operation {
   deceasedFirefighters Int      @default(0)
   createdByName       String?   @db.VarChar(100)
   authorRole          String?   @db.VarChar(50)
+  operationResult     String?   @db.VarChar(30)
+  wasActivelyInvolved Boolean   @default(true)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
@@ -791,9 +811,10 @@ model FireWatch {
 // ==================== TRAINING / AUSBILDUNG ====================
 
 model CourseCategory {
-  id          Int     @id @default(autoincrement())
-  name        String  @db.VarChar(100)
-  description String? @db.VarChar(500)
+  id                 Int     @id @default(autoincrement())
+  name               String  @db.VarChar(100)
+  description        String? @db.VarChar(500)
+  qualificationField String? @db.VarChar(50)
 
   courses Course[]
 

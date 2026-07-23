@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import { usersApi } from '../../api/users';
-import { User, PermissionGroup } from '../../types';
+import { membersApi } from '../../api/members';
+import { User, Member, PermissionGroup } from '../../types';
 import { Table } from '../../components/ui/Table';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
@@ -13,12 +14,14 @@ import { Input } from '../../components/ui/Input';
 function UserFormModal({ isOpen, onClose, editUser }: { isOpen: boolean; onClose: () => void; editUser?: User | null }) {
   const queryClient = useQueryClient();
   const { data: groups } = useQuery({ queryKey: ['permission-groups'], queryFn: () => usersApi.getGroups().then(r => r.data.data as PermissionGroup[]) });
+  const { data: membersData } = useQuery({ queryKey: ['members-for-user-link'], queryFn: () => membersApi.getAll({ limit: 10000, isInactive: false }).then(r => r.data.data as Member[]) });
   const [form, setForm] = useState({
     username: editUser?.username || '',
     email: editUser?.email || '',
     name: editUser?.name || '',
     password: '',
     groupId: editUser?.groupId ? String(editUser.groupId) : '',
+    memberId: editUser?.memberId ? String(editUser.memberId) : '',
     isAdmin: editUser?.isAdmin || false,
     isActive: editUser?.isActive ?? true,
   });
@@ -26,8 +29,8 @@ function UserFormModal({ isOpen, onClose, editUser }: { isOpen: boolean; onClose
 
   const mutation = useMutation({
     mutationFn: () => editUser
-      ? usersApi.update(editUser.id, { ...form, groupId: form.groupId ? parseInt(form.groupId) : null, password: form.password || undefined })
-      : usersApi.create({ ...form, groupId: form.groupId ? parseInt(form.groupId) : null } as User & { password: string }),
+      ? usersApi.update(editUser.id, { ...form, groupId: form.groupId ? parseInt(form.groupId) : null, memberId: form.memberId ? parseInt(form.memberId) : null, password: form.password || undefined })
+      : usersApi.create({ ...form, groupId: form.groupId ? parseInt(form.groupId) : null, memberId: form.memberId ? parseInt(form.memberId) : null } as User & { password: string }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['users'] }); setError(''); onClose(); },
     onError: (err: unknown) => {
       const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Speichern fehlgeschlagen';
@@ -58,6 +61,17 @@ function UserFormModal({ isOpen, onClose, editUser }: { isOpen: boolean; onClose
           >
             <option value="">-- Bitte wählen --</option>
             {(groups || []).map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">Verknüpftes Mitglied</label>
+          <select
+            value={form.memberId}
+            onChange={(e) => u('memberId', e.target.value)}
+            className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none bg-white"
+          >
+            <option value="">-- Kein Mitglied verknüpft --</option>
+            {(membersData || []).map((m: Member) => <option key={m.id} value={m.id}>{m.lastName}, {m.firstName}</option>)}
           </select>
         </div>
         <div className="flex gap-4">
@@ -100,6 +114,7 @@ export function UsersPage() {
       <div><p className="font-medium">{u.username}</p>{u.name && <p className="text-xs text-gray-500">{u.name}</p>}</div>
     )},
     { key: 'email', header: 'E-Mail', render: (u: User) => u.email || '-' },
+    { key: 'member', header: 'Mitglied', render: (u: User) => u.member ? `${u.member.lastName}, ${u.member.firstName}` : '-' },
     { key: 'group', header: 'Gruppe', render: (u: User) => u.group?.name || '-' },
     { key: 'flags', header: 'Rollen', render: (u: User) => (
       <div className="flex gap-1">

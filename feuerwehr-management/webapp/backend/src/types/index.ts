@@ -7,6 +7,7 @@ export interface AuthUser {
   name: string | null;
   isAdmin: boolean;
   groupId: number | null;
+  memberId: number | null;
   permissions: Record<string, boolean>;
 }
 

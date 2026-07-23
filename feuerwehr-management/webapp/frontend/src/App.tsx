@@ -23,7 +23,13 @@ import { ChangePasswordPage } from './pages/auth/ChangePasswordPage';
 import { HelpPage } from './pages/help/HelpPage';
 import { UsersPage } from './pages/users/UsersPage';
 import { ScanPage } from './pages/scan/ScanPage';
+import { StatisticsPage } from './pages/statistics/StatisticsPage';
 import { ThirdPartyLicensesPage } from './pages/about/ThirdPartyLicensesPage';
+import { RequireGroup } from './components/layout/RequireGroup';
+import { RequirePermission } from './components/layout/RequirePermission';
+import { BIT_VEHICLES, BIT_OPERATIONS, BIT_EQUIPMENT } from './config/permissionBits';
+
+const GROUP_ADMIN = 1;
 
 export default function App() {
   return (
@@ -38,28 +44,31 @@ export default function App() {
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<DashboardPage />} />
 
-          {/* Members */}
-          <Route path="/members" element={<MembersPage />} />
-          <Route path="/members/new" element={<MemberFormPage />} />
-          <Route path="/members/:id" element={<MemberDetailPage />} />
+          {/* Members - Admin only. Gruppenführer get member names via the Operations personnel picker (GET /members), not this page. */}
+          <Route path="/members" element={<RequireGroup allowedGroups={[GROUP_ADMIN]}><MembersPage /></RequireGroup>} />
+          <Route path="/members/new" element={<RequireGroup allowedGroups={[GROUP_ADMIN]}><MemberFormPage /></RequireGroup>} />
+          <Route path="/members/:id" element={<RequireGroup allowedGroups={[GROUP_ADMIN]}><MemberDetailPage /></RequireGroup>} />
 
-          {/* Vehicles */}
-          <Route path="/vehicles" element={<VehiclesPage />} />
-          <Route path="/vehicles/:id" element={<VehicleDetailPage />} />
+          {/* Vehicles - capability: Fahrzeuge */}
+          <Route path="/vehicles" element={<RequirePermission bit={BIT_VEHICLES}><VehiclesPage /></RequirePermission>} />
+          <Route path="/vehicles/:id" element={<RequirePermission bit={BIT_VEHICLES}><VehicleDetailPage /></RequirePermission>} />
 
-          {/* Inventory */}
-          <Route path="/inventory" element={<InventoryPage />} />
-          <Route path="/inventory/:id" element={<ArticleDetailPage />} />
+          {/* Inventory - capability: Gerätewart-Bereich */}
+          <Route path="/inventory" element={<RequirePermission bit={BIT_EQUIPMENT}><InventoryPage /></RequirePermission>} />
+          <Route path="/inventory/:id" element={<RequirePermission bit={BIT_EQUIPMENT}><ArticleDetailPage /></RequirePermission>} />
 
-          {/* Inspection Book */}
-          <Route path="/inspections" element={<InspectionBookPage />} />
+          {/* Inspection Book - capability: Gerätewart-Bereich */}
+          <Route path="/inspections" element={<RequirePermission bit={BIT_EQUIPMENT}><InspectionBookPage /></RequirePermission>} />
 
-          {/* Defects & Repairs */}
-          <Route path="/defects" element={<DefectsPage />} />
+          {/* Defects & Repairs - capability: Gerätewart-Bereich */}
+          <Route path="/defects" element={<RequirePermission bit={BIT_EQUIPMENT}><DefectsPage /></RequirePermission>} />
 
-          {/* Operations */}
-          <Route path="/operations" element={<OperationsPage />} />
-          <Route path="/operations/:id" element={<OperationDetailPage />} />
+          {/* Operations - capability: Einsätze */}
+          <Route path="/operations" element={<RequirePermission bit={BIT_OPERATIONS}><OperationsPage /></RequirePermission>} />
+          <Route path="/operations/:id" element={<RequirePermission bit={BIT_OPERATIONS}><OperationDetailPage /></RequirePermission>} />
+
+          {/* Statistics - capability: Einsätze */}
+          <Route path="/statistics" element={<RequirePermission bit={BIT_OPERATIONS}><StatisticsPage /></RequirePermission>} />
 
           {/* Events */}
           <Route path="/events" element={<EventsPage />} />

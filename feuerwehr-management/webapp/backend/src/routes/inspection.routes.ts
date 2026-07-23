@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import { authenticate } from '../middleware/auth.middleware';
+import { requirePermission } from '../middleware/permission.middleware';
+import { BIT_EQUIPMENT } from '../config/permissionBits';
 import {
   getInspections,
   getDueInspections,
@@ -18,6 +20,7 @@ import {
 const router = Router();
 
 router.use(authenticate);
+router.use(requirePermission(BIT_EQUIPMENT));
 
 router.get('/', getInspections);
 router.get('/due', getDueInspections);

@@ -52,6 +52,7 @@ const libraries: Library[] = [
   { name: 'docxtemplater', version: '^3.50.0', license: 'MIT', url: 'https://docxtemplater.com', category: 'backend' },
   { name: 'PizZip', version: '^3.1.7', license: 'MIT', url: 'https://github.com/open-xml-templating/pizzip', category: 'backend' },
   { name: 'ExcelJS', version: '^4.4.0', license: 'MIT', url: 'https://github.com/exceljs/exceljs', category: 'backend' },
+  { name: 'Recharts', version: '^2.15.0', license: 'MIT', url: 'https://recharts.org', category: 'frontend' },
 ];
 
 const licenseBadgeColor: Record<string, string> = {

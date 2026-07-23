@@ -83,6 +83,7 @@ export async function getMe(req: Request, res: Response): Promise<void> {
         isAdmin: true,
         isActive: true,
         groupId: true,
+        memberId: true,
         group: true,
         createdAt: true,
       },

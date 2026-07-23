@@ -27,8 +27,9 @@ export async function getUsers(req: Request, res: Response): Promise<void> {
         take,
         select: {
           id: true, username: true, email: true, name: true,
-          isAdmin: true, isActive: true, groupId: true,
+          isAdmin: true, isActive: true, groupId: true, memberId: true,
           group: { select: { id: true, name: true } },
+          member: { select: { id: true, firstName: true, lastName: true } },
           createdAt: true,
         },
         orderBy: { username: 'asc' },
@@ -44,7 +45,7 @@ export async function getUsers(req: Request, res: Response): Promise<void> {
 
 export async function createUser(req: Request, res: Response): Promise<void> {
   try {
-    const { username, email, password, name, isAdmin, isActive, groupId } = req.body;
+    const { username, email, password, name, isAdmin, isActive, groupId, memberId } = req.body;
 
     const existing = await prisma.user.findFirst({
       where: { OR: [{ username }, ...(email ? [{ email }] : [])] },
@@ -69,10 +70,11 @@ export async function createUser(req: Request, res: Response): Promise<void> {
         isAdmin: isAdmin ?? false,
         isActive: isActive ?? true,
         groupId,
+        memberId: memberId || null,
       },
       select: {
         id: true, username: true, email: true, name: true,
-        isAdmin: true, isActive: true, groupId: true, createdAt: true,
+        isAdmin: true, isActive: true, groupId: true, memberId: true, createdAt: true,
       },
     });
 
@@ -88,8 +90,10 @@ export async function getUser(req: Request, res: Response): Promise<void> {
       where: { id: parseInt(req.params.id) },
       select: {
         id: true, username: true, email: true, name: true,
-        isAdmin: true, isActive: true, groupId: true,
-        group: true, createdAt: true,
+        isAdmin: true, isActive: true, groupId: true, memberId: true,
+        group: true,
+        member: { select: { id: true, firstName: true, lastName: true } },
+        createdAt: true,
       },
     });
     if (!user) { sendError(res, 'Benutzer nicht gefunden', 404); return; }
@@ -102,7 +106,7 @@ export async function getUser(req: Request, res: Response): Promise<void> {
 export async function updateUser(req: Request, res: Response): Promise<void> {
   try {
     const id = parseInt(req.params.id);
-    const { email, name, isAdmin, isActive, groupId, password } = req.body;
+    const { email, name, isAdmin, isActive, groupId, memberId, password } = req.body;
 
     const data: Record<string, unknown> = {};
     if (email !== undefined) data.email = email;
@@ -113,6 +117,7 @@ export async function updateUser(req: Request, res: Response): Promise<void> {
       if (!groupId) { sendError(res, 'Berechtigungsgruppe ist erforderlich', 400); return; }
       data.groupId = groupId;
     }
+    if (memberId !== undefined) data.memberId = memberId || null;
     if (password) data.password = await authService.hashPassword(password);
 
     const user = await prisma.user.update({
@@ -120,7 +125,9 @@ export async function updateUser(req: Request, res: Response): Promise<void> {
       data,
       select: {
         id: true, username: true, email: true, name: true,
-        isAdmin: true, isActive: true, groupId: true, createdAt: true,
+        isAdmin: true, isActive: true, groupId: true, memberId: true,
+        member: { select: { id: true, firstName: true, lastName: true } },
+        createdAt: true,
       },
     });
     sendSuccess(res, user);
