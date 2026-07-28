@@ -141,7 +141,15 @@ export function MemberDetailPage() {
 
       {/* Tab Content */}
       {tab === 'stammdaten' && (
-        <StammdatenTab member={member} groups={groups || []} onSave={(data) => updateMutation.mutate(data)} saving={updateMutation.isPending} />
+        <StammdatenTab
+          member={member}
+          groups={groups || []}
+          onSave={(data) => updateMutation.mutate(data)}
+          saving={updateMutation.isPending}
+          prevMemberId={prevMemberId}
+          nextMemberId={nextMemberId}
+          onNavigate={(memberId) => navigate(`/members/${memberId}`)}
+        />
       )}
       {tab === 'untersuchungen' && (
         <UntersuchungenTab examination={member.examination ?? null} onSave={(data) => updateExamMutation.mutate(data)} saving={updateExamMutation.isPending} memberId={parseInt(id!)} birthDate={member.birthDate} />
@@ -162,11 +170,14 @@ export function MemberDetailPage() {
   );
 }
 
-function StammdatenTab({ member, groups, onSave, saving }: {
+function StammdatenTab({ member, groups, onSave, saving, prevMemberId, nextMemberId, onNavigate }: {
   member: Member;
   groups: Array<{ id: number; name: string }>;
   onSave: (data: Partial<Member>) => void;
   saving: boolean;
+  prevMemberId: number | null;
+  nextMemberId: number | null;
+  onNavigate: (memberId: number) => void;
 }) {
   const [form, setForm] = useState({
     salutation: member.salutation || '',
@@ -268,7 +279,23 @@ function StammdatenTab({ member, groups, onSave, saving }: {
           </div>
         </div>
       </div>
-      <div className="mt-6 flex justify-end">
+      <div className="mt-6 flex justify-end items-center gap-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          icon={<ChevronLeftIcon />}
+          onClick={() => prevMemberId && onNavigate(prevMemberId)}
+          disabled={!prevMemberId}
+          title="Vorheriges Mitglied"
+        />
+        <Button
+          variant="ghost"
+          size="sm"
+          icon={<ChevronRightIcon />}
+          onClick={() => nextMemberId && onNavigate(nextMemberId)}
+          disabled={!nextMemberId}
+          title="Nächstes Mitglied"
+        />
         <Button variant="primary" onClick={handleSave} loading={saving}>Speichern</Button>
       </div>
     </Card>
