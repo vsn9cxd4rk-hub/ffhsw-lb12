@@ -13,11 +13,28 @@ warning() { echo -e "${YELLOW}[WARN]${NC}  $*"; }
 error()   { echo -e "${RED}[ERROR]${NC} $*"; exit 1; }
 
 APP_DIR="/var/www/feuerwehrmanagement"
-APP_USER="lb12admin"
 LOG_DIR="/var/log/feuerwehrmanagement"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 [[ $EUID -ne 0 ]] && error "Dieses Script muss als root ausgeführt werden: sudo bash update.sh"
+
+# App-Benutzer ermitteln: bevorzugt den in INSTALL-MANJARO.md vorgesehenen
+# Service-User "lb12admin". Läuft eine Installation stattdessen unter einem
+# anderen Benutzer (z.B. weil dieser Setup-Schritt übersprungen wurde), wird
+# stattdessen der tatsächliche Besitzer von APP_DIR verwendet. Vorher war
+# APP_USER hart auf "lb12admin" codiert - chown/su schlugen dann mit
+# "invalid user" fehl, sobald dieser Systembenutzer nicht existiert, und
+# npm/prisma liefen als root weiter, was root-eigene Dateien in APP_DIR
+# hinterließ, auf die der eigentliche App-Benutzer keinen Zugriff mehr hatte.
+if id "lb12admin" &>/dev/null; then
+  APP_USER="lb12admin"
+elif [[ -d "$APP_DIR" ]]; then
+  APP_USER="$(stat -c '%U' "$APP_DIR")"
+else
+  APP_USER="${SUDO_USER:-root}"
+fi
+[[ -z "$APP_USER" || "$APP_USER" == "root" ]] && warning "App-Benutzer konnte nicht sicher ermittelt und läuft als 'root' - besser vorher lb12admin gemäß INSTALL-MANJARO.md anlegen."
+info "App-Benutzer: ${APP_USER}"
 
 echo ""
 echo "=================================================================="

@@ -18,7 +18,6 @@ set -e
 # --------------------------------------------------------------------------
 APP_DIR="/var/www/feuerwehrmanagement"
 BACKUP_DIR="${APP_DIR}/backups/daily"
-APP_USER="lb12admin"
 DB_PASS="Ffw#VSLB12!25"
 LOCKFILE="/var/run/feuerwehr-restore-auto.lock"
 
@@ -34,6 +33,17 @@ error()   { echo "$(date '+%Y-%m-%d %H:%M:%S') [ERROR] $*"; exit 1; }
 # Root-Check
 # --------------------------------------------------------------------------
 [[ $EUID -ne 0 ]] && error "Script muss als root ausgeführt werden: sudo bash restore-auto.sh"
+
+# App-Benutzer ermitteln (siehe update.sh für Begründung): bevorzugt den in
+# INSTALL-MANJARO.md vorgesehenen Service-User "lb12admin", sonst den
+# tatsächlichen Besitzer von APP_DIR.
+if id "lb12admin" &>/dev/null; then
+  APP_USER="lb12admin"
+elif [[ -d "$APP_DIR" ]]; then
+  APP_USER="$(stat -c '%U' "$APP_DIR")"
+else
+  APP_USER="${SUDO_USER:-root}"
+fi
 
 # --------------------------------------------------------------------------
 # Lockfile – verhindert parallele Ausführungen

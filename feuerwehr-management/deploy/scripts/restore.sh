@@ -14,10 +14,20 @@ error()   { echo -e "${RED}[ERROR]${NC} $*"; exit 1; }
 
 APP_DIR="/var/www/feuerwehrmanagement"
 BACKUP_DIR="${APP_DIR}/backups"
-APP_USER="lb12admin"
 DB_PASS="Ffw#VSLB12!25"
 
 [[ $EUID -ne 0 ]] && error "Dieses Script muss als root ausgeführt werden: sudo bash restore.sh"
+
+# App-Benutzer ermitteln (siehe update.sh für Begründung): bevorzugt den in
+# INSTALL-MANJARO.md vorgesehenen Service-User "lb12admin", sonst den
+# tatsächlichen Besitzer von APP_DIR.
+if id "lb12admin" &>/dev/null; then
+  APP_USER="lb12admin"
+elif [[ -d "$APP_DIR" ]]; then
+  APP_USER="$(stat -c '%U' "$APP_DIR")"
+else
+  APP_USER="${SUDO_USER:-root}"
+fi
 
 echo ""
 echo "=================================================================="

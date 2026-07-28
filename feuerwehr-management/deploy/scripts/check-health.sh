@@ -6,12 +6,22 @@
 # =============================================================================
 
 APP_DIR="/var/www/feuerwehrmanagement"
-APP_USER="lb12admin"
 BACKEND_URL="http://127.0.0.1:3001/api/health"
 LOG_DIR="/var/log/feuerwehrmanagement"
 MAX_RETRIES=3
 
 log() { echo "$(date '+%Y-%m-%d %H:%M:%S') $*"; }
+
+# App-Benutzer ermitteln (siehe update.sh für Begründung): bevorzugt den in
+# INSTALL-MANJARO.md vorgesehenen Service-User "lb12admin", sonst den
+# tatsächlichen Besitzer von APP_DIR.
+if id "lb12admin" &>/dev/null; then
+  APP_USER="lb12admin"
+elif [[ -d "$APP_DIR" ]]; then
+  APP_USER="$(stat -c '%U' "$APP_DIR")"
+else
+  APP_USER="root"
+fi
 
 # --------------------------------------------------------------------------
 # Backend-Erreichbarkeit prüfen
