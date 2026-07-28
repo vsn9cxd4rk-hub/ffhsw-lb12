@@ -321,7 +321,7 @@ export async function createMemberCourse(req: Request, res: Response): Promise<v
   try {
     const memberId = parseInt(req.params.id);
     const course = await prisma.course.create({
-      data: { ...convertDates(req.body, COURSE_DATE_FIELDS), memberId },
+      data: { ...convertDates(req.body, COURSE_DATE_FIELDS), memberId } as any,
       include: { category: true },
     });
     await applyQualificationFromCourse(memberId, course.categoryId, course.status);

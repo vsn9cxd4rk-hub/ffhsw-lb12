@@ -23,6 +23,9 @@ export const eventsApi = {
   deleteDocument: (eventId: number, docId: number) =>
     client.delete(`/events/${eventId}/documents/${docId}`),
 
+  generateBswChecklist: (id: number) => client.post(`/events/${id}/bsw/checkliste`),
+  generateBswReport: (id: number) => client.post(`/events/${id}/bsw/bericht`),
+
   getFireWatches: (params?: Record<string, unknown>) => client.get('/events/firewatches', { params }),
   createFireWatch: (data: Partial<FireWatch>) => client.post('/events/firewatches', data),
   getFireWatch: (id: number) => client.get<{ data: FireWatch }>(`/events/firewatches/${id}`),

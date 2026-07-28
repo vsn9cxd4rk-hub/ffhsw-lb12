@@ -757,6 +757,7 @@ model Event {
   hasVehicleAssignment Boolean  @default(false)
   infoSent            Boolean   @default(false)
   notes               String?   @db.Text
+  bswData             Json?
   tenantId            Int?
   createdAt           DateTime  @default(now())
 

@@ -251,9 +251,10 @@ Bei einem Update auf eine Version mit neuen Datenbankfeldern muss die Migration 
 
 ```bash
 mysql -u FFWVSLB12 -p FFWVSLB12 < deploy/migrate-add-report-fields.sql
+mysql -u FFWVSLB12 -p FFWVSLB12 < deploy/migrate-add-bsw-report.sql
 ```
 
-Die Migration ist idempotent (kann mehrfach ausgeführt werden).
+Beide Migrationen sind idempotent (können mehrfach ausgeführt werden).
 
 ---
 
@@ -393,6 +394,12 @@ NICHT TAUGLICH wenn:
 ```
 
 Die Ampel (grün/rot) zeigt den aktuellen Status mit Begründung an.
+
+### Brandsicherheitswache (Checkliste + Bericht)
+
+Für Veranstaltungen der Kategorie **BSW** gibt es unter **Veranstaltungen → Detail → Tab "BSW"** ein Formular für die 18-Punkte-Checkliste und den Wachbericht (Veranstaltungsort, Wachzeiten, Wachhabender/Wachposten, Mängel, Vorkommnisse). "Formular speichern" sichert den Stand an der Veranstaltung; die beiden Buttons "Als PDF erzeugen" füllen die Word-Vorlagen mit den gespeicherten Daten und legen das PDF im Tab "Dokumente" ab (technisch identisch zur Einsatzbericht-Erzeugung: PizZip + docxtemplater + LibreOffice-Konvertierung).
+
+**Voraussetzung:** die beiden Vorlagen `data/Templates/ChecklisteBrandsicherheitswacheLB12.docx` und `data/Templates/BerichtBrandsicherheitswacheLB12.docx` müssen einmalig unter **Einstellungen → Templates** hochgeladen werden — mit Namen, die "Checkliste Brandsicherheitswache" bzw. "Bericht Brandsicherheitswache" enthalten (Namenssuche ist ein Teilstring-Match).
 
 ---
 

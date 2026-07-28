@@ -34,6 +34,12 @@ describe('Schema-Integrität (Migration)', () => {
     }
   });
 
+  it('Tabelle "events" hat die Spalte "bswData"', async () => {
+    const columns: Array<{ Field: string }> = await prisma.$queryRaw`SHOW COLUMNS FROM events`;
+    const columnNames = columns.map(c => c.Field);
+    expect(columnNames, 'Spalte "bswData" fehlt in events').toContain('bswData');
+  });
+
   it('Tabelle "members" hat Qualifikations-Spalten', async () => {
     const columns: Array<{ Field: string }> = await prisma.$queryRaw`SHOW COLUMNS FROM members`;
     const columnNames = columns.map(c => c.Field);

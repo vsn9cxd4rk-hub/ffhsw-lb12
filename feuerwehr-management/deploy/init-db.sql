@@ -779,6 +779,7 @@ CREATE TABLE IF NOT EXISTS `events` (
   `hasVehicleAssignment` TINYINT(1)   NOT NULL DEFAULT 0,
   `infoSent`             TINYINT(1)   NOT NULL DEFAULT 0,
   `notes`                TEXT         NULL,
+  `bswData`              JSON         NULL COMMENT 'Ausgefülltes Formular für Checkliste/Bericht Brandsicherheitswache (Kategorie 3)',
   `tenantId`             INT          NULL,
   `createdAt`            DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)

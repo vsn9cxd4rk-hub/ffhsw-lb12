@@ -430,6 +430,26 @@ export interface OperationReport {
   createdAt: string;
 }
 
+export interface BswData {
+  checklist?: Record<string, 'ja' | 'nein' | null>; // Schlüssel: item1..item18
+  bemerkungen?: string;
+  veranstaltungsort?: string;
+  artDerVeranstaltung?: string;
+  beginnDatum?: string;
+  beginnUhrzeit?: string;
+  ansprechpartner?: string;
+  dienstantrittDatum?: string;
+  dienstantrittUhrzeit?: string;
+  dienstendeDatum?: string;
+  dienstendeUhrzeit?: string;
+  wachhabender?: string;
+  wachposten1?: string;
+  wachposten2?: string;
+  wachposten3?: string;
+  maengel?: string;
+  vorkommnisse?: string;
+}
+
 export interface Event {
   id: number;
   name: string;
@@ -441,6 +461,7 @@ export interface Event {
   hasVehicleAssignment: boolean;
   infoSent: boolean;
   notes: string | null;
+  bswData?: BswData | null;
   attendances?: EventAttendance[];
 }
 

@@ -3,6 +3,7 @@ import fs from 'fs';
 import { execSync } from 'child_process';
 import PizZip from 'pizzip';
 import ExcelJS from 'exceljs';
+import Docxtemplater from 'docxtemplater';
 import { prisma } from '../config/database';
 import { logger } from '../utils/logger';
 
@@ -563,4 +564,146 @@ export async function generatePersonnelSheet(operationId: number, vehicleFilter?
   });
 
   return { filePath: destPath, fileName };
+}
+
+// ==================== Brandsicherheitswache (Checkliste + Bericht) ====================
+
+export interface BswData {
+  checklist?: Record<string, 'ja' | 'nein' | null>; // Schlüssel: item1..item18
+  bemerkungen?: string;
+  veranstaltungsort?: string;
+  artDerVeranstaltung?: string;
+  beginnDatum?: string;
+  beginnUhrzeit?: string;
+  ansprechpartner?: string;
+  dienstantrittDatum?: string;
+  dienstantrittUhrzeit?: string;
+  dienstendeDatum?: string;
+  dienstendeUhrzeit?: string;
+  wachhabender?: string;
+  wachposten1?: string;
+  wachposten2?: string;
+  wachposten3?: string;
+  maengel?: string;
+  vorkommnisse?: string;
+}
+
+function formatDeDate(value: string | undefined): string {
+  if (!value) return '';
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return value;
+  return d.toLocaleDateString('de-DE');
+}
+
+async function fillDocxTemplate(templateName: string, tags: Record<string, string>): Promise<Buffer> {
+  const templatePath = await getTemplateByName(templateName);
+  const content = fs.readFileSync(templatePath, 'binary');
+  const zip = new PizZip(content);
+  const doc = new Docxtemplater(zip, { paragraphLoop: true, linebreaks: true });
+  doc.render(tags);
+  return doc.getZip().generate({ type: 'nodebuffer', compression: 'DEFLATE' }) as Buffer;
+}
+
+async function saveGeneratedEventDocument(
+  eventId: number,
+  buf: Buffer,
+  baseFileName: string
+): Promise<{ filePath: string; fileName: string }> {
+  ensureTempDir();
+  const timestamp = Date.now();
+  const docxPath = path.join(tempDir, `${baseFileName}_${timestamp}.docx`);
+  fs.writeFileSync(docxPath, buf);
+
+  let finalPath: string;
+  let fileName: string;
+  try {
+    finalPath = await convertToPdf(docxPath);
+    fileName = `${baseFileName}.pdf`;
+  } catch (err) {
+    logger.warn(`PDF-Konvertierung fehlgeschlagen, liefere docx: ${(err as Error).message}`);
+    finalPath = docxPath;
+    fileName = `${baseFileName}.docx`;
+  }
+
+  const destDir = path.join(uploadDir, 'events', String(eventId));
+  fs.mkdirSync(destDir, { recursive: true });
+  const destPath = path.join(destDir, `${timestamp}-${fileName}`);
+  fs.renameSync(finalPath, destPath);
+
+  if (finalPath !== docxPath && fs.existsSync(docxPath)) {
+    fs.unlinkSync(docxPath);
+  }
+
+  const stat = fs.statSync(destPath);
+  await prisma.eventDocument.create({
+    data: {
+      eventId,
+      fileName,
+      filePath: destPath,
+      fileSize: stat.size,
+      mimeType: fileName.endsWith('.pdf')
+        ? 'application/pdf'
+        : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      uploadedBy: 'System (Generiert)',
+    },
+  });
+
+  return { filePath: destPath, fileName };
+}
+
+function buildEventReportFileName(event: { date: Date; name: string }, eventId: number, art: string): string {
+  const parts = [
+    formatDateForFileName(event.date),
+    sanitizeFileNamePart(event.name || String(eventId)),
+    'LB12',
+    art,
+  ].filter(Boolean);
+  return parts.join('_');
+}
+
+export async function generateBswChecklist(eventId: number): Promise<{ filePath: string; fileName: string }> {
+  const event = await prisma.event.findUnique({ where: { id: eventId } });
+  if (!event) throw new Error('Veranstaltung nicht gefunden');
+
+  const data = (event.bswData as unknown as BswData) ?? {};
+  const checklist = data.checklist ?? {};
+
+  const tags: Record<string, string> = { bemerkungen: data.bemerkungen || '' };
+  for (let i = 1; i <= 18; i++) {
+    const value = checklist[`item${i}`];
+    tags[`item${i}Ja`] = value === 'ja' ? 'X' : '';
+    tags[`item${i}Nein`] = value === 'nein' ? 'X' : '';
+  }
+
+  const buf = await fillDocxTemplate('Checkliste Brandsicherheitswache', tags);
+  const baseFileName = buildEventReportFileName(event, eventId, 'ChecklisteBSW');
+  return saveGeneratedEventDocument(eventId, buf, baseFileName);
+}
+
+export async function generateBswReport(eventId: number): Promise<{ filePath: string; fileName: string }> {
+  const event = await prisma.event.findUnique({ where: { id: eventId } });
+  if (!event) throw new Error('Veranstaltung nicht gefunden');
+
+  const data = (event.bswData as unknown as BswData) ?? {};
+  const tags: Record<string, string> = {
+    veranstaltungsort: data.veranstaltungsort || '',
+    artDerVeranstaltung: data.artDerVeranstaltung || '',
+    beginnDatum: formatDeDate(data.beginnDatum),
+    beginnUhrzeit: data.beginnUhrzeit || '',
+    ansprechpartner: data.ansprechpartner || '',
+    dienstantrittDatum: formatDeDate(data.dienstantrittDatum),
+    dienstantrittUhrzeit: data.dienstantrittUhrzeit || '',
+    dienstendeDatum: formatDeDate(data.dienstendeDatum),
+    dienstendeUhrzeit: data.dienstendeUhrzeit || '',
+    wachhabender: data.wachhabender || '',
+    wachposten1: data.wachposten1 || '',
+    wachposten2: data.wachposten2 || '',
+    wachposten3: data.wachposten3 || '',
+    maengel: data.maengel || '',
+    vorkommnisse: data.vorkommnisse || '',
+  };
+
+  const buf = await fillDocxTemplate('Bericht Brandsicherheitswache', tags);
+  const baseFileName = buildEventReportFileName(event, eventId, 'BerichtBSW');
+  return saveGeneratedEventDocument(eventId, buf, baseFileName);
 }
