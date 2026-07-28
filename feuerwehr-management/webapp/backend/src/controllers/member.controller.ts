@@ -4,10 +4,15 @@ import { sendSuccess, sendError, sendPaginated } from '../utils/response';
 import { getPagination } from '../utils/pagination';
 
 const DATE_FIELDS = ['birthDate', 'memberSince', 'memberUntil', 'marriageDate'];
+const EXAMINATION_DATE_FIELDS = ['g25Date', 'g26Date', 'g30Date', 'agtTrainingDate', 'lkwLicenseExpiry'];
+const COURSE_DATE_FIELDS = ['startDate', 'endDate'];
 
-function convertDates(data: Record<string, unknown>): Record<string, unknown> {
+// Prisma's DateTime fields require a full ISO-8601 datetime; <input type="date">
+// only ever sends a plain "YYYY-MM-DD" string, which fails with "premature end
+// of input" if passed through unconverted.
+function convertDates(data: Record<string, unknown>, fields: string[] = DATE_FIELDS): Record<string, unknown> {
   const result = { ...data };
-  for (const field of DATE_FIELDS) {
+  for (const field of fields) {
     if (result[field] && typeof result[field] === 'string' && !(result[field] as string).includes('T')) {
       result[field] = new Date(result[field] as string).toISOString();
     }
@@ -256,10 +261,11 @@ export async function upsertMemberBank(req: Request, res: Response): Promise<voi
 export async function upsertMemberExamination(req: Request, res: Response): Promise<void> {
   try {
     const memberId = parseInt(req.params.id);
+    const data = convertDates(req.body, EXAMINATION_DATE_FIELDS);
     const exam = await prisma.memberExamination.upsert({
       where: { memberId },
-      update: req.body,
-      create: { ...req.body, memberId },
+      update: data,
+      create: { ...data, memberId },
     });
     sendSuccess(res, exam);
   } catch (err) {
@@ -315,7 +321,7 @@ export async function createMemberCourse(req: Request, res: Response): Promise<v
   try {
     const memberId = parseInt(req.params.id);
     const course = await prisma.course.create({
-      data: { ...req.body, memberId },
+      data: { ...convertDates(req.body, COURSE_DATE_FIELDS), memberId },
       include: { category: true },
     });
     await applyQualificationFromCourse(memberId, course.categoryId, course.status);
@@ -330,7 +336,7 @@ export async function updateMemberCourse(req: Request, res: Response): Promise<v
     const id = parseInt(req.params.courseId);
     const course = await prisma.course.update({
       where: { id },
-      data: req.body,
+      data: convertDates(req.body, COURSE_DATE_FIELDS),
       include: { category: true },
     });
     await applyQualificationFromCourse(course.memberId, course.categoryId, course.status);

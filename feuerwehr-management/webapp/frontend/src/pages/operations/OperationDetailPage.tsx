@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeftIcon, PlusIcon, TrashIcon, ArrowDownTrayIcon, DocumentArrowDownIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, PlusIcon, PencilIcon, TrashIcon, ArrowDownTrayIcon, DocumentArrowDownIcon } from '@heroicons/react/24/outline';
 import { operationsApi } from '../../api/operations';
 import { settingsApi } from '../../api/settings';
 import { membersApi } from '../../api/members';
-import { Operation, OperationDocument, OperationPersonnel, Template } from '../../types';
+import { Operation, OperationDocument, OperationPersonnel, OperationTime, Template } from '../../types';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Textarea } from '../../components/ui/Textarea';
@@ -56,7 +56,14 @@ export function OperationDetailPage() {
       </div>
 
       {tab === 'details' && <OperationDetailsTab op={op} onSave={(d) => updateMutation.mutate(d)} saving={updateMutation.isPending} />}
-      {tab === 'times' && <OperationTimesTab operationId={parseInt(id!)} times={op.times || []} />}
+      {tab === 'times' && (
+        <OperationTimesTab
+          operationId={parseInt(id!)}
+          vehicles={op.vehicles || ''}
+          times={op.times || []}
+          defaultTimes={{ alarmTime: op.alarmTime, departureTime: op.departureTime, arrivalTime: op.arrivalTime, returnTime: op.returnTime }}
+        />
+      )}
       {tab === 'personnel' && <OperationPersonnelTab operationId={parseInt(id!)} />}
       {tab === 'report' && <OperationReportTab operationId={parseInt(id!)} report={op.reports?.[0]} />}
       {tab === 'documents' && <OperationDocumentsTab operationId={parseInt(id!)} />}
@@ -247,14 +254,57 @@ function OperationDetailsTab({ op, onSave, saving }: { op: Operation; onSave: (d
   );
 }
 
-function OperationTimesTab({ operationId, times }: { operationId: number; times: Array<{ id: number; vehicleName: string; alarmTime: string | null; departureTime: string | null; arrivalTime: string | null; returnTime: string | null }> }) {
+interface OperationDefaultTimes {
+  alarmTime: string | null;
+  departureTime: string | null;
+  arrivalTime: string | null;
+  returnTime: string | null;
+}
+
+function OperationTimesTab({ operationId, vehicles, times, defaultTimes }: { operationId: number; vehicles: string; times: OperationTime[]; defaultTimes: OperationDefaultTimes }) {
   const queryClient = useQueryClient();
-  const [showAdd, setShowAdd] = useState(false);
-  const [newTime, setNewTime] = useState({ vehicleName: '', alarmTime: '', departureTime: '', arrivalTime: '', returnTime: '' });
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const emptyForm = { vehicleName: '', alarmTime: '', departureTime: '', arrivalTime: '', returnTime: '' };
+  const [form, setForm] = useState(emptyForm);
+
+  // Die in den Einsatzdetails angegebenen Fahrzeuge (kommasepariert) automatisch als
+  // Fahrzeugzeiten-Einträge anlegen, vorbefüllt mit den dort erfassten Einsatzzeiten,
+  // damit man weder Fahrzeuge noch Zeiten ein zweites Mal erfassen muss.
+  useEffect(() => {
+    const vehicleNames = vehicles.split(',').map(v => v.trim()).filter(Boolean);
+    if (vehicleNames.length === 0) return;
+    const existingNames = new Set(times.map(t => t.vehicleName.trim()));
+    const missing = vehicleNames.filter(name => !existingNames.has(name));
+    if (missing.length === 0) return;
+    Promise.all(missing.map(name => operationsApi.createTime(operationId, { vehicleName: name, ...defaultTimes })))
+      .then(() => queryClient.invalidateQueries({ queryKey: ['operation', String(operationId)] }));
+  }, [operationId, vehicles, times, defaultTimes, queryClient]);
+
+  const closeForm = () => { setShowForm(false); setEditingId(null); setForm(emptyForm); };
+  const openAdd = () => { setEditingId(null); setForm(emptyForm); setShowForm(true); };
+  const openEdit = (t: OperationTime) => {
+    setEditingId(t.id);
+    setForm({ vehicleName: t.vehicleName, alarmTime: t.alarmTime || '', departureTime: t.departureTime || '', arrivalTime: t.arrivalTime || '', returnTime: t.returnTime || '' });
+    setShowForm(true);
+  };
+
+  const payload = () => ({
+    vehicleName: form.vehicleName,
+    alarmTime: form.alarmTime || null,
+    departureTime: form.departureTime || null,
+    arrivalTime: form.arrivalTime || null,
+    returnTime: form.returnTime || null,
+  });
 
   const addMutation = useMutation({
-    mutationFn: () => operationsApi.createTime(operationId, { ...newTime, alarmTime: newTime.alarmTime || null, departureTime: newTime.departureTime || null, arrivalTime: newTime.arrivalTime || null, returnTime: newTime.returnTime || null }),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['operation', String(operationId)] }); setShowAdd(false); },
+    mutationFn: () => operationsApi.createTime(operationId, payload()),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['operation', String(operationId)] }); closeForm(); },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: () => operationsApi.updateTime(operationId, editingId as number, payload()),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['operation', String(operationId)] }); closeForm(); },
   });
 
   const deleteMutation = useMutation({
@@ -263,17 +313,23 @@ function OperationTimesTab({ operationId, times }: { operationId: number; times:
   });
 
   return (
-    <Card title="Fahrzeugzeiten" actions={<Button variant="secondary" size="sm" icon={<PlusIcon />} onClick={() => setShowAdd(!showAdd)}>Hinzufügen</Button>}>
-      {showAdd && (
+    <Card title="Fahrzeugzeiten" actions={<Button variant="secondary" size="sm" icon={<PlusIcon />} onClick={openAdd}>Hinzufügen</Button>}>
+      {showForm && (
         <div className="mb-4 p-4 bg-gray-50 rounded-md grid grid-cols-2 md:grid-cols-3 gap-3">
-          <Input label="Fahrzeug" value={newTime.vehicleName} onChange={(e) => setNewTime(t => ({ ...t, vehicleName: e.target.value }))} />
-          <Input label="Alarm" value={newTime.alarmTime} onChange={(e) => setNewTime(t => ({ ...t, alarmTime: e.target.value }))} type="time" />
-          <Input label="Ausgerückt" value={newTime.departureTime} onChange={(e) => setNewTime(t => ({ ...t, departureTime: e.target.value }))} type="time" />
-          <Input label="Eingetroffen" value={newTime.arrivalTime} onChange={(e) => setNewTime(t => ({ ...t, arrivalTime: e.target.value }))} type="time" />
-          <Input label="Eingerückt" value={newTime.returnTime} onChange={(e) => setNewTime(t => ({ ...t, returnTime: e.target.value }))} type="time" />
+          <Input label="Fahrzeug" value={form.vehicleName} onChange={(e) => setForm(f => ({ ...f, vehicleName: e.target.value }))} />
+          <Input label="Alarm" value={form.alarmTime} onChange={(e) => setForm(f => ({ ...f, alarmTime: e.target.value }))} type="time" />
+          <Input label="Ausgerückt" value={form.departureTime} onChange={(e) => setForm(f => ({ ...f, departureTime: e.target.value }))} type="time" />
+          <Input label="Eingetroffen" value={form.arrivalTime} onChange={(e) => setForm(f => ({ ...f, arrivalTime: e.target.value }))} type="time" />
+          <Input label="Eingerückt" value={form.returnTime} onChange={(e) => setForm(f => ({ ...f, returnTime: e.target.value }))} type="time" />
           <div className="flex items-end gap-2">
-            <Button variant="primary" size="sm" onClick={() => addMutation.mutate()} loading={addMutation.isPending} disabled={!newTime.vehicleName}>Speichern</Button>
-            <Button variant="secondary" size="sm" onClick={() => setShowAdd(false)}>Abbrechen</Button>
+            <Button variant="primary" size="sm"
+              onClick={() => editingId !== null ? updateMutation.mutate() : addMutation.mutate()}
+              loading={addMutation.isPending || updateMutation.isPending}
+              disabled={!form.vehicleName}
+            >
+              Speichern
+            </Button>
+            <Button variant="secondary" size="sm" onClick={closeForm}>Abbrechen</Button>
           </div>
         </div>
       )}
@@ -285,9 +341,14 @@ function OperationTimesTab({ operationId, times }: { operationId: number; times:
           { key: 'arrivalTime', header: 'Eingetroffen', render: (r) => r.arrivalTime || '-' },
           { key: 'returnTime', header: 'Eingerückt', render: (r) => r.returnTime || '-' },
           { key: 'actions', header: '', render: (r) => (
-            <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); deleteMutation.mutate(r.id as number); }}>
-              <TrashIcon className="h-4 w-4 text-red-500" />
-            </Button>
+            <div className="flex justify-end gap-1">
+              <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); openEdit(r); }}>
+                <PencilIcon className="h-4 w-4 text-gray-500" />
+              </Button>
+              <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); deleteMutation.mutate(r.id); }}>
+                <TrashIcon className="h-4 w-4 text-red-500" />
+              </Button>
+            </div>
           )},
         ]}
         data={times}
