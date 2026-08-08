@@ -256,6 +256,20 @@ mysql -u FFWVSLB12 -p FFWVSLB12 < deploy/migrate-add-bsw-report.sql
 
 Beide Migrationen sind idempotent (können mehrfach ausgeführt werden).
 
+**Direktes Update von 1.1.0 auf 1.2.0:** Version 1.1.1 enthielt keine
+Datenbankänderungen, daher deckt die Sammel-Migration
+`deploy/migrate-1.1.0-to-1.2.0.sql` (Zusammenfassung der beiden obigen
+Skripte) den kompletten Sprung von 1.1.0 auf 1.2.0 in einem Schritt ab:
+
+```bash
+mysql -u FFWVSLB12 -p FFWVSLB12 < deploy/migrate-1.1.0-to-1.2.0.sql
+```
+
+Danach zusätzlich (manueller Schritt, kein SQL): die beiden Vorlagen
+`data/Templates/ChecklisteBrandsicherheitswacheLB12.docx` und
+`data/Templates/BerichtBrandsicherheitswacheLB12.docx` unter
+Einstellungen → Templates hochladen.
+
 ---
 
 ## Funktionsübersicht (FENIX-Erweiterungen)

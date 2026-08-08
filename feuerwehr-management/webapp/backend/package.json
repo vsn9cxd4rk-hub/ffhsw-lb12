@@ -1,6 +1,6 @@
 {
   "name": "feuerwehr-backend",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Feuerwehr Management System Backend",
   "main": "dist/server.js",
   "scripts": {
@@ -29,7 +29,7 @@
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
     "multer": "^2.0.1",
-    "nodemailer": "^7.0.3",
+    "nodemailer": "^9.0.5",
     "docxtemplater": "^3.50.0",
     "exceljs": "^4.4.0",
     "pizzip": "^3.1.7",
@@ -46,12 +46,15 @@
     "@types/morgan": "^1.9.9",
     "@types/multer": "^1.4.12",
     "@types/node": "^22.15.0",
-    "@types/nodemailer": "^6.4.17",
+    "@types/nodemailer": "^8.0.1",
     "prisma": "^6.6.0",
     "supertest": "^7.0.0",
     "@types/supertest": "^6.0.2",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.8.3",
     "vitest": "^3.1.0"
+  },
+  "overrides": {
+    "uuid": "^11.1.1"
   }
 }

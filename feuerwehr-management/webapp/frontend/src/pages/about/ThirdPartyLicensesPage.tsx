@@ -14,15 +14,15 @@ const libraries: Library[] = [
   // Frontend
   { name: 'React', version: '^18.3.1', license: 'MIT', url: 'https://react.dev', category: 'frontend' },
   { name: 'React DOM', version: '^18.3.1', license: 'MIT', url: 'https://react.dev', category: 'frontend' },
-  { name: 'React Router DOM', version: '^6.28.2', license: 'MIT', url: 'https://reactrouter.com', category: 'frontend' },
+  { name: 'React Router DOM', version: '^7.18.2', license: 'MIT', url: 'https://reactrouter.com', category: 'frontend' },
   { name: '@headlessui/react', version: '^1.7.19', license: 'MIT', url: 'https://headlessui.com', category: 'frontend' },
   { name: '@heroicons/react', version: '^2.2.0', license: 'MIT', url: 'https://heroicons.com', category: 'frontend' },
   { name: '@tanstack/react-query', version: '^5.67.0', license: 'MIT', url: 'https://tanstack.com/query', category: 'frontend' },
   { name: 'axios', version: '^1.8.4', license: 'MIT', url: 'https://axios-http.com', category: 'frontend' },
   { name: 'zustand', version: '^5.0.3', license: 'MIT', url: 'https://github.com/pmndrs/zustand', category: 'frontend' },
   { name: 'date-fns', version: '^4.1.0', license: 'MIT', url: 'https://date-fns.org', category: 'frontend' },
-  { name: 'jspdf', version: '^2.5.2', license: 'MIT', url: 'https://github.com/parallax/jsPDF', category: 'frontend' },
-  { name: 'jspdf-autotable', version: '^3.8.4', license: 'MIT', url: 'https://github.com/simonbengtsson/jsPDF-AutoTable', category: 'frontend' },
+  { name: 'jspdf', version: '^4.2.1', license: 'MIT', url: 'https://github.com/parallax/jsPDF', category: 'frontend' },
+  { name: 'jspdf-autotable', version: '^5.0.7', license: 'MIT', url: 'https://github.com/simonbengtsson/jsPDF-AutoTable', category: 'frontend' },
   { name: 'qrcode', version: '^1.5.4', license: 'MIT', url: 'https://github.com/soldair/node-qrcode', category: 'frontend' },
   { name: 'react-hook-form', version: '^7.54.2', license: 'MIT', url: 'https://react-hook-form.com', category: 'frontend' },
   { name: '@hookform/resolvers', version: '^3.9.1', license: 'MIT', url: 'https://github.com/react-hook-form/resolvers', category: 'frontend' },
@@ -46,7 +46,7 @@ const libraries: Library[] = [
   { name: 'jsonwebtoken', version: '^9.0.2', license: 'MIT', url: 'https://github.com/auth0/node-jsonwebtoken', category: 'backend' },
   { name: 'morgan', version: '^1.10.0', license: 'MIT', url: 'https://github.com/expressjs/morgan', category: 'backend' },
   { name: 'multer', version: '^2.0.1', license: 'MIT', url: 'https://github.com/expressjs/multer', category: 'backend' },
-  { name: 'nodemailer', version: '^7.0.3', license: 'MIT', url: 'https://nodemailer.com', category: 'backend' },
+  { name: 'nodemailer', version: '^9.0.5', license: 'MIT-0', url: 'https://nodemailer.com', category: 'backend' },
   { name: 'winston', version: '^3.17.0', license: 'MIT', url: 'https://github.com/winstonjs/winston', category: 'backend' },
   { name: 'winston-daily-rotate-file', version: '^5.0.0', license: 'MIT', url: 'https://github.com/winstonjs/winston-daily-rotate-file', category: 'backend' },
   { name: 'docxtemplater', version: '^3.50.0', license: 'MIT', url: 'https://docxtemplater.com', category: 'backend' },
@@ -57,6 +57,7 @@ const libraries: Library[] = [
 
 const licenseBadgeColor: Record<string, string> = {
   'MIT': 'bg-green-100 text-green-700',
+  'MIT-0': 'bg-green-100 text-green-700',
   'Apache-2.0': 'bg-blue-100 text-blue-700',
   'BSD-2-Clause': 'bg-purple-100 text-purple-700',
 };
