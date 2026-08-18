@@ -595,7 +595,7 @@ function formatDeDate(value: string | undefined): string {
   return d.toLocaleDateString('de-DE');
 }
 
-async function fillDocxTemplate(templateName: string, tags: Record<string, string>): Promise<Buffer> {
+async function fillDocxTemplate(templateName: string, tags: Record<string, unknown>): Promise<Buffer> {
   const templatePath = await getTemplateByName(templateName);
   const content = fs.readFileSync(templatePath, 'binary');
   const zip = new PizZip(content);
@@ -705,5 +705,57 @@ export async function generateBswReport(eventId: number): Promise<{ filePath: st
 
   const buf = await fillDocxTemplate('Bericht Brandsicherheitswache', tags);
   const baseFileName = buildEventReportFileName(event, eventId, 'BerichtBSW');
+  return saveGeneratedEventDocument(eventId, buf, baseFileName);
+}
+
+// ==================== Übungen (Nachweis Übungsteilnahme) ====================
+
+const ATTENDANCE_STATUS_LABELS: Record<string, string> = {
+  present: 'Anwesend',
+  absent: 'Abwesend',
+  excused: 'Entschuldigt',
+};
+
+export async function generateExerciseAttendance(eventId: number): Promise<{ filePath: string; fileName: string }> {
+  const event = await prisma.event.findUnique({ where: { id: eventId } });
+  if (!event) throw new Error('Veranstaltung nicht gefunden');
+
+  const members = await prisma.member.findMany({
+    where: { isInactive: false, deletedAt: null, group: { name: 'Einsatzabteilung' } },
+    select: { id: true, firstName: true, lastName: true, rank: true },
+    orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
+  });
+
+  const attendance = await prisma.attendance.findMany({ where: { eventId } });
+  const statusByMember = new Map(attendance.map(a => [a.memberId, a.status]));
+
+  const memberRows = members.map((m, i) => {
+    const status = statusByMember.get(m.id);
+    return {
+      nr: i + 1,
+      name: `${m.lastName}, ${m.firstName}`,
+      rank: m.rank || '',
+      status: status ? (ATTENDANCE_STATUS_LABELS[status] || status) : '-',
+    };
+  });
+
+  const presentCount = memberRows.filter(m => m.status === 'Anwesend').length;
+  const absentCount = memberRows.filter(m => m.status === 'Abwesend').length;
+  const excusedCount = memberRows.filter(m => m.status === 'Entschuldigt').length;
+
+  const tags = {
+    eventName: event.name,
+    eventTheme: event.name2 || '',
+    eventDate: formatDeDate(event.date.toISOString()),
+    agtExercise: event.isAgtExercise ? 'Ja' : 'Nein',
+    members: memberRows,
+    presentCount: String(presentCount),
+    absentCount: String(absentCount),
+    excusedCount: String(excusedCount),
+    totalCount: String(memberRows.length),
+  };
+
+  const buf = await fillDocxTemplate('Übungsbesuch', tags);
+  const baseFileName = buildEventReportFileName(event, eventId, 'Uebungsbesuch');
   return saveGeneratedEventDocument(eventId, buf, baseFileName);
 }

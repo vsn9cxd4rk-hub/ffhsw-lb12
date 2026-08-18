@@ -5,6 +5,9 @@ import multer from 'multer';
 import { prisma } from '../config/database';
 import { sendSuccess, sendError, sendPaginated } from '../utils/response';
 import { getPagination } from '../utils/pagination';
+import { convertDates } from '../utils/dates';
+
+const COURSE_DATE_FIELDS = ['startDate', 'endDate'];
 
 const uploadDir = process.env.UPLOAD_PATH || './uploads';
 
@@ -70,7 +73,7 @@ export async function getCourses(req: Request, res: Response): Promise<void> {
 export async function createCourse(req: Request, res: Response): Promise<void> {
   try {
     const course = await prisma.course.create({
-      data: req.body,
+      data: convertDates(req.body, COURSE_DATE_FIELDS) as any,
       include: { category: true, member: { select: { id: true, firstName: true, lastName: true } } },
     });
     sendSuccess(res, course, 201);
@@ -96,7 +99,7 @@ export async function updateCourse(req: Request, res: Response): Promise<void> {
   try {
     const course = await prisma.course.update({
       where: { id: parseInt(req.params.id) },
-      data: req.body,
+      data: convertDates(req.body, COURSE_DATE_FIELDS) as any,
       include: { category: true },
     });
     sendSuccess(res, course);

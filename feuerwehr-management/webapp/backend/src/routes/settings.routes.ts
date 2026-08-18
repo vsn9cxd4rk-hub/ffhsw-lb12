@@ -4,6 +4,7 @@ import { requireAdmin } from '../middleware/permission.middleware';
 import {
   getSettings, updateSettings,
   getRanks, createRank, updateRank, deleteRank,
+  getAbsenceReasons,
   getYears, createYear, updateYear,
   getTemplates, uploadTemplate, templateUpload, updateTemplate, downloadTemplate, deleteTemplate, getTemplateHistory,
   getDeviceClasses, createDeviceClass, updateDeviceClass, deleteDeviceClass,
@@ -23,6 +24,8 @@ router.get('/ranks', getRanks);
 router.post('/ranks', requireAdmin, createRank);
 router.put('/ranks/:id', requireAdmin, updateRank);
 router.delete('/ranks/:id', requireAdmin, deleteRank);
+
+router.get('/absence-reasons', getAbsenceReasons);
 
 router.get('/years', getYears);
 router.post('/years', requireAdmin, createYear);

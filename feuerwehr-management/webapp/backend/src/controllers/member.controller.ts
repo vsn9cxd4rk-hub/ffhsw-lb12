@@ -2,23 +2,13 @@ import { Request, Response } from 'express';
 import { prisma } from '../config/database';
 import { sendSuccess, sendError, sendPaginated } from '../utils/response';
 import { getPagination } from '../utils/pagination';
+import { convertDates } from '../utils/dates';
 
 const DATE_FIELDS = ['birthDate', 'memberSince', 'memberUntil', 'marriageDate'];
 const EXAMINATION_DATE_FIELDS = ['g25Date', 'g26Date', 'g30Date', 'agtTrainingDate', 'lkwLicenseExpiry'];
 const COURSE_DATE_FIELDS = ['startDate', 'endDate'];
-
-// Prisma's DateTime fields require a full ISO-8601 datetime; <input type="date">
-// only ever sends a plain "YYYY-MM-DD" string, which fails with "premature end
-// of input" if passed through unconverted.
-function convertDates(data: Record<string, unknown>, fields: string[] = DATE_FIELDS): Record<string, unknown> {
-  const result = { ...data };
-  for (const field of fields) {
-    if (result[field] && typeof result[field] === 'string' && !(result[field] as string).includes('T')) {
-      result[field] = new Date(result[field] as string).toISOString();
-    }
-  }
-  return result;
-}
+const AVAILABILITY_DATE_FIELDS = ['validFrom', 'validUntil'];
+const ABSENCE_DATE_FIELDS = ['date'];
 
 const MEMBER_INCLUDE = {
   group: true,
@@ -70,7 +60,7 @@ export async function getMembers(req: Request, res: Response): Promise<void> {
 export async function createMember(req: Request, res: Response): Promise<void> {
   try {
     const member = await prisma.member.create({
-      data: convertDates(req.body) as any,
+      data: convertDates(req.body, DATE_FIELDS) as any,
       include: MEMBER_INCLUDE,
     });
 
@@ -100,6 +90,7 @@ export async function getMember(req: Request, res: Response): Promise<void> {
         ...MEMBER_INCLUDE,
         courses: { include: { category: true }, orderBy: { createdAt: 'desc' } },
         availability: { orderBy: { validFrom: 'desc' } },
+        absences: { orderBy: { date: 'desc' } },
       },
     });
     if (!member) { sendError(res, 'Mitglied nicht gefunden', 404); return; }
@@ -148,7 +139,7 @@ export async function updateMember(req: Request, res: Response): Promise<void> {
 
     const member = await prisma.member.update({
       where: { id },
-      data: convertDates(req.body) as any,
+      data: convertDates(req.body, DATE_FIELDS) as any,
       include: MEMBER_INCLUDE,
     });
 
@@ -277,7 +268,9 @@ export async function upsertMemberExamination(req: Request, res: Response): Prom
 export async function createMemberAvailability(req: Request, res: Response): Promise<void> {
   try {
     const memberId = parseInt(req.params.id);
-    const av = await prisma.memberAvailability.create({ data: { ...req.body, memberId } });
+    const av = await prisma.memberAvailability.create({
+      data: { ...convertDates(req.body, AVAILABILITY_DATE_FIELDS), memberId } as any,
+    });
     sendSuccess(res, av, 201);
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -407,6 +400,42 @@ export async function deleteAgtRecord(req: Request, res: Response): Promise<void
     const id = parseInt(req.params.recordId);
     await prisma.agtRecord.delete({ where: { id } });
     sendSuccess(res, { message: 'Eintrag gelöscht' });
+  } catch (err) {
+    sendError(res, (err as Error).message);
+  }
+}
+
+// Absences
+export async function createMemberAbsence(req: Request, res: Response): Promise<void> {
+  try {
+    const memberId = parseInt(req.params.id);
+    const absence = await prisma.absence.create({
+      data: { ...convertDates(req.body, ABSENCE_DATE_FIELDS), memberId } as any,
+    });
+    sendSuccess(res, absence, 201);
+  } catch (err) {
+    sendError(res, (err as Error).message);
+  }
+}
+
+export async function updateMemberAbsence(req: Request, res: Response): Promise<void> {
+  try {
+    const id = parseInt(req.params.absenceId);
+    const absence = await prisma.absence.update({
+      where: { id },
+      data: convertDates(req.body, ABSENCE_DATE_FIELDS) as any,
+    });
+    sendSuccess(res, absence);
+  } catch (err) {
+    sendError(res, (err as Error).message);
+  }
+}
+
+export async function deleteMemberAbsence(req: Request, res: Response): Promise<void> {
+  try {
+    const id = parseInt(req.params.absenceId);
+    await prisma.absence.delete({ where: { id } });
+    sendSuccess(res, { message: 'Abwesenheit gelöscht' });
   } catch (err) {
     sendError(res, (err as Error).message);
   }

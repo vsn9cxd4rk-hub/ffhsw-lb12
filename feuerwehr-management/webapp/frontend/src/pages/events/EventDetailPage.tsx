@@ -14,6 +14,7 @@ import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { formatDate, getEventCategoryLabel } from '../../utils/format';
 
 const CATEGORY_BSW = 3;
+const CATEGORY_UEBUNG = 5;
 
 function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -25,7 +26,7 @@ export function EventDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [tab, setTab] = useState<'details' | 'bsw' | 'documents'>('details');
+  const [tab, setTab] = useState<'details' | 'bsw' | 'uebung' | 'documents'>('details');
 
   const { data: event, isLoading } = useQuery({
     queryKey: ['event', id],
@@ -55,6 +56,7 @@ export function EventDetailPage() {
           {[
             { id: 'details', label: 'Details' },
             ...(event.category === CATEGORY_BSW ? [{ id: 'bsw', label: 'BSW' }] : []),
+            ...(event.category === CATEGORY_UEBUNG ? [{ id: 'uebung', label: 'Übung' }] : []),
             { id: 'documents', label: 'Dokumente' },
           ].map(t => (
             <button key={t.id} onClick={() => setTab(t.id as typeof tab)}
@@ -67,6 +69,7 @@ export function EventDetailPage() {
 
       {tab === 'details' && <EventDetailsTab event={event} onSave={d => updateMutation.mutate(d)} saving={updateMutation.isPending} />}
       {tab === 'bsw' && <EventBswTab event={event} onSave={d => updateMutation.mutate(d)} saving={updateMutation.isPending} />}
+      {tab === 'uebung' && <EventUebungTab event={event} onSave={d => updateMutation.mutate(d)} saving={updateMutation.isPending} />}
       {tab === 'documents' && <EventDocumentsTab eventId={parseInt(id!)} />}
     </div>
   );
@@ -88,7 +91,7 @@ function EventDetailsTab({ event, onSave, saving }: { event: Event; onSave: (d: 
     <Card>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Input label="Bezeichnung" value={form.name} onChange={e => u('name', e.target.value)} required />
-        <Input label="Bezeichnung 2" value={form.name2} onChange={e => u('name2', e.target.value)} />
+        <Input label="Thema" value={form.name2} onChange={e => u('name2', e.target.value)} />
         <Input label="Datum" value={form.date} onChange={e => u('date', e.target.value)} type="date" />
         <div className="grid grid-cols-2 gap-3">
           <Input label="Beginn" value={form.startTime} onChange={e => u('startTime', e.target.value)} type="time" />
@@ -104,6 +107,63 @@ function EventDetailsTab({ event, onSave, saving }: { event: Event; onSave: (d: 
         <Button variant="primary" onClick={() => onSave({ ...form, date: form.date ? new Date(form.date).toISOString() : undefined } as Partial<Event>)} loading={saving}>Speichern</Button>
       </div>
     </Card>
+  );
+}
+
+function EventUebungTab({ event, onSave, saving }: { event: Event; onSave: (d: Partial<Event>) => void; saving: boolean }) {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [isAgtExercise, setIsAgtExercise] = useState(event.isAgtExercise);
+  const [genError, setGenError] = useState('');
+  const [genSuccess, setGenSuccess] = useState('');
+
+  const generateMutation = useMutation({
+    mutationFn: () => eventsApi.generateExerciseAttendance(event.id),
+    onSuccess: () => {
+      setGenSuccess('Nachweis wurde erzeugt, siehe Tab "Dokumente".');
+      setGenError('');
+      queryClient.invalidateQueries({ queryKey: ['event-documents', event.id] });
+    },
+    onError: (err: unknown) => {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Erzeugen fehlgeschlagen';
+      setGenError(msg);
+      setGenSuccess('');
+    },
+  });
+
+  return (
+    <div className="space-y-4">
+      <Card title="Übung">
+        <label className="flex items-center gap-2 text-sm text-gray-700">
+          <input type="checkbox" checked={isAgtExercise} onChange={e => setIsAgtExercise(e.target.checked)}
+            className="rounded border-gray-300" />
+          AGT-Übung
+        </label>
+        <div className="mt-4 flex justify-end">
+          <Button variant="primary" onClick={() => onSave({ isAgtExercise })} loading={saving}>Speichern</Button>
+        </div>
+      </Card>
+
+      <Card title="Teilnehmer">
+        <p className="text-sm text-gray-500 mb-3">
+          Teilnehmer werden aus der aktiven Einsatzabteilung ausgewählt.
+        </p>
+        <Button variant="secondary" onClick={() => navigate(`/events/${event.id}/attendance`)}>
+          Teilnehmer erfassen
+        </Button>
+      </Card>
+
+      <Card title="Nachweis Übungsteilnahme">
+        {genError && <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-md mb-3">{genError}</div>}
+        {genSuccess && <div className="bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-3 rounded-md mb-3">{genSuccess}</div>}
+        <p className="text-sm text-gray-500 mb-3">
+          Erzeugt ein PDF mit der erfassten Anwesenheit und legt es im Tab "Dokumente" ab.
+        </p>
+        <Button variant="secondary" onClick={() => generateMutation.mutate()} loading={generateMutation.isPending}>
+          Nachweis als PDF erzeugen
+        </Button>
+      </Card>
+    </div>
   );
 }
 

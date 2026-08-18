@@ -100,6 +100,16 @@ export async function deleteRank(req: Request, res: Response): Promise<void> {
   }
 }
 
+// Absence Reasons
+export async function getAbsenceReasons(_req: Request, res: Response): Promise<void> {
+  try {
+    const reasons = await prisma.absenceReason.findMany({ orderBy: { id: 'asc' } });
+    sendSuccess(res, reasons);
+  } catch (err) {
+    sendError(res, (err as Error).message);
+  }
+}
+
 // Years
 export async function getYears(_req: Request, res: Response): Promise<void> {
   try {

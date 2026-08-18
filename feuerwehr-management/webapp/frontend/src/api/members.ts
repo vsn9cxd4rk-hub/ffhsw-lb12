@@ -1,5 +1,5 @@
 import client from './client';
-import { Member, MemberFamily, MemberWork, MemberBank, MemberExamination, Course, MemberGroup } from '../types';
+import { Member, MemberFamily, MemberWork, MemberBank, MemberExamination, Course, MemberGroup, Absence } from '../types';
 
 export const membersApi = {
   getAll: (params?: Record<string, unknown>) => client.get('/members', { params }),
@@ -38,6 +38,14 @@ export const membersApi = {
     client.post(`/members/${memberId}/agt-records`, data),
   deleteAgtRecord: (memberId: number, recordId: number) =>
     client.delete(`/members/${memberId}/agt-records/${recordId}`),
+
+  // Absences
+  createAbsence: (memberId: number, data: Partial<Absence>) =>
+    client.post(`/members/${memberId}/absences`, data),
+  updateAbsence: (memberId: number, absenceId: number, data: Partial<Absence>) =>
+    client.put(`/members/${memberId}/absences/${absenceId}`, data),
+  deleteAbsence: (memberId: number, absenceId: number) =>
+    client.delete(`/members/${memberId}/absences/${absenceId}`),
 
   // Groups
   getGroups: () => client.get<{ data: MemberGroup[] }>('/members/groups'),

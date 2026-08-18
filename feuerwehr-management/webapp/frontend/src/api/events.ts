@@ -26,6 +26,8 @@ export const eventsApi = {
   generateBswChecklist: (id: number) => client.post(`/events/${id}/bsw/checkliste`),
   generateBswReport: (id: number) => client.post(`/events/${id}/bsw/bericht`),
 
+  generateExerciseAttendance: (id: number) => client.post(`/events/${id}/uebung/besuch`),
+
   getFireWatches: (params?: Record<string, unknown>) => client.get('/events/firewatches', { params }),
   createFireWatch: (data: Partial<FireWatch>) => client.post('/events/firewatches', data),
   getFireWatch: (id: number) => client.get<{ data: FireWatch }>(`/events/firewatches/${id}`),

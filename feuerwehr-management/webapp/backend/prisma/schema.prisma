@@ -750,12 +750,13 @@ model Event {
   id                  Int       @id @default(autoincrement())
   name                String    @db.VarChar(255)
   name2               String?   @db.VarChar(255)
-  category            Int       @default(2) // 1=Einsatz, 2=Dienstabend, 3=BSW, 4=Sonstige
+  category            Int       @default(2) // 1=Einsatz, 2=Dienstabend, 3=BSW, 4=Sonstige, 5=Übung
   date                DateTime
   startTime           String?   @db.VarChar(10)
   endTime             String?   @db.VarChar(10)
   hasVehicleAssignment Boolean  @default(false)
   infoSent            Boolean   @default(false)
+  isAgtExercise       Boolean   @default(false)
   notes               String?   @db.Text
   bswData             Json?
   tenantId            Int?

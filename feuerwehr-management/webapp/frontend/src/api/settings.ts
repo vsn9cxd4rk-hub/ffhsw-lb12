@@ -1,5 +1,5 @@
 import client from './client';
-import { Rank, Template, TemplateHistory, DeviceClass, InspectionType } from '../types';
+import { Rank, Template, TemplateHistory, DeviceClass, InspectionType, AbsenceReason } from '../types';
 
 export const settingsApi = {
   get: () => client.get<{ data: Record<string, string> }>('/settings'),
@@ -9,6 +9,8 @@ export const settingsApi = {
   createRank: (data: Partial<Rank>) => client.post('/settings/ranks', data),
   updateRank: (id: number, data: Partial<Rank>) => client.put(`/settings/ranks/${id}`, data),
   deleteRank: (id: number) => client.delete(`/settings/ranks/${id}`),
+
+  getAbsenceReasons: () => client.get<{ data: AbsenceReason[] }>('/settings/absence-reasons'),
 
   getYears: () => client.get('/settings/years'),
   createYear: (year: number) => client.post('/settings/years', { year }),

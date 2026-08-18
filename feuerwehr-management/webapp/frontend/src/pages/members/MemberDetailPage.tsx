@@ -4,7 +4,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeftIcon, ChevronLeftIcon, ChevronRightIcon, TrashIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { membersApi } from '../../api/members';
 import { trainingApi } from '../../api/training';
-import { Member, MemberFamily, CourseCategory } from '../../types';
+import { settingsApi } from '../../api/settings';
+import { Member, MemberFamily, CourseCategory, Absence, AbsenceReason } from '../../types';
 import { Modal } from '../../components/ui/Modal';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
@@ -14,9 +15,9 @@ import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
-import { formatDate, getCourseStatusLabel, getCourseStatusColor } from '../../utils/format';
+import { formatDate, getCourseStatusLabel, getCourseStatusColor, getAbsenceReasonColorClasses } from '../../utils/format';
 
-type Tab = 'stammdaten' | 'kontakt' | 'laufbahn' | 'untersuchungen' | 'akte';
+type Tab = 'stammdaten' | 'kontakt' | 'laufbahn' | 'abwesenheiten' | 'untersuchungen' | 'akte';
 
 export function MemberDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -72,6 +73,7 @@ export function MemberDetailPage() {
     { id: 'stammdaten', label: 'Stammdaten' },
     { id: 'kontakt', label: 'Kontakt' },
     { id: 'laufbahn', label: 'Laufbahn' },
+    { id: 'abwesenheiten', label: 'Abwesenheiten' },
     { id: 'untersuchungen', label: 'Untersuchungen' },
     { id: 'akte', label: 'Akte' },
   ];
@@ -155,6 +157,7 @@ export function MemberDetailPage() {
         <UntersuchungenTab examination={member.examination ?? null} onSave={(data) => updateExamMutation.mutate(data)} saving={updateExamMutation.isPending} memberId={parseInt(id!)} birthDate={member.birthDate} />
       )}
       {tab === 'laufbahn' && <LaufbahnTab courses={member.courses || []} memberId={parseInt(id!)} />}
+      {tab === 'abwesenheiten' && <AbwesenheitenTab absences={member.absences || []} memberId={parseInt(id!)} />}
       {tab === 'kontakt' && <KontaktTab member={member} memberId={parseInt(id!)} />}
       {tab === 'akte' && <AkteTab memberId={parseInt(id!)} createdAt={member.createdAt} />}
 
@@ -313,11 +316,16 @@ function getAgtTypeLabel(type: string): string {
   return AGT_TYPES.find(t => t.value === type)?.label || type;
 }
 
-function calculateAgtStatus(records: Array<{ type: string; date: string; result?: string | null }>, birthDate: string | null): { tauglich: boolean; reasons: string[] } {
+function calculateAgtStatus(records: Array<{ type: string; date: string; result?: string | null }>, birthDate: string | null, g26Date: string | null): { tauglich: boolean; reasons: string[] } {
   const now = new Date();
   const reasons: string[] = [];
 
-  const latestG26 = records.filter(r => r.type === 'g26' && r.result === 'geeignet').sort((a, b) => b.date.localeCompare(a.date))[0];
+  // G26 gilt sowohl über einen "Nachweis"-Eintrag (Typ g26, Ergebnis geeignet) als auch
+  // über das einfache Feld "G26 (Atemschutz)" unter Untersuchungen - der jeweils
+  // aktuellere Stand zählt, damit man den Nachweis nicht doppelt pflegen muss.
+  const g26Candidates = records.filter(r => r.type === 'g26' && r.result === 'geeignet');
+  if (g26Date) g26Candidates.push({ type: 'g26', date: g26Date, result: 'geeignet' });
+  const latestG26 = g26Candidates.sort((a, b) => b.date.localeCompare(a.date))[0];
   const latestBelastung = records.filter(r => r.type === 'belastung').sort((a, b) => b.date.localeCompare(a.date))[0];
   const latestEinsatzuebung = records.filter(r => r.type === 'einsatzuebung').sort((a, b) => b.date.localeCompare(a.date))[0];
   const latestEinsatz = records.filter(r => r.type === 'einsatz').sort((a, b) => b.date.localeCompare(a.date))[0];
@@ -380,7 +388,7 @@ function UntersuchungenTab({ examination, onSave, saving, memberId, birthDate }:
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['agt-records', memberId] }),
   });
 
-  const agtStatus = calculateAgtStatus(agtRecords || [], birthDate);
+  const agtStatus = calculateAgtStatus(agtRecords || [], birthDate, examination?.g26Date || null);
 
   return (
     <div className="space-y-6">
@@ -574,6 +582,124 @@ function LaufbahnTab({ courses, memberId }: { courses: Array<{ id: number; categ
         </div>
       </Modal>
     </>
+  );
+}
+
+function AbwesenheitenTab({ absences, memberId }: { absences: Absence[]; memberId: number }) {
+  const queryClient = useQueryClient();
+  const [showForm, setShowForm] = useState(false);
+  const [editEntry, setEditEntry] = useState<Absence | undefined>();
+
+  const { data: reasons } = useQuery({
+    queryKey: ['absence-reasons'],
+    queryFn: () => settingsApi.getAbsenceReasons().then(r => r.data.data),
+  });
+  const reasonById = new Map((reasons || []).map(r => [r.id, r]));
+
+  const deleteMutation = useMutation({
+    mutationFn: (absenceId: number) => membersApi.deleteAbsence(memberId, absenceId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['member', String(memberId)] }),
+  });
+
+  const openAdd = () => { setEditEntry(undefined); setShowForm(true); };
+  const openEdit = (a: Absence) => { setEditEntry(a); setShowForm(true); };
+  const closeForm = () => { setShowForm(false); setEditEntry(undefined); };
+
+  return (
+    <>
+      <Card title="Abwesenheiten"
+        actions={<Button variant="primary" icon={<PlusIcon />} onClick={openAdd}>Abwesenheit erfassen</Button>}
+      >
+        {absences.length === 0 ? (
+          <p className="text-sm text-gray-500">Keine Abwesenheiten erfasst.</p>
+        ) : (
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Datum</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Grund</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Notiz</th>
+                <th className="px-4 py-2"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {absences.map((a) => {
+                const reason = reasonById.get(a.reason);
+                return (
+                  <tr key={a.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => openEdit(a)}>
+                    <td className="px-4 py-2 text-sm font-medium">{formatDate(a.date)}</td>
+                    <td className="px-4 py-2">
+                      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getAbsenceReasonColorClasses(reason?.color)}`}>
+                        {reason?.name || 'Unbekannt'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2 text-sm text-gray-500">{a.notes || '-'}</td>
+                    <td className="px-4 py-2 text-right">
+                      <Button variant="danger" size="sm" onClick={(e: React.MouseEvent) => { e.stopPropagation(); deleteMutation.mutate(a.id); }}>
+                        <TrashIcon className="h-4 w-4" />
+                      </Button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+      </Card>
+
+      <AbsenceFormModal isOpen={showForm} onClose={closeForm} memberId={memberId} entry={editEntry} reasons={reasons || []} />
+    </>
+  );
+}
+
+function AbsenceFormModal({ isOpen, onClose, memberId, entry, reasons }: {
+  isOpen: boolean; onClose: () => void; memberId: number; entry?: Absence; reasons: AbsenceReason[];
+}) {
+  const queryClient = useQueryClient();
+  const [form, setForm] = useState({
+    date: entry?.date?.substring(0, 10) || '',
+    reason: entry?.reason !== undefined ? String(entry.reason) : '',
+    notes: entry?.notes || '',
+  });
+  const [error, setError] = useState('');
+
+  const mutation = useMutation({
+    mutationFn: () => {
+      const data = { date: form.date, reason: parseInt(form.reason), notes: form.notes || null };
+      return entry
+        ? membersApi.updateAbsence(memberId, entry.id, data)
+        : membersApi.createAbsence(memberId, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['member', String(memberId)] });
+      onClose();
+    },
+    onError: (err: unknown) => {
+      setError((err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Speichern fehlgeschlagen');
+    },
+  });
+
+  const u = (f: string, v: string) => setForm(p => ({ ...p, [f]: v }));
+  const isValid = form.date && form.reason;
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title={entry ? 'Abwesenheit bearbeiten' : 'Abwesenheit erfassen'} size="md"
+      footer={<><Button variant="secondary" onClick={onClose}>Abbrechen</Button><Button variant="primary" onClick={() => mutation.mutate()} loading={mutation.isPending} disabled={!isValid}>Speichern</Button></>}
+    >
+      <div className="space-y-3">
+        {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-md">{error}</div>}
+        <Input label="Datum" value={form.date} onChange={(e) => u('date', e.target.value)} type="date" required />
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">Grund</label>
+          <select value={form.reason} onChange={(e) => u('reason', e.target.value)}
+            className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none bg-white">
+            <option value="">-- Bitte wählen --</option>
+            {reasons.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+          </select>
+        </div>
+        <Textarea label="Notiz" value={form.notes} onChange={(e) => u('notes', e.target.value)} rows={3} />
+      </div>
+    </Modal>
   );
 }
 

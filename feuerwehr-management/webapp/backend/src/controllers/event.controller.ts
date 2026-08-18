@@ -5,6 +5,11 @@ import multer from 'multer';
 import { prisma } from '../config/database';
 import { sendSuccess, sendError, sendPaginated } from '../utils/response';
 import { getPagination } from '../utils/pagination';
+import { convertDates } from '../utils/dates';
+
+const EVENT_DATE_FIELDS = ['date'];
+const FIREWATCH_DATE_FIELDS = ['date'];
+const CATEGORY_UEBUNG = 5;
 
 const uploadDir = process.env.UPLOAD_PATH || './uploads';
 
@@ -59,11 +64,7 @@ export async function getEvents(req: Request, res: Response): Promise<void> {
 
 export async function createEvent(req: Request, res: Response): Promise<void> {
   try {
-    const data = { ...req.body };
-    if (data.date && !data.date.includes('T')) {
-      data.date = new Date(data.date).toISOString();
-    }
-    const event = await prisma.event.create({ data });
+    const event = await prisma.event.create({ data: convertDates(req.body, EVENT_DATE_FIELDS) as any });
     sendSuccess(res, event, 201);
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -92,7 +93,10 @@ export async function getEvent(req: Request, res: Response): Promise<void> {
 
 export async function updateEvent(req: Request, res: Response): Promise<void> {
   try {
-    const event = await prisma.event.update({ where: { id: parseInt(req.params.id) }, data: req.body });
+    const event = await prisma.event.update({
+      where: { id: parseInt(req.params.id) },
+      data: convertDates(req.body, EVENT_DATE_FIELDS) as any,
+    });
     sendSuccess(res, event);
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -117,9 +121,13 @@ export async function getAttendance(req: Request, res: Response): Promise<void> 
 
     const year = event.date.getFullYear();
 
-    // Get all active members
+    // Get active members; for Übungen (category 5) only the aktive Einsatzabteilung takes part
     const members = await prisma.member.findMany({
-      where: { isInactive: false, deletedAt: null },
+      where: {
+        isInactive: false,
+        deletedAt: null,
+        ...(event.category === CATEGORY_UEBUNG ? { group: { name: 'Einsatzabteilung' } } : {}),
+      },
       select: { id: true, firstName: true, lastName: true, rank: true, groupId: true, group: { select: { name: true } } },
       orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
     });
@@ -190,7 +198,7 @@ export async function getFireWatches(req: Request, res: Response): Promise<void>
 
 export async function createFireWatch(req: Request, res: Response): Promise<void> {
   try {
-    const fw = await prisma.fireWatch.create({ data: req.body });
+    const fw = await prisma.fireWatch.create({ data: convertDates(req.body, FIREWATCH_DATE_FIELDS) as any });
     sendSuccess(res, fw, 201);
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -209,7 +217,10 @@ export async function getFireWatch(req: Request, res: Response): Promise<void> {
 
 export async function updateFireWatch(req: Request, res: Response): Promise<void> {
   try {
-    const fw = await prisma.fireWatch.update({ where: { id: parseInt(req.params.id) }, data: req.body });
+    const fw = await prisma.fireWatch.update({
+      where: { id: parseInt(req.params.id) },
+      data: convertDates(req.body, FIREWATCH_DATE_FIELDS) as any,
+    });
     sendSuccess(res, fw);
   } catch (err) {
     sendError(res, (err as Error).message);

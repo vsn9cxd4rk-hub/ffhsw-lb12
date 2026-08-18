@@ -74,6 +74,7 @@ export interface Member {
   bank?: MemberBank | null;
   examination?: MemberExamination | null;
   courses?: Course[];
+  absences?: Absence[];
   createdAt: string;
   updatedAt: string;
 }
@@ -460,6 +461,7 @@ export interface Event {
   endTime: string | null;
   hasVehicleAssignment: boolean;
   infoSent: boolean;
+  isAgtExercise: boolean;
   notes: string | null;
   bswData?: BswData | null;
   attendances?: EventAttendance[];
@@ -538,6 +540,21 @@ export interface Rank {
   name: string;
   abbreviation: string;
   sortOrder: number;
+}
+
+export interface Absence {
+  id: number;
+  memberId: number;
+  eventId: number | null;
+  date: string;
+  reason: number;
+  notes: string | null;
+}
+
+export interface AbsenceReason {
+  id: number;
+  name: string;
+  color: string | null;
 }
 
 export interface DashboardStats {

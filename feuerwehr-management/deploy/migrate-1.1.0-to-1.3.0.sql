@@ -1,25 +1,28 @@
 -- =============================================================================
--- Sammel-Migration: Update von Version 1.1.0 direkt auf 1.2.0
+-- Sammel-Migration: Update von Version 1.1.0 direkt auf 1.3.0
 -- Datenbank: FFWVSLB12
 --
 -- Kompatibel mit: MySQL 8.x und MariaDB 10.x+
 --
--- Fasst die beiden Einzel-Migrationen zusammen, die zwischen 1.1.0 und 1.2.0
--- hinzugekommen sind (Version 1.1.1 enthielt keine Datenbankänderungen):
+-- Fasst alle Einzel-Migrationen zusammen, die zwischen 1.1.0 und 1.3.0
+-- hinzugekommen sind (Version 1.1.1 und 1.2.1 enthielten keine
+-- Datenbankänderungen):
 --   1. migrate-add-report-fields.sql  (Einsatzbericht, Kräftenachweis, FENIX)
 --   2. migrate-add-bsw-report.sql     (Brandsicherheitswache-Formular)
+--   3. migrate-add-agt-exercise.sql   (AGT-Übung-Kennzeichnung, Nachweis Übungsteilnahme)
 --
--- Die beiden Migrationen betreffen unterschiedliche Tabellen/Spalten und
--- haben keine Abhängigkeit zueinander. Dieses Skript ist idempotent
--- (kann mehrfach ausgeführt werden).
+-- Die Migrationen betreffen unterschiedliche Tabellen/Spalten und haben
+-- keine Abhängigkeit zueinander. Dieses Skript ist idempotent (kann
+-- mehrfach ausgeführt werden).
 --
 -- Ausführen:
---   mysql -u FFWVSLB12 -p FFWVSLB12 < deploy/migrate-1.1.0-to-1.2.0.sql
+--   mysql -u FFWVSLB12 -p FFWVSLB12 < deploy/migrate-1.1.0-to-1.3.0.sql
 --
 -- Zusätzlich nötig (kein SQL, manueller Admin-Schritt nach dem Update):
---   Die beiden Vorlagen data/Templates/ChecklisteBrandsicherheitswacheLB12.docx
---   und data/Templates/BerichtBrandsicherheitswacheLB12.docx unter
---   Einstellungen → Templates hochladen.
+--   Die drei Vorlagen data/Templates/ChecklisteBrandsicherheitswacheLB12.docx,
+--   data/Templates/BerichtBrandsicherheitswacheLB12.docx und
+--   data/Templates/UebungsbesuchLB12.docx unter Einstellungen → Templates
+--   hochladen.
 -- =============================================================================
 
 SET NAMES utf8mb4;
@@ -163,6 +166,21 @@ SET @col_exists = (
 );
 SET @sql = IF(@col_exists = 0,
   'ALTER TABLE `events` ADD COLUMN `bswData` JSON NULL COMMENT ''Ausgefülltes Formular für Checkliste/Bericht Brandsicherheitswache (Kategorie 3)'' AFTER `notes`',
+  'SELECT 1');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- =============================================================================
+-- Teil 3: migrate-add-agt-exercise.sql (1.2.0 → Version 1.3.0)
+-- =============================================================================
+
+SET @col_exists = (
+  SELECT COUNT(*) FROM information_schema.COLUMNS
+  WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'events' AND COLUMN_NAME = 'isAgtExercise'
+);
+SET @sql = IF(@col_exists = 0,
+  'ALTER TABLE `events` ADD COLUMN `isAgtExercise` TINYINT(1) NOT NULL DEFAULT 0 AFTER `infoSent`',
   'SELECT 1');
 PREPARE stmt FROM @sql;
 EXECUTE stmt;

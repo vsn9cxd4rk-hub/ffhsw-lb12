@@ -252,23 +252,25 @@ Bei einem Update auf eine Version mit neuen Datenbankfeldern muss die Migration 
 ```bash
 mysql -u FFWVSLB12 -p FFWVSLB12 < deploy/migrate-add-report-fields.sql
 mysql -u FFWVSLB12 -p FFWVSLB12 < deploy/migrate-add-bsw-report.sql
+mysql -u FFWVSLB12 -p FFWVSLB12 < deploy/migrate-add-agt-exercise.sql
 ```
 
-Beide Migrationen sind idempotent (können mehrfach ausgeführt werden).
+Alle Migrationen sind idempotent (können mehrfach ausgeführt werden).
 
-**Direktes Update von 1.1.0 auf 1.2.0:** Version 1.1.1 enthielt keine
-Datenbankänderungen, daher deckt die Sammel-Migration
-`deploy/migrate-1.1.0-to-1.2.0.sql` (Zusammenfassung der beiden obigen
-Skripte) den kompletten Sprung von 1.1.0 auf 1.2.0 in einem Schritt ab:
+**Direktes Update von 1.1.0 auf 1.3.0:** Version 1.1.1 und 1.2.1 enthielten
+keine Datenbankänderungen, daher deckt die Sammel-Migration
+`deploy/migrate-1.1.0-to-1.3.0.sql` (Zusammenfassung der drei obigen
+Skripte) den kompletten Sprung von 1.1.0 auf 1.3.0 in einem Schritt ab:
 
 ```bash
-mysql -u FFWVSLB12 -p FFWVSLB12 < deploy/migrate-1.1.0-to-1.2.0.sql
+mysql -u FFWVSLB12 -p FFWVSLB12 < deploy/migrate-1.1.0-to-1.3.0.sql
 ```
 
-Danach zusätzlich (manueller Schritt, kein SQL): die beiden Vorlagen
-`data/Templates/ChecklisteBrandsicherheitswacheLB12.docx` und
-`data/Templates/BerichtBrandsicherheitswacheLB12.docx` unter
-Einstellungen → Templates hochladen.
+Danach zusätzlich (manueller Schritt, kein SQL): die drei Vorlagen
+`data/Templates/ChecklisteBrandsicherheitswacheLB12.docx`,
+`data/Templates/BerichtBrandsicherheitswacheLB12.docx` und
+`data/Templates/UebungsbesuchLB12.docx` unter Einstellungen → Templates
+hochladen.
 
 ---
 
@@ -409,11 +411,23 @@ NICHT TAUGLICH wenn:
 
 Die Ampel (grün/rot) zeigt den aktuellen Status mit Begründung an.
 
+Für die G26 zählt dabei automatisch auch das Feld **G26 (Atemschutz)** aus der Karte "Arbeitsmedizinische Untersuchungen" (als "geeignet" gewertet) — ein zusätzlicher Nachweis-Eintrag ist dafür nicht mehr nötig, es sei denn es soll explizit ein "nicht geeignet"-Ergebnis oder ein davon abweichendes Untersuchungsdatum hinterlegt werden.
+
 ### Brandsicherheitswache (Checkliste + Bericht)
 
 Für Veranstaltungen der Kategorie **BSW** gibt es unter **Veranstaltungen → Detail → Tab "BSW"** ein Formular für die 18-Punkte-Checkliste und den Wachbericht (Veranstaltungsort, Wachzeiten, Wachhabender/Wachposten, Mängel, Vorkommnisse). "Formular speichern" sichert den Stand an der Veranstaltung; die beiden Buttons "Als PDF erzeugen" füllen die Word-Vorlagen mit den gespeicherten Daten und legen das PDF im Tab "Dokumente" ab (technisch identisch zur Einsatzbericht-Erzeugung: PizZip + docxtemplater + LibreOffice-Konvertierung).
 
 **Voraussetzung:** die beiden Vorlagen `data/Templates/ChecklisteBrandsicherheitswacheLB12.docx` und `data/Templates/BerichtBrandsicherheitswacheLB12.docx` müssen einmalig unter **Einstellungen → Templates** hochgeladen werden — mit Namen, die "Checkliste Brandsicherheitswache" bzw. "Bericht Brandsicherheitswache" enthalten (Namenssuche ist ein Teilstring-Match).
+
+### Übungen (AGT-Kennzeichnung, Teilnehmer, Nachweis Übungsteilnahme)
+
+Für Veranstaltungen der Kategorie **Übung** gibt es unter **Veranstaltungen → Detail → Tab "Übung"**:
+
+- eine Checkbox **"AGT-Übung"**, um die Übung entsprechend zu kennzeichnen,
+- einen Link zur Teilnehmererfassung (dieselbe Anwesenheitsfunktion wie bei anderen Veranstaltungen), die für Übungen automatisch nur die **aktive Einsatzabteilung** zur Auswahl anbietet (Altersabteilung, Jugendfeuerwehr, passive Mitglieder werden ausgeblendet),
+- einen Button **"Nachweis als PDF erzeugen"**, der die erfasste Anwesenheit in ein PDF exportiert und im Tab "Dokumente" ablegt (technisch identisch zur BSW-Erzeugung).
+
+**Voraussetzung:** die Vorlage `data/Templates/UebungsbesuchLB12.docx` muss einmalig unter **Einstellungen → Templates** hochgeladen werden — mit einem Namen, der "Übungsbesuch" enthält.
 
 ---
 

@@ -1,6 +1,10 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/database';
 import { sendSuccess, sendError } from '../utils/response';
+import { convertDates } from '../utils/dates';
+
+const LOGBOOK_DATE_FIELDS = ['date'];
+const EQUIPMENT_INSPECTION_DATE_FIELDS = ['lastInspection', 'nextInspection'];
 
 export async function getVehicles(req: Request, res: Response): Promise<void> {
   try {
@@ -124,7 +128,9 @@ export async function getLogbook(req: Request, res: Response): Promise<void> {
 export async function createLogbookEntry(req: Request, res: Response): Promise<void> {
   try {
     const vehicleId = parseInt(req.params.id);
-    const entry = await prisma.logbookEntry.create({ data: { ...req.body, vehicleId } });
+    const entry = await prisma.logbookEntry.create({
+      data: { ...convertDates(req.body, LOGBOOK_DATE_FIELDS), vehicleId } as any,
+    });
     sendSuccess(res, entry, 201);
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -134,7 +140,10 @@ export async function createLogbookEntry(req: Request, res: Response): Promise<v
 export async function updateLogbookEntry(req: Request, res: Response): Promise<void> {
   try {
     const id = parseInt(req.params.entryId);
-    const entry = await prisma.logbookEntry.update({ where: { id }, data: req.body });
+    const entry = await prisma.logbookEntry.update({
+      where: { id },
+      data: convertDates(req.body, LOGBOOK_DATE_FIELDS) as any,
+    });
     sendSuccess(res, entry);
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -157,7 +166,9 @@ export async function getEquipmentInspections(req: Request, res: Response): Prom
 export async function createEquipmentInspection(req: Request, res: Response): Promise<void> {
   try {
     const vehicleId = parseInt(req.params.id);
-    const inspection = await prisma.equipmentInspection.create({ data: { ...req.body, vehicleId } });
+    const inspection = await prisma.equipmentInspection.create({
+      data: { ...convertDates(req.body, EQUIPMENT_INSPECTION_DATE_FIELDS), vehicleId } as any,
+    });
     sendSuccess(res, inspection, 201);
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -167,7 +178,10 @@ export async function createEquipmentInspection(req: Request, res: Response): Pr
 export async function updateEquipmentInspection(req: Request, res: Response): Promise<void> {
   try {
     const id = parseInt(req.params.inspId);
-    const inspection = await prisma.equipmentInspection.update({ where: { id }, data: req.body });
+    const inspection = await prisma.equipmentInspection.update({
+      where: { id },
+      data: convertDates(req.body, EQUIPMENT_INSPECTION_DATE_FIELDS) as any,
+    });
     sendSuccess(res, inspection);
   } catch (err) {
     sendError(res, (err as Error).message);

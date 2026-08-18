@@ -10,6 +10,7 @@ import {
   getMemberCourses, createMemberCourse, updateMemberCourse,
   getMemberGroups, createMemberGroup, updateMemberGroup,
   getAgtRecords, createAgtRecord, deleteAgtRecord,
+  createMemberAbsence, updateMemberAbsence, deleteMemberAbsence,
 } from '../controllers/member.controller';
 
 const router = Router();
@@ -48,5 +49,10 @@ router.put('/:id/courses/:courseId', requireAdmin, updateMemberCourse);
 router.get('/:id/agt-records', requireAdmin, getAgtRecords);
 router.post('/:id/agt-records', requireAdmin, createAgtRecord);
 router.delete('/:id/agt-records/:recordId', requireAdmin, deleteAgtRecord);
+
+// Absences
+router.post('/:id/absences', requireAdmin, createMemberAbsence);
+router.put('/:id/absences/:absenceId', requireAdmin, updateMemberAbsence);
+router.delete('/:id/absences/:absenceId', requireAdmin, deleteMemberAbsence);
 
 export default router;

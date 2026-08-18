@@ -18,6 +18,7 @@ const libraries: Library[] = [
   { name: '@headlessui/react', version: '^1.7.19', license: 'MIT', url: 'https://headlessui.com', category: 'frontend' },
   { name: '@heroicons/react', version: '^2.2.0', license: 'MIT', url: 'https://heroicons.com', category: 'frontend' },
   { name: '@tanstack/react-query', version: '^5.67.0', license: 'MIT', url: 'https://tanstack.com/query', category: 'frontend' },
+  { name: '@tanstack/react-query-devtools', version: '^5.67.0', license: 'MIT', url: 'https://tanstack.com/query', category: 'frontend' },
   { name: 'axios', version: '^1.8.4', license: 'MIT', url: 'https://axios-http.com', category: 'frontend' },
   { name: 'zustand', version: '^5.0.3', license: 'MIT', url: 'https://github.com/pmndrs/zustand', category: 'frontend' },
   { name: 'date-fns', version: '^4.1.0', license: 'MIT', url: 'https://date-fns.org', category: 'frontend' },

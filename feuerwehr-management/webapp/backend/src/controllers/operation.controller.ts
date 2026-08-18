@@ -5,6 +5,9 @@ import multer from 'multer';
 import { prisma } from '../config/database';
 import { sendSuccess, sendError, sendPaginated } from '../utils/response';
 import { getPagination } from '../utils/pagination';
+import { convertDates } from '../utils/dates';
+
+const OPERATION_DATE_FIELDS = ['date'];
 
 // Multer configuration for document uploads
 const uploadDir = process.env.UPLOAD_PATH || './uploads';
@@ -70,11 +73,7 @@ export async function getOperations(req: Request, res: Response): Promise<void> 
 
 export async function createOperation(req: Request, res: Response): Promise<void> {
   try {
-    const data = { ...req.body };
-    if (data.date && !data.date.includes('T')) {
-      data.date = new Date(data.date).toISOString();
-    }
-    const op = await prisma.operation.create({ data });
+    const op = await prisma.operation.create({ data: convertDates(req.body, OPERATION_DATE_FIELDS) as any });
     sendSuccess(res, op, 201);
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -98,10 +97,7 @@ export async function getOperation(req: Request, res: Response): Promise<void> {
 export async function updateOperation(req: Request, res: Response): Promise<void> {
   try {
     const id = parseInt(req.params.id);
-    const data = { ...req.body };
-    if (data.date && !data.date.includes('T')) {
-      data.date = new Date(data.date).toISOString();
-    }
+    const data = convertDates(req.body, OPERATION_DATE_FIELDS) as any;
     const op = await prisma.operation.update({ where: { id }, data });
     sendSuccess(res, op);
   } catch (err) {
