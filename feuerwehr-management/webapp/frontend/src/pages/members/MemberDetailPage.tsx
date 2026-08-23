@@ -144,6 +144,7 @@ export function MemberDetailPage() {
       {/* Tab Content */}
       {tab === 'stammdaten' && (
         <StammdatenTab
+          key={member.id}
           member={member}
           groups={groups || []}
           onSave={(data) => updateMutation.mutate(data)}
@@ -154,7 +155,7 @@ export function MemberDetailPage() {
         />
       )}
       {tab === 'untersuchungen' && (
-        <UntersuchungenTab examination={member.examination ?? null} onSave={(data) => updateExamMutation.mutate(data)} saving={updateExamMutation.isPending} memberId={parseInt(id!)} birthDate={member.birthDate} />
+        <UntersuchungenTab key={member.id} examination={member.examination ?? null} onSave={(data) => updateExamMutation.mutate(data)} saving={updateExamMutation.isPending} memberId={parseInt(id!)} birthDate={member.birthDate} />
       )}
       {tab === 'laufbahn' && <LaufbahnTab courses={member.courses || []} memberId={parseInt(id!)} />}
       {tab === 'abwesenheiten' && <AbwesenheitenTab absences={member.absences || []} memberId={parseInt(id!)} />}
