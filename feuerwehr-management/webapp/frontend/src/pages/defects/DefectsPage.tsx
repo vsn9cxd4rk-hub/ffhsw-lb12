@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PlusIcon } from '@heroicons/react/24/outline';
+import { AxiosResponse } from 'axios';
 import { defectsApi } from '../../api/defects';
 import { repairsApi } from '../../api/repairs';
 import client from '../../api/client';
@@ -261,7 +262,7 @@ function DefectsTab() {
   const pagination = data?.pagination;
 
   const saveMutation = useMutation({
-    mutationFn: () => {
+    mutationFn: (): Promise<AxiosResponse<any>> => {
       const isArticle = form.articleId && !form.articleId.startsWith('vehicle_') && form.articleId !== 'sonstige';
       const payload: Record<string, unknown> = {
         articleId: isArticle ? parseInt(form.articleId) : null,
@@ -630,7 +631,7 @@ function RepairsTab() {
   const pagination = data?.pagination;
 
   const saveMutation = useMutation({
-    mutationFn: () => {
+    mutationFn: (): Promise<AxiosResponse<any>> => {
       const isArticle = form.articleId && !form.articleId.startsWith('vehicle_') && form.articleId !== 'sonstige';
       const payload: Record<string, unknown> = {
         articleId: isArticle ? parseInt(form.articleId) : null,

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { AxiosResponse } from 'axios';
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/solid';
 import { Article, ArticleInspection, InspectionCriterion, InspectionType } from '../../types';
 import { Modal } from '../ui/Modal';
@@ -90,7 +91,7 @@ export function CriteriaInspectionModal({ isOpen, onClose, articles, preselected
   }
 
   const mutation = useMutation({
-    mutationFn: () => {
+    mutationFn: (): Promise<AxiosResponse<any>> => {
       const criteriaPayload = criteria.length > 0
         ? criteria.map(c => ({ criterionId: c.id, result: criterionResults[c.id] }))
         : undefined;

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PlusIcon } from '@heroicons/react/24/outline';
+import { AxiosResponse } from 'axios';
 import { Warehouse } from '../../types';
 import { Table } from '../../components/ui/Table';
 import { Button } from '../../components/ui/Button';
@@ -36,7 +37,7 @@ export function WarehouseSettings() {
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ['warehouses'] });
 
   const saveMut = useMutation({
-    mutationFn: () => {
+    mutationFn: (): Promise<AxiosResponse<any>> => {
       if (editItem) return warehouseApi.update(editItem.id, { name: name.trim(), description: description.trim() || undefined });
       return warehouseApi.create({ name: name.trim(), description: description.trim() || undefined });
     },

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { AxiosResponse } from 'axios';
 import { settingsApi } from '../../api/settings';
 import { Card } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
@@ -21,7 +22,7 @@ export function InspectionTypeSettings() {
   });
 
   const saveMutation = useMutation({
-    mutationFn: () => editItem
+    mutationFn: (): Promise<AxiosResponse<any>> => editItem
       ? settingsApi.updateInspectionType(editItem.id, { name: form.name, description: form.description || undefined })
       : settingsApi.createInspectionType({ name: form.name, description: form.description || undefined }),
     onSuccess: () => {
