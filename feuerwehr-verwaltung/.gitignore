@@ -3,3 +3,11 @@ target/
 
 # Java compiled class files (safety net)
 *.class
+
+# IDE
+.idea/
+*.iml
+.vscode/settings.json
+
+# macOS
+.DS_Store
