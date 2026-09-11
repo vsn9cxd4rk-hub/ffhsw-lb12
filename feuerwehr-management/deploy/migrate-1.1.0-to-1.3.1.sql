@@ -1,22 +1,23 @@
 -- =============================================================================
--- Sammel-Migration: Update von Version 1.1.0 direkt auf 1.3.0
+-- Sammel-Migration: Update von Version 1.1.0 direkt auf 1.3.1
 -- Datenbank: FFWVSLB12
 --
 -- Kompatibel mit: MySQL 8.x und MariaDB 10.x+
 --
--- Fasst alle Einzel-Migrationen zusammen, die zwischen 1.1.0 und 1.3.0
+-- Fasst alle Einzel-Migrationen zusammen, die zwischen 1.1.0 und 1.3.1
 -- hinzugekommen sind (Version 1.1.1 und 1.2.1 enthielten keine
 -- Datenbankänderungen):
 --   1. migrate-add-report-fields.sql  (Einsatzbericht, Kräftenachweis, FENIX)
 --   2. migrate-add-bsw-report.sql     (Brandsicherheitswache-Formular)
 --   3. migrate-add-agt-exercise.sql   (AGT-Übung-Kennzeichnung, Nachweis Übungsteilnahme)
+--   4. Fahrzeug-Stärke pro Fahrzeugzeit (Version 1.3.1)
 --
 -- Die Migrationen betreffen unterschiedliche Tabellen/Spalten und haben
 -- keine Abhängigkeit zueinander. Dieses Skript ist idempotent (kann
 -- mehrfach ausgeführt werden).
 --
 -- Ausführen:
---   mysql -u FFWVSLB12 -p FFWVSLB12 < deploy/migrate-1.1.0-to-1.3.0.sql
+--   mysql -u FFWVSLB12 -p FFWVSLB12 < deploy/migrate-1.1.0-to-1.3.1.sql
 --
 -- Zusätzlich nötig (kein SQL, manueller Admin-Schritt nach dem Update):
 --   Die drei Vorlagen data/Templates/ChecklisteBrandsicherheitswacheLB12.docx,
@@ -181,6 +182,40 @@ SET @col_exists = (
 );
 SET @sql = IF(@col_exists = 0,
   'ALTER TABLE `events` ADD COLUMN `isAgtExercise` TINYINT(1) NOT NULL DEFAULT 0 AFTER `infoSent`',
+  'SELECT 1');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- =============================================================================
+-- Teil 4: Fahrzeug-Stärke pro Fahrzeugzeit (Version 1.3.0 → Version 1.3.1)
+--
+-- GF-/FM-Stärke wurde bisher einmal pro Einsatz erfasst (operations.leaderCount/
+-- memberCount) und dadurch bei mehreren eingesetzten Fahrzeugen fälschlich für
+-- jedes Fahrzeug identisch im Einsatzbericht und Kräftenachweis ausgewiesen.
+-- Ab 1.3.1 wird die Stärke pro Fahrzeug in operation_times erfasst;
+-- operations.leaderCount/memberCount/vehicles bleiben als abgeleitete
+-- Summenwerte über alle Fahrzeugzeiten erhalten (Bestandsdaten bleiben
+-- unverändert, bis ein Einsatz im Tab "Fahrzeugzeiten" bearbeitet wird).
+-- =============================================================================
+
+SET @col_exists = (
+  SELECT COUNT(*) FROM information_schema.COLUMNS
+  WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'operation_times' AND COLUMN_NAME = 'leaderCount'
+);
+SET @sql = IF(@col_exists = 0,
+  'ALTER TABLE `operation_times` ADD COLUMN `leaderCount` INT NOT NULL DEFAULT 0 AFTER `vehicleName`',
+  'SELECT 1');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @col_exists = (
+  SELECT COUNT(*) FROM information_schema.COLUMNS
+  WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'operation_times' AND COLUMN_NAME = 'memberCount'
+);
+SET @sql = IF(@col_exists = 0,
+  'ALTER TABLE `operation_times` ADD COLUMN `memberCount` INT NOT NULL DEFAULT 0 AFTER `leaderCount`',
   'SELECT 1');
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
