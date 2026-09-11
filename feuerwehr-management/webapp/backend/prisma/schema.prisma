@@ -652,6 +652,8 @@ model Operation {
   location        String    @db.VarChar(500)
   district        String?   @db.VarChar(100)
   keyword         String?   @db.VarChar(255)
+  // vehicles/leaderCount/memberCount sind aggregierte, abgeleitete Werte über alle
+  // OperationTime-Einträge (siehe syncOperationAggregates) - nicht direkt editierbar.
   vehicles        String?   @db.Text
   description     String?   @db.Text
   leaderCount     Int       @default(0)
@@ -692,6 +694,8 @@ model OperationTime {
   operationId   Int
   vehicleId     Int?
   vehicleName   String  @db.VarChar(100)
+  leaderCount   Int     @default(0)
+  memberCount   Int     @default(0)
   alarmTime     String? @db.VarChar(10)
   departureTime String? @db.VarChar(10)
   arrivalTime   String? @db.VarChar(10)

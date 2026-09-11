@@ -115,10 +115,28 @@ export async function deleteOperation(req: Request, res: Response): Promise<void
 }
 
 // Times
+/**
+ * Hält Operation.vehicles/leaderCount/memberCount als abgeleitete Summe über alle
+ * Fahrzeugzeiten-Einträge aktuell, damit Übersichtsliste/Dashboard (die diese
+ * Operation-Felder lesen) weiterhin den Gesamteinsatz korrekt zeigen, obwohl
+ * Fahrzeug und Stärke jetzt pro Fahrzeug im Fahrzeugzeiten-Tab gepflegt werden.
+ */
+async function syncOperationAggregates(operationId: number): Promise<void> {
+  const times = await prisma.operationTime.findMany({ where: { operationId } });
+  const vehicleNames = [...new Set(times.map(t => t.vehicleName.trim()).filter(Boolean))];
+  const leaderCount = times.reduce((sum, t) => sum + t.leaderCount, 0);
+  const memberCount = times.reduce((sum, t) => sum + t.memberCount, 0);
+  await prisma.operation.update({
+    where: { id: operationId },
+    data: { vehicles: vehicleNames.join(', '), leaderCount, memberCount },
+  });
+}
+
 export async function createOperationTime(req: Request, res: Response): Promise<void> {
   try {
     const operationId = parseInt(req.params.id);
     const t = await prisma.operationTime.create({ data: { ...req.body, operationId } });
+    await syncOperationAggregates(operationId);
     sendSuccess(res, t, 201);
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -128,6 +146,7 @@ export async function createOperationTime(req: Request, res: Response): Promise<
 export async function updateOperationTime(req: Request, res: Response): Promise<void> {
   try {
     const t = await prisma.operationTime.update({ where: { id: parseInt(req.params.timeId) }, data: req.body });
+    await syncOperationAggregates(t.operationId);
     sendSuccess(res, t);
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -136,7 +155,8 @@ export async function updateOperationTime(req: Request, res: Response): Promise<
 
 export async function deleteOperationTime(req: Request, res: Response): Promise<void> {
   try {
-    await prisma.operationTime.delete({ where: { id: parseInt(req.params.timeId) } });
+    const t = await prisma.operationTime.delete({ where: { id: parseInt(req.params.timeId) } });
+    await syncOperationAggregates(t.operationId);
     sendSuccess(res, { message: 'Zeiteintrag gelöscht' });
   } catch (err) {
     sendError(res, (err as Error).message);

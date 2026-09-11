@@ -9,7 +9,7 @@ import {
   getDocuments, uploadDocument, uploadMiddleware, downloadDocument, deleteDocument,
   getPersonnel, addPersonnel, updatePersonnel, deletePersonnel,
 } from '../controllers/operation.controller';
-import { generateOperationReport, generatePersonnelSheet } from '../services/report-generator.service';
+import { generateOperationReport, generatePersonnelSheet, generatePersonnelSheets } from '../services/report-generator.service';
 import { sendSuccess, sendError } from '../utils/response';
 
 const router = Router();
@@ -50,7 +50,9 @@ router.post('/:id/generate-report', async (req: Request, res: Response) => {
 router.post('/:id/generate-personnel-sheet', async (req: Request, res: Response) => {
   try {
     const { vehicleFilter } = req.body;
-    const result = await generatePersonnelSheet(parseInt(req.params.id), vehicleFilter);
+    const result = vehicleFilter
+      ? [await generatePersonnelSheet(parseInt(req.params.id), vehicleFilter)]
+      : await generatePersonnelSheets(parseInt(req.params.id));
     sendSuccess(res, result, 201);
   } catch (err) {
     sendError(res, (err as Error).message);

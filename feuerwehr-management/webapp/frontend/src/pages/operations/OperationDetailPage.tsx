@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeftIcon, PlusIcon, PencilIcon, TrashIcon, ArrowDownTrayIcon, DocumentArrowDownIcon } from '@heroicons/react/24/outline';
@@ -10,6 +10,7 @@ import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Textarea } from '../../components/ui/Textarea';
 import { Card } from '../../components/ui/Card';
+import { Badge } from '../../components/ui/Badge';
 import { Table } from '../../components/ui/Table';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { Modal } from '../../components/ui/Modal';
@@ -59,12 +60,10 @@ export function OperationDetailPage() {
       {tab === 'times' && (
         <OperationTimesTab
           operationId={parseInt(id!)}
-          vehicles={op.vehicles || ''}
           times={op.times || []}
-          defaultTimes={{ alarmTime: op.alarmTime, departureTime: op.departureTime, arrivalTime: op.arrivalTime, returnTime: op.returnTime }}
         />
       )}
-      {tab === 'personnel' && <OperationPersonnelTab operationId={parseInt(id!)} />}
+      {tab === 'personnel' && <OperationPersonnelTab operationId={parseInt(id!)} times={op.times || []} />}
       {tab === 'report' && <OperationReportTab operationId={parseInt(id!)} report={op.reports?.[0]} />}
       {tab === 'documents' && <OperationDocumentsTab operationId={parseInt(id!)} />}
     </div>
@@ -104,10 +103,7 @@ function OperationDetailsTab({ op, onSave, saving }: { op: Operation; onSave: (d
     district: op.district || '',
     keyword: op.keyword || '',
     operationNumber: op.operationNumber || '',
-    leaderCount: String(op.leaderCount),
-    memberCount: String(op.memberCount),
     description: op.description || '',
-    vehicles: op.vehicles || '',
     reportType: op.reportType || 'Einsatzbericht',
     ilsOrderNumber: op.ilsOrderNumber || '',
     callerInfo: op.callerInfo || '',
@@ -154,9 +150,12 @@ function OperationDetailsTab({ op, onSave, saving }: { op: Operation; onSave: (d
             {EINSATZSTICHWORTE.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
         </div>
-        <Input label="Fahrzeuge" value={form.vehicles} onChange={(e) => u('vehicles', e.target.value)} />
-        <Input label="GF-Stärke" value={form.leaderCount} onChange={(e) => u('leaderCount', e.target.value)} type="number" />
-        <Input label="FM-Stärke" value={form.memberCount} onChange={(e) => u('memberCount', e.target.value)} type="number" />
+        <div className="md:col-span-2">
+          <p className="text-sm text-gray-500">
+            Fahrzeuge und Stärke werden pro Fahrzeug im Tab „Fahrzeugzeiten" gepflegt
+            (aktuell: {(op.vehicles || '-')}, Gesamtstärke {op.leaderCount}/{op.memberCount}).
+          </p>
+        </div>
 
         <div className="col-span-full border-t pt-4 mt-2">
           <h3 className="text-sm font-semibold text-gray-700 mb-3">Einsatzbericht-Details</h3>
@@ -239,8 +238,6 @@ function OperationDetailsTab({ op, onSave, saving }: { op: Operation; onSave: (d
       <div className="mt-6 flex justify-end">
         <Button variant="primary" onClick={() => onSave({
           ...form,
-          leaderCount: parseInt(form.leaderCount) || 0,
-          memberCount: parseInt(form.memberCount) || 0,
           rescuedPersons: parseInt(form.rescuedPersons) || 0,
           injuredFirefighters: parseInt(form.injuredFirefighters) || 0,
           deceasedPersons: parseInt(form.deceasedPersons) || 0,
@@ -254,43 +251,33 @@ function OperationDetailsTab({ op, onSave, saving }: { op: Operation; onSave: (d
   );
 }
 
-interface OperationDefaultTimes {
-  alarmTime: string | null;
-  departureTime: string | null;
-  arrivalTime: string | null;
-  returnTime: string | null;
-}
-
-function OperationTimesTab({ operationId, vehicles, times, defaultTimes }: { operationId: number; vehicles: string; times: OperationTime[]; defaultTimes: OperationDefaultTimes }) {
+function OperationTimesTab({ operationId, times }: { operationId: number; times: OperationTime[] }) {
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const emptyForm = { vehicleName: '', alarmTime: '', departureTime: '', arrivalTime: '', returnTime: '' };
+  const emptyForm = { vehicleName: '', leaderCount: '0', memberCount: '0', alarmTime: '', departureTime: '', arrivalTime: '', returnTime: '' };
   const [form, setForm] = useState(emptyForm);
-
-  // Die in den Einsatzdetails angegebenen Fahrzeuge (kommasepariert) automatisch als
-  // Fahrzeugzeiten-Einträge anlegen, vorbefüllt mit den dort erfassten Einsatzzeiten,
-  // damit man weder Fahrzeuge noch Zeiten ein zweites Mal erfassen muss.
-  useEffect(() => {
-    const vehicleNames = vehicles.split(',').map(v => v.trim()).filter(Boolean);
-    if (vehicleNames.length === 0) return;
-    const existingNames = new Set(times.map(t => t.vehicleName.trim()));
-    const missing = vehicleNames.filter(name => !existingNames.has(name));
-    if (missing.length === 0) return;
-    Promise.all(missing.map(name => operationsApi.createTime(operationId, { vehicleName: name, ...defaultTimes })))
-      .then(() => queryClient.invalidateQueries({ queryKey: ['operation', String(operationId)] }));
-  }, [operationId, vehicles, times, defaultTimes, queryClient]);
 
   const closeForm = () => { setShowForm(false); setEditingId(null); setForm(emptyForm); };
   const openAdd = () => { setEditingId(null); setForm(emptyForm); setShowForm(true); };
   const openEdit = (t: OperationTime) => {
     setEditingId(t.id);
-    setForm({ vehicleName: t.vehicleName, alarmTime: t.alarmTime || '', departureTime: t.departureTime || '', arrivalTime: t.arrivalTime || '', returnTime: t.returnTime || '' });
+    setForm({
+      vehicleName: t.vehicleName,
+      leaderCount: String(t.leaderCount),
+      memberCount: String(t.memberCount),
+      alarmTime: t.alarmTime || '',
+      departureTime: t.departureTime || '',
+      arrivalTime: t.arrivalTime || '',
+      returnTime: t.returnTime || '',
+    });
     setShowForm(true);
   };
 
   const payload = () => ({
     vehicleName: form.vehicleName,
+    leaderCount: parseInt(form.leaderCount) || 0,
+    memberCount: parseInt(form.memberCount) || 0,
     alarmTime: form.alarmTime || null,
     departureTime: form.departureTime || null,
     arrivalTime: form.arrivalTime || null,
@@ -317,6 +304,8 @@ function OperationTimesTab({ operationId, vehicles, times, defaultTimes }: { ope
       {showForm && (
         <div className="mb-4 p-4 bg-gray-50 rounded-md grid grid-cols-2 md:grid-cols-3 gap-3">
           <Input label="Fahrzeug" value={form.vehicleName} onChange={(e) => setForm(f => ({ ...f, vehicleName: e.target.value }))} />
+          <Input label="GF-Stärke" value={form.leaderCount} onChange={(e) => setForm(f => ({ ...f, leaderCount: e.target.value }))} type="number" />
+          <Input label="FM-Stärke" value={form.memberCount} onChange={(e) => setForm(f => ({ ...f, memberCount: e.target.value }))} type="number" />
           <Input label="Alarm" value={form.alarmTime} onChange={(e) => setForm(f => ({ ...f, alarmTime: e.target.value }))} type="time" />
           <Input label="Ausgerückt" value={form.departureTime} onChange={(e) => setForm(f => ({ ...f, departureTime: e.target.value }))} type="time" />
           <Input label="Eingetroffen" value={form.arrivalTime} onChange={(e) => setForm(f => ({ ...f, arrivalTime: e.target.value }))} type="time" />
@@ -336,6 +325,7 @@ function OperationTimesTab({ operationId, vehicles, times, defaultTimes }: { ope
       <Table
         columns={[
           { key: 'vehicleName', header: 'Fahrzeug' },
+          { key: 'staerke', header: 'Stärke', render: (r) => `${r.leaderCount}/${r.memberCount}/${r.leaderCount + r.memberCount}` },
           { key: 'alarmTime', header: 'Alarm', render: (r) => r.alarmTime || '-' },
           { key: 'departureTime', header: 'Ausgerückt', render: (r) => r.departureTime || '-' },
           { key: 'arrivalTime', header: 'Eingetroffen', render: (r) => r.arrivalTime || '-' },
@@ -515,8 +505,37 @@ function OperationDocumentsTab({ operationId }: { operationId: number }) {
 
 // Personnel Tab
 const FUNCTIONS = ['Gruppenfuehrer', 'Maschinist', 'Melder', 'AT-Fuehrer', 'AT-Mann', 'WT-Fuehrer', 'WT-Mann', 'ST-Fuehrer', 'ST-Mann'];
+const NO_VEHICLE = '__none__';
 
-function OperationPersonnelTab({ operationId }: { operationId: number }) {
+function deployedColumns(deleteFn: (id: number) => void, showVehicle: boolean) {
+  const cols = [
+    { key: 'function', header: 'Funktion' },
+    { key: 'name', header: 'Name', render: (p: OperationPersonnel) => `${p.member.lastName}, ${p.member.firstName}` },
+    ...(showVehicle ? [{ key: 'vehicleName', header: 'Fahrzeug', render: (p: OperationPersonnel) => p.vehicleName || '-' }] : []),
+    { key: 'qualAGT', header: 'AGT', render: (p: OperationPersonnel) => p.member.qualAGT ? '✓' : '' },
+    { key: 'qualGF', header: 'GF', render: (p: OperationPersonnel) => p.member.qualGruppenfuehrer ? '✓' : '' },
+    { key: 'qualZF', header: 'ZF', render: (p: OperationPersonnel) => p.member.qualZugfuehrer ? '✓' : '' },
+    { key: 'licC', header: 'Kl.C', render: (p: OperationPersonnel) => p.member.qualLicenseC ? '✓' : '' },
+    { key: 'licB', header: 'Kl.B', render: (p: OperationPersonnel) => p.member.qualLicenseB ? '✓' : '' },
+    { key: 'actions', header: '', render: (p: OperationPersonnel) => (
+      <Button variant="ghost" size="sm" onClick={() => deleteFn(p.id)}>
+        <TrashIcon className="h-4 w-4 text-red-500" />
+      </Button>
+    )},
+  ];
+  return cols;
+}
+
+function StrengthBadge({ declaredLeader, declaredMember, actualLeader, actualTotal }: { declaredLeader: number; declaredMember: number; actualLeader: number; actualTotal: number }) {
+  const declaredTotal = declaredLeader + declaredMember;
+  if (declaredTotal === 0) return <Badge variant="default">Stärke nicht festgelegt</Badge>;
+  const ok = actualLeader >= declaredLeader && actualTotal >= declaredTotal;
+  return ok
+    ? <Badge variant="success">✓ Stärke {declaredLeader}/{declaredMember}/{declaredTotal} erreicht</Badge>
+    : <Badge variant="warning">⚠ Soll {declaredLeader}/{declaredMember}/{declaredTotal} · Ist {actualLeader} GF / {actualTotal} gesamt</Badge>;
+}
+
+function OperationPersonnelTab({ operationId, times }: { operationId: number; times: OperationTime[] }) {
   const queryClient = useQueryClient();
   const [showAdd, setShowAdd] = useState(false);
   const [newEntry, setNewEntry] = useState({ memberId: 0, vehicleName: '', function: 'Gruppenfuehrer', section: 'deployed' });
@@ -533,7 +552,7 @@ function OperationPersonnelTab({ operationId }: { operationId: number }) {
   });
 
   const addMutation = useMutation({
-    mutationFn: () => operationsApi.addPersonnel(operationId, newEntry),
+    mutationFn: () => operationsApi.addPersonnel(operationId, { ...newEntry, vehicleName: newEntry.vehicleName === NO_VEHICLE ? '' : newEntry.vehicleName }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['operation-personnel', operationId] }); setShowAdd(false); setNewEntry({ memberId: 0, vehicleName: '', function: 'Gruppenfuehrer', section: 'deployed' }); },
   });
 
@@ -545,56 +564,70 @@ function OperationPersonnelTab({ operationId }: { operationId: number }) {
   const deployed = (personnel || []).filter((p: OperationPersonnel) => p.section === 'deployed');
   const reinforcement = (personnel || []).filter((p: OperationPersonnel) => p.section === 'reinforcement');
 
+  // Fahrzeuge (und ihre Soll-Stärke) kommen aus dem Fahrzeugzeiten-Tab; bei mehrfachen
+  // Zeit-Einträgen zum selben Fahrzeugnamen wird die Stärke summiert.
+  const vehicleOrder: string[] = [];
+  const vehicleStrength = new Map<string, { leaderCount: number; memberCount: number }>();
+  for (const t of times) {
+    const name = t.vehicleName.trim();
+    if (!name) continue;
+    if (!vehicleStrength.has(name)) { vehicleOrder.push(name); vehicleStrength.set(name, { leaderCount: 0, memberCount: 0 }); }
+    const s = vehicleStrength.get(name)!;
+    s.leaderCount += t.leaderCount;
+    s.memberCount += t.memberCount;
+  }
+
+  const deployedByVehicle = (vehicleName: string) => deployed.filter((p: OperationPersonnel) => p.vehicleName === vehicleName);
+  const deployedUnassigned = deployed.filter((p: OperationPersonnel) => !vehicleOrder.includes(p.vehicleName));
+
+  const openAddForVehicle = (vehicleName: string) => {
+    setNewEntry({ memberId: 0, vehicleName, function: 'Gruppenfuehrer', section: 'deployed' });
+    setShowAdd(true);
+  };
+
   if (isLoading) return <LoadingSpinner />;
 
   return (
     <div className="space-y-4">
-      <Card title="Eingesetzte Kräfte" actions={<Button variant="secondary" size="sm" icon={<PlusIcon />} onClick={() => { setNewEntry(e => ({ ...e, section: 'deployed' })); setShowAdd(true); }}>Hinzufügen</Button>}>
-        {deployed.length === 0 ? (
-          <p className="text-sm text-gray-500">Keine Kräfte zugeordnet.</p>
-        ) : (
-          <Table
-            columns={[
-              { key: 'function', header: 'Funktion' },
-              { key: 'name', header: 'Name', render: (p: OperationPersonnel) => `${p.member.lastName}, ${p.member.firstName}` },
-              { key: 'vehicleName', header: 'Fahrzeug' },
-              { key: 'qualAGT', header: 'AGT', render: (p: OperationPersonnel) => p.member.qualAGT ? '✓' : '' },
-              { key: 'qualGF', header: 'GF', render: (p: OperationPersonnel) => p.member.qualGruppenfuehrer ? '✓' : '' },
-              { key: 'qualZF', header: 'ZF', render: (p: OperationPersonnel) => p.member.qualZugfuehrer ? '✓' : '' },
-              { key: 'licC', header: 'Kl.C', render: (p: OperationPersonnel) => p.member.qualLicenseC ? '✓' : '' },
-              { key: 'licB', header: 'Kl.B', render: (p: OperationPersonnel) => p.member.qualLicenseB ? '✓' : '' },
-              { key: 'actions', header: '', render: (p: OperationPersonnel) => (
-                <Button variant="ghost" size="sm" onClick={() => deleteMutation.mutate(p.id)}>
-                  <TrashIcon className="h-4 w-4 text-red-500" />
-                </Button>
-              )},
-            ]}
-            data={deployed}
-            keyExtractor={(p) => p.id}
-          />
-        )}
-      </Card>
+      {vehicleOrder.length === 0 && (
+        <p className="text-sm text-gray-500">
+          Noch keine Fahrzeuge erfasst. Bitte zunächst im Tab „Fahrzeugzeiten" die eingesetzten Fahrzeuge anlegen.
+        </p>
+      )}
 
-      <Card title="Nachgerückte Kräfte" actions={<Button variant="secondary" size="sm" icon={<PlusIcon />} onClick={() => { setNewEntry(e => ({ ...e, section: 'reinforcement' })); setShowAdd(true); }}>Hinzufügen</Button>}>
+      {vehicleOrder.map(vehicleName => {
+        const s = vehicleStrength.get(vehicleName)!;
+        const crew = deployedByVehicle(vehicleName);
+        const actualLeader = crew.filter(p => p.function === 'Gruppenfuehrer').length;
+        return (
+          <Card
+            key={vehicleName}
+            title={`Fahrzeug ${vehicleName}`}
+            actions={<Button variant="secondary" size="sm" icon={<PlusIcon />} onClick={() => openAddForVehicle(vehicleName)}>Hinzufügen</Button>}
+          >
+            <div className="mb-3">
+              <StrengthBadge declaredLeader={s.leaderCount} declaredMember={s.memberCount} actualLeader={actualLeader} actualTotal={crew.length} />
+            </div>
+            {crew.length === 0 ? (
+              <p className="text-sm text-gray-500">Keine Kräfte zugeordnet.</p>
+            ) : (
+              <Table columns={deployedColumns(deleteMutation.mutate, false)} data={crew} keyExtractor={(p) => p.id} />
+            )}
+          </Card>
+        );
+      })}
+
+      {deployedUnassigned.length > 0 && (
+        <Card title="Sonstige eingesetzte Kräfte (ohne bekanntes Fahrzeug)">
+          <Table columns={deployedColumns(deleteMutation.mutate, true)} data={deployedUnassigned} keyExtractor={(p) => p.id} />
+        </Card>
+      )}
+
+      <Card title="Nachgerückte Kräfte" actions={<Button variant="secondary" size="sm" icon={<PlusIcon />} onClick={() => { setNewEntry({ memberId: 0, vehicleName: '', function: 'Gruppenfuehrer', section: 'reinforcement' }); setShowAdd(true); }}>Hinzufügen</Button>}>
         {reinforcement.length === 0 ? (
           <p className="text-sm text-gray-500">Keine nachgerückten Kräfte.</p>
         ) : (
-          <Table
-            columns={[
-              { key: 'function', header: 'Funktion' },
-              { key: 'name', header: 'Name', render: (p: OperationPersonnel) => `${p.member.lastName}, ${p.member.firstName}` },
-              { key: 'vehicleName', header: 'Fahrzeug' },
-              { key: 'qualAGT', header: 'AGT', render: (p: OperationPersonnel) => p.member.qualAGT ? '✓' : '' },
-              { key: 'qualGF', header: 'GF', render: (p: OperationPersonnel) => p.member.qualGruppenfuehrer ? '✓' : '' },
-              { key: 'actions', header: '', render: (p: OperationPersonnel) => (
-                <Button variant="ghost" size="sm" onClick={() => deleteMutation.mutate(p.id)}>
-                  <TrashIcon className="h-4 w-4 text-red-500" />
-                </Button>
-              )},
-            ]}
-            data={reinforcement}
-            keyExtractor={(p) => p.id}
-          />
+          <Table columns={deployedColumns(deleteMutation.mutate, true)} data={reinforcement} keyExtractor={(p) => p.id} />
         )}
       </Card>
 
@@ -616,7 +649,17 @@ function OperationPersonnelTab({ operationId }: { operationId: number }) {
               {FUNCTIONS.map(f => <option key={f} value={f}>{f}</option>)}
             </select>
           </div>
-          <Input label="Fahrzeug" value={newEntry.vehicleName} onChange={(e) => setNewEntry(p => ({ ...p, vehicleName: e.target.value }))} />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Fahrzeug</label>
+            {vehicleOrder.length > 0 ? (
+              <select value={newEntry.vehicleName || NO_VEHICLE} onChange={(e) => setNewEntry(p => ({ ...p, vehicleName: e.target.value }))} className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
+                <option value={NO_VEHICLE}>-- ohne Fahrzeug --</option>
+                {vehicleOrder.map(v => <option key={v} value={v}>{v}</option>)}
+              </select>
+            ) : (
+              <Input value={newEntry.vehicleName} onChange={(e) => setNewEntry(p => ({ ...p, vehicleName: e.target.value }))} />
+            )}
+          </div>
         </div>
       </Modal>
     </div>
@@ -669,7 +712,12 @@ function GeneratePersonnelSheetButton({ operationId }: { operationId: number }) 
     setSuccess('');
     try {
       const res = await operationsApi.generatePersonnelSheet(operationId);
-      setSuccess(`Kräftenachweis generiert: ${(res.data as { data: { fileName: string } }).data.fileName}`);
+      const files = (res.data as { data: { fileName: string }[] }).data;
+      setSuccess(
+        files.length === 1
+          ? `Kräftenachweis generiert: ${files[0].fileName}`
+          : `${files.length} Kräftenachweise generiert: ${files.map(f => f.fileName).join(', ')}`
+      );
       queryClient.invalidateQueries({ queryKey: ['operation-documents', operationId] });
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Generierung fehlgeschlagen';

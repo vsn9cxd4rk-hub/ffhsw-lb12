@@ -406,6 +406,8 @@ export interface OperationTime {
   operationId: number;
   vehicleId: number | null;
   vehicleName: string;
+  leaderCount: number;
+  memberCount: number;
   alarmTime: string | null;
   departureTime: string | null;
   arrivalTime: string | null;

@@ -129,6 +129,8 @@ function escapeForRegex(str: string): string {
 
 interface TimeEntry {
   vehicleName: string;
+  leaderCount: number;
+  memberCount: number;
   departureTime: string | null;
   arrivalTime: string | null;
   returnTime: string | null;
@@ -148,7 +150,7 @@ function formatDuration(minutes: number): string {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
 
-function replaceOleWithVehicleTable(xml: string, times: TimeEntry[], leaderCount: number, memberCount: number): string {
+function replaceOleWithVehicleTable(xml: string, times: TimeEntry[]): string {
   // Find and remove the paragraph containing the OLE object using indexOf (regex-free)
   const objStart = xml.indexOf('<w:object');
   if (objStart === -1) return xml;
@@ -171,11 +173,10 @@ function replaceOleWithVehicleTable(xml: string, times: TimeEntry[], leaderCount
   const makeCell = (text: string) =>
     `<w:tc><w:tcPr><w:tcBorders><w:bottom w:val="single" w:sz="4" w:space="0" w:color="000000"/></w:tcBorders></w:tcPr><w:p><w:pPr><w:jc w:val="center"/><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial"/><w:sz w:val="16"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial"/><w:sz w:val="16"/></w:rPr><w:t>${escapeXml(text)}</w:t></w:r></w:p></w:tc>`;
 
-  const gesamt = leaderCount + memberCount;
-  const staerkeStr = `${leaderCount}/${memberCount}/${gesamt}`;
-
   let dataRows = '';
   for (const t of times) {
+    const gesamt = t.leaderCount + t.memberCount;
+    const staerkeStr = `${t.leaderCount}/${t.memberCount}/${gesamt}`;
     const einsatzMinutes = calcDurationMinutes(t.departureTime, t.returnTime);
     const einsatzzeit = formatDuration(einsatzMinutes);
     const gesamtMinutes = einsatzMinutes * gesamt;
@@ -362,7 +363,7 @@ export async function generateOperationReport(operationId: number): Promise<{ fi
   }
 
   // Replace the embedded OLE Excel object with a proper Word table containing vehicle times
-  xmlContent = replaceOleWithVehicleTable(xmlContent, op.times, op.leaderCount, op.memberCount);
+  xmlContent = replaceOleWithVehicleTable(xmlContent, op.times);
 
   // Remove the WMF image paragraph (the "Bericht als PDF abspeichern" macro button)
   const wmfPicStart = xmlContent.indexOf('<w:pict ');
@@ -474,13 +475,13 @@ export async function generatePersonnelSheet(operationId: number, vehicleFilter?
   const sheet = workbook.getWorksheet(1);
   if (!sheet) throw new Error('Arbeitsblatt nicht gefunden');
 
-  sheet.getCell('B5').value = vehicleFilter || op.vehicles || '';
+  sheet.getCell('B5').value = vehicleFilter !== undefined ? (vehicleFilter || 'ohne Fahrzeug') : (op.vehicles || '');
   sheet.getCell('B7').value = `${op.keyword || ''} ${op.location}`.trim();
   sheet.getCell('B8').value = `${new Date(op.date).toLocaleDateString('de-DE')} ${op.alarmTime || ''}`.trim();
 
   let personnel = op.personnel;
-  if (vehicleFilter) {
-    personnel = personnel.filter(p => p.vehicleName === vehicleFilter);
+  if (vehicleFilter !== undefined) {
+    personnel = personnel.filter(p => (p.vehicleName?.trim() || '') === vehicleFilter);
   }
 
   const deployed = personnel.filter(p => p.section === 'deployed');
@@ -532,7 +533,8 @@ export async function generatePersonnelSheet(operationId: number, vehicleFilter?
   let finalPath: string;
   let fileName: string;
 
-  const baseFileName = buildReportFileName(op, operationId, 'Kraeftenachweis');
+  const vehicleSuffix = vehicleFilter !== undefined ? `_${sanitizeFileNamePart(vehicleFilter || 'ohne-Fahrzeug').replace(/\s+/g, '')}` : '';
+  const baseFileName = `${buildReportFileName(op, operationId, 'Kraeftenachweis')}${vehicleSuffix}`;
   try {
     finalPath = await convertToPdf(xlsxPath);
     fileName = `${baseFileName}.pdf`;
@@ -564,6 +566,36 @@ export async function generatePersonnelSheet(operationId: number, vehicleFilter?
   });
 
   return { filePath: destPath, fileName };
+}
+
+/**
+ * Erzeugt einen Kräftenachweis je tatsächlich zugeordnetem Fahrzeug (Operation.personnel.vehicleName),
+ * da das Vorlagen-Formular pro Blatt nur ein Fahrzeug abbildet. Ohne Personal-Fahrzeugzuordnungen
+ * fällt dies auf einen einzelnen Nachweis mit dem allgemeinen Operation.vehicles-Textfeld zurück.
+ */
+export async function generatePersonnelSheets(operationId: number): Promise<{ filePath: string; fileName: string }[]> {
+  const personnel = await prisma.operationPersonnel.findMany({
+    where: { operationId },
+    orderBy: { id: 'asc' },
+    select: { vehicleName: true },
+  });
+
+  const normalized = personnel.map(p => p.vehicleName?.trim() || '');
+  const vehicleNames = [...new Set(normalized.filter(v => v !== ''))];
+  const hasUnassigned = normalized.some(v => v === '');
+
+  if (vehicleNames.length === 0) {
+    return [await generatePersonnelSheet(operationId)];
+  }
+
+  const results: { filePath: string; fileName: string }[] = [];
+  for (const vehicleName of vehicleNames) {
+    results.push(await generatePersonnelSheet(operationId, vehicleName));
+  }
+  if (hasUnassigned) {
+    results.push(await generatePersonnelSheet(operationId, ''));
+  }
+  return results;
 }
 
 // ==================== Brandsicherheitswache (Checkliste + Bericht) ====================

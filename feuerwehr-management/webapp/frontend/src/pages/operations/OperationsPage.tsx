@@ -19,8 +19,6 @@ function OperationCreateModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
     alarmTime: '',
     location: '',
     keyword: '',
-    leaderCount: '0',
-    memberCount: '0',
   });
 
   const navigate = useNavigate();
@@ -28,8 +26,6 @@ function OperationCreateModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
     mutationFn: () => operationsApi.create({
       ...form,
       date: new Date(form.date).toISOString(),
-      leaderCount: parseInt(form.leaderCount) || 0,
-      memberCount: parseInt(form.memberCount) || 0,
     } as Partial<Operation>),
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['operations'] });
@@ -57,10 +53,7 @@ function OperationCreateModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
         <Input label="Alarmzeit" value={form.alarmTime} onChange={(e) => u('alarmTime', e.target.value)} type="time" />
         <Input label="Einsatzort" value={form.location} onChange={(e) => u('location', e.target.value)} required />
         <Input label="Stichwort" value={form.keyword} onChange={(e) => u('keyword', e.target.value)} />
-        <div className="grid grid-cols-2 gap-3">
-          <Input label="GF-Stärke" value={form.leaderCount} onChange={(e) => u('leaderCount', e.target.value)} type="number" />
-          <Input label="FM-Stärke" value={form.memberCount} onChange={(e) => u('memberCount', e.target.value)} type="number" />
-        </div>
+        <p className="text-xs text-gray-500">Fahrzeuge und Stärke werden nach dem Anlegen im Tab „Fahrzeugzeiten" gepflegt.</p>
       </div>
     </Modal>
   );
