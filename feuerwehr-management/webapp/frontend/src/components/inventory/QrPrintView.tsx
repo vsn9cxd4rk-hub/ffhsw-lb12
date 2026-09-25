@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import QRCode from 'qrcode';
+import JsBarcode from 'jsbarcode';
 import { Article } from '../../types';
 
 interface QrEtikettProps {
@@ -54,6 +55,79 @@ export function QrSingleView({ article, baseUrl, onPrint }: QrSingleProps) {
       </div>
       <p className="text-xs text-gray-400 break-all">{baseUrl}/scan/{article.inventoryNumber}</p>
       <button onClick={onPrint} className="mt-2 px-4 py-2 bg-primary-600 text-white text-sm rounded-md hover:bg-primary-700">
+        Etikett drucken
+      </button>
+    </div>
+  );
+}
+
+// Value encoded in the barcode: prefer the MP-Feuer inventory number, fall back
+// to the regular inventory number when it is not maintained.
+export function barcodeValue(article: Article): string | null {
+  return article.mpFeuerInventoryNumber || article.inventoryNumber || null;
+}
+
+// Opens a print window with a Code128 barcode label for the article.
+export function printBarcodeLabel(article: Article) {
+  const value = barcodeValue(article);
+  if (!value) return;
+  const printWin = window.open('', '_blank', 'width=400,height=300');
+  if (!printWin) return;
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  try {
+    JsBarcode(svg, value, { format: 'CODE128', displayValue: true, fontSize: 16, height: 70, margin: 6 });
+  } catch {
+    printWin.close();
+    return;
+  }
+  const container = document.createElement('div');
+  container.appendChild(svg);
+  printWin.document.write(`<html><head><title>Barcode Etikett</title><style>body{margin:0;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif}
+    .label{text-align:center;width:50mm;height:30mm;padding:2mm;border:0.5px dashed #ccc;display:flex;flex-direction:column;align-items:center;justify-content:center}
+    svg{max-width:46mm} .name{font-size:7pt} .lb{font-size:6pt;color:#666}
+    @media print{body{height:auto}.label{border:none}}</style></head>
+    <body><div class="label">${container.innerHTML}<div class="name">${article.name}</div><div class="lb">${article.designationLB || 'LB12'}</div></div></body></html>`);
+  printWin.document.close();
+  setTimeout(() => { printWin.print(); }, 300);
+}
+
+interface BarcodeSingleProps {
+  article: Article;
+  onPrint: () => void;
+}
+
+export function BarcodeSingleView({ article, onPrint }: BarcodeSingleProps) {
+  const svgRef = useRef<SVGSVGElement>(null);
+  const [error, setError] = useState('');
+  const value = barcodeValue(article);
+
+  useEffect(() => {
+    if (svgRef.current && value) {
+      try {
+        setError('');
+        JsBarcode(svgRef.current, value, {
+          format: 'CODE128',
+          displayValue: true,
+          fontSize: 14,
+          height: 60,
+          margin: 8,
+        });
+        // JsBarcode may reset attributes on render; re-apply accessibility hints.
+        svgRef.current.setAttribute('role', 'img');
+        svgRef.current.setAttribute('aria-label', `Barcode ${value}`);
+      } catch {
+        setError('Barcode konnte nicht erzeugt werden.');
+      }
+    }
+  }, [value]);
+
+  return (
+    <div className="flex flex-col items-center gap-3">
+      {error
+        ? <p className="text-xs text-red-500">{error}</p>
+        : <svg ref={svgRef} role="img" aria-label={`Barcode ${value || ''}`} className="max-w-full" />}
+      <p className="text-xs text-gray-500">{article.designationLB || 'LB12'}</p>
+      <button onClick={onPrint} className="mt-1 px-4 py-2 bg-primary-600 text-white text-sm rounded-md hover:bg-primary-700">
         Etikett drucken
       </button>
     </div>

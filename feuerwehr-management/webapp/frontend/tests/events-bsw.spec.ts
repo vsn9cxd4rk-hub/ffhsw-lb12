@@ -1,15 +1,26 @@
 import { test, expect } from '@playwright/test';
 
-async function createEvent(page: import('@playwright/test').Page, name: string, category: string) {
+async function createEvent(page: import('@playwright/test').Page, name: string, category: string): Promise<string> {
+  // Eindeutiger Name, damit wiederholte Testläufe eindeutig bleiben.
+  const uniqueName = `${name}-${Date.now()}`;
   await page.goto('/events');
   await page.getByRole('button', { name: 'Neue Veranstaltung' }).click();
-  await expect(page.getByText('Neue Veranstaltung')).toBeVisible();
-  await page.getByLabel('Bezeichnung').fill(name);
+  await expect(page.getByRole('dialog').getByText('Neue Veranstaltung')).toBeVisible();
+  await page.getByLabel('Bezeichnung').fill(uniqueName);
   await page.getByLabel('Kategorie').selectOption(category);
-  await page.getByLabel('Datum').fill('2026-12-24');
-  await page.getByRole('button', { name: 'Anlegen' }).click();
-  await expect(page.getByText(name)).toBeVisible();
-  await page.getByText(name).click();
+  await page.getByLabel('Datum').fill('2099-12-31');
+  // POST-Response abfangen und direkt zur Detailseite navigieren — umgeht die
+  // paginierte/gefilterte Events-Liste, damit der Test robust gegen beliebig
+  // viele (Alt-)Veranstaltungen in der DB ist.
+  const [response] = await Promise.all([
+    page.waitForResponse(r => r.url().includes('/api/events') && r.request().method() === 'POST'),
+    page.getByRole('button', { name: 'Anlegen' }).click(),
+  ]);
+  const body = await response.json();
+  const eventId = body?.data?.id;
+  await page.goto(`/events/${eventId}`);
+  await expect(page.getByText(uniqueName).first()).toBeVisible();
+  return uniqueName;
 }
 
 test.describe('Veranstaltung - Brandsicherheitswache (BSW)', () => {

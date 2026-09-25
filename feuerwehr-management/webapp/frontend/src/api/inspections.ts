@@ -11,6 +11,9 @@ export const inspectionsApi = {
   getArticleInspections: (articleId: number) =>
     client.get<{ data: ArticleInspection[] }>(`/inspections/article/${articleId}`),
 
+  getInspectors: () =>
+    client.get<{ data: Array<{ id: number; firstName: string; lastName: string; rank: string | null; name: string }> }>('/inspections/inspectors'),
+
   getCriteria: (articleId: number) =>
     client.get<{ data: InspectionCriterion[] }>(`/inspections/criteria/${articleId}`),
 

@@ -18,18 +18,18 @@ test.describe('Online-Hilfe', () => {
 
   test('zeigt alle 12 Kapitel', async ({ page }) => {
     await page.goto('/help');
-    await expect(page.getByText('1. Übersicht')).toBeVisible();
-    await expect(page.getByText('2. Dashboard')).toBeVisible();
-    await expect(page.getByText('3. Bestandsliste')).toBeVisible();
-    await expect(page.getByText('4. Prüfbuch')).toBeVisible();
-    await expect(page.getByText('5. Mängel & Reparaturen')).toBeVisible();
-    await expect(page.getByText('6. Einstellungen')).toBeVisible();
-    await expect(page.getByText('7. Personal')).toBeVisible();
-    await expect(page.getByText('8. Fahrzeuge')).toBeVisible();
-    await expect(page.getByText('9. Einsätze & Veranstaltungen')).toBeVisible();
-    await expect(page.getByText('10. Installation Windows')).toBeVisible();
-    await expect(page.getByText('11. Installation Linux')).toBeVisible();
-    await expect(page.getByText('12. Wartung & Backup')).toBeVisible();
+    await expect(page.getByRole('heading', { name: '1. Übersicht' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '2. Dashboard' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '3. Bestandsliste' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '4. Prüfbuch' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '5. Mängel & Reparaturen' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '6. Einstellungen' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '7. Personal' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '8. Fahrzeuge' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '9. Einsätze & Veranstaltungen' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '10. Installation Windows' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '11. Installation Linux' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '12. Wartung & Backup' })).toBeVisible();
   });
 
   test('Hilfe-Link im Header funktioniert', async ({ page }) => {

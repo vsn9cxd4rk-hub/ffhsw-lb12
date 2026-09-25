@@ -136,14 +136,17 @@ interface TimeEntry {
   returnTime: string | null;
 }
 
-function calcDurationMinutes(start: string | null, end: string | null): number {
+export function calcDurationMinutes(start: string | null, end: string | null): number {
   if (!start || !end) return 0;
   const [sh, sm] = start.split(':').map(Number);
   const [eh, em] = end.split(':').map(Number);
-  return (eh * 60 + em) - (sh * 60 + sm);
+  let diff = (eh * 60 + em) - (sh * 60 + sm);
+  // Einsatz über Mitternacht: die Endzeit liegt am Folgetag, daher 24 h addieren.
+  if (diff < 0) diff += 24 * 60;
+  return diff;
 }
 
-function formatDuration(minutes: number): string {
+export function formatDuration(minutes: number): string {
   if (minutes <= 0) return '00:00';
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;

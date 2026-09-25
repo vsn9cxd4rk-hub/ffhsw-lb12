@@ -10,11 +10,14 @@ test.describe('Einsätze', () => {
   test('kann neuen Einsatz anlegen', async ({ page }) => {
     await page.goto('/operations');
     await page.getByRole('button', { name: /Neuer Einsatz/i }).click();
-    await expect(page.getByText('Einsatz erstellen')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Neuer Einsatz' })).toBeVisible();
+    // Eindeutiger Einsatzort, damit wiederholte Testläufe keine Duplikate
+    // erzeugen (sonst strict-mode-Violation beim Wiederfinden in der Liste).
+    const ort = `Testort - Teststrasse ${Date.now()}`;
     await page.getByLabel('Datum').fill('2026-07-21');
-    await page.getByLabel('Einsatzort').fill('Testort - Teststrasse 1');
-    await page.getByRole('button', { name: /Erstellen|Speichern/i }).click();
-    await expect(page.getByText('Testort - Teststrasse 1')).toBeVisible();
+    await page.getByLabel('Einsatzort').fill(ort);
+    await page.getByRole('button', { name: /Anlegen/i }).click();
+    await expect(page.getByText(ort).first()).toBeVisible();
   });
 
   test('zeigt alle Tabs in Einsatz-Detail', async ({ page }) => {
@@ -37,11 +40,11 @@ test.describe('Einsätze', () => {
     if (await firstRow.isVisible()) {
       await firstRow.click();
       await expect(page.getByText('Einsatzbericht-Details')).toBeVisible();
-      await expect(page.getByLabel('Berichtsart')).toBeVisible();
-      await expect(page.getByLabel('Einsatzstichwort')).toBeVisible();
+      await expect(page.locator('label:has-text("Berichtsart") + select')).toBeVisible();
+      await expect(page.locator('label:has-text("Einsatzstichwort") + select')).toBeVisible();
       await expect(page.getByLabel('ILS Auftragsnummer')).toBeVisible();
       await expect(page.getByLabel('Ersteller')).toBeVisible();
-      await expect(page.getByLabel('Rolle des Erstellers')).toBeVisible();
+      await expect(page.locator('label:has-text("Rolle des Erstellers") + select')).toBeVisible();
       await expect(page.getByText('Einsatzart')).toBeVisible();
       await expect(page.getByText('Statistische Angaben')).toBeVisible();
     }
@@ -52,7 +55,7 @@ test.describe('Einsätze', () => {
     const firstRow = page.locator('table tbody tr').first();
     if (await firstRow.isVisible()) {
       await firstRow.click();
-      const stichwort = page.getByLabel('Einsatzstichwort');
+      const stichwort = page.locator('label:has-text("Einsatzstichwort") + select');
       await expect(stichwort).toBeVisible();
       // Check it's a select with options
       const options = stichwort.locator('option');
@@ -80,7 +83,7 @@ test.describe('Einsatz - Kräfte-Tab', () => {
     if (await firstRow.isVisible()) {
       await firstRow.click();
       await page.getByRole('button', { name: 'Kräfte' }).click();
-      await expect(page.getByText('Eingesetzte Kräfte')).toBeVisible();
+      await expect(page.getByText(/Fahrzeug |Noch keine Fahrzeuge erfasst/).first()).toBeVisible();
       await expect(page.getByText('Nachgerückte Kräfte')).toBeVisible();
     }
   });
@@ -94,9 +97,9 @@ test.describe('Einsatz - Kräfte-Tab', () => {
       const addButtons = page.getByRole('button', { name: 'Hinzufügen' });
       await addButtons.first().click();
       await expect(page.getByText('Einsatzkraft hinzufügen')).toBeVisible();
-      await expect(page.getByLabel('Mitglied')).toBeVisible();
-      await expect(page.getByLabel('Funktion')).toBeVisible();
-      await expect(page.getByLabel('Fahrzeug')).toBeVisible();
+      await expect(page.locator('label:has-text("Mitglied") + select')).toBeVisible();
+      await expect(page.locator('label:has-text("Funktion") + select')).toBeVisible();
+      await expect(page.getByRole('dialog').getByText('Fahrzeug', { exact: true })).toBeVisible();
     }
   });
 });
@@ -121,7 +124,7 @@ test.describe('Einsatz - Dokumente & Generierung', () => {
       await page.getByRole('button', { name: 'Dokumente' }).click();
       await page.getByRole('button', { name: /Einsatzbericht generieren/i }).click();
       // Should show success or error message (not just stay silent)
-      await expect(page.getByText(/generiert|fehlt|fehlgeschlagen/i)).toBeVisible({ timeout: 15000 });
+      await expect(page.getByText(/generiert|fehlt|fehlgeschlagen/i).first()).toBeVisible({ timeout: 15000 });
     }
   });
 });

@@ -4,9 +4,9 @@ test.describe('Dashboard', () => {
   test('zeigt Statistik-Karten', async ({ page }) => {
     await page.goto('/dashboard');
     await expect(page.getByText('Aktive Mitglieder')).toBeVisible();
-    await expect(page.getByText('Fahrzeuge')).toBeVisible();
-    await expect(page.getByText(/Einsätze/)).toBeVisible();
-    await expect(page.getByText(/Prüfungen/)).toBeVisible();
+    await expect(page.getByText('Einsatzfahrzeuge')).toBeVisible();
+    await expect(page.getByText('Einsätze (Jahr)')).toBeVisible();
+    await expect(page.getByText('Anst. Prüfungen')).toBeVisible();
   });
 
   test('zeigt Prüfungs-Ampel', async ({ page }) => {

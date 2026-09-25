@@ -46,7 +46,14 @@ client.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Auth endpoints must not trigger the refresh/forceLogout flow: a 401 from
+    // /auth/login means "wrong credentials" and a 401 from /auth/refresh means
+    // "no valid session" — both should surface to the caller (e.g. the login
+    // form) instead of being swallowed by a token refresh and page reload.
+    const requestUrl: string = originalRequest?.url || '';
+    const isAuthEndpoint = requestUrl.includes('/auth/login') || requestUrl.includes('/auth/refresh');
+
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
       if (isRefreshing) {
         return new Promise<string>((resolve, reject) => {
           failedQueue.push({ resolve, reject });

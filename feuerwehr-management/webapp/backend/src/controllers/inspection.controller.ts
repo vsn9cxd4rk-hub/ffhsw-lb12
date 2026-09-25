@@ -177,6 +177,38 @@ export async function getArticleInspections(req: Request, res: Response): Promis
   }
 }
 
+// List members who can act as inspectors: those whose linked user account is in
+// a permission group whose name contains "Gerätewart" (covers both
+// "Gerätewarte" and "Gerätewart + Gruppenführer"). Returns active members only,
+// sorted by name, for use in the inspection "Prüfer" dropdown.
+export async function getInspectors(_req: Request, res: Response): Promise<void> {
+  try {
+    const users = await prisma.user.findMany({
+      where: {
+        group: { name: { contains: 'Gerätewart' } },
+        memberId: { not: null },
+      },
+      include: { member: true },
+    });
+
+    const inspectors = users
+      .map(u => u.member)
+      .filter((m): m is NonNullable<typeof m> => !!m && !m.isInactive)
+      .map(m => ({
+        id: m.id,
+        firstName: m.firstName,
+        lastName: m.lastName,
+        rank: m.rank,
+        name: `${m.firstName} ${m.lastName}`,
+      }))
+      .sort((a, b) => a.lastName.localeCompare(b.lastName, 'de') || a.firstName.localeCompare(b.firstName, 'de'));
+
+    sendSuccess(res, inspectors);
+  } catch (err) {
+    sendError(res, (err as Error).message);
+  }
+}
+
 // Get inspection criteria for an article based on its subclass
 export async function getInspectionCriteria(req: Request, res: Response): Promise<void> {
   try {

@@ -9,14 +9,14 @@ test.describe('Mängel & Reparaturen', () => {
 
   test('zeigt Filter in Mängel-Tab', async ({ page }) => {
     await page.goto('/defects');
-    await expect(page.getByText('Status')).toBeVisible();
+    await expect(page.getByText('Status').first()).toBeVisible();
     await expect(page.getByRole('button', { name: 'Neuer Mangel' })).toBeVisible();
   });
 
   test('öffnet Mangel-Formular', async ({ page }) => {
     await page.goto('/defects');
     await page.getByRole('button', { name: 'Neuer Mangel' }).click();
-    await expect(page.getByText('Neuen Mangel')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Neuer Mangel' })).toBeVisible();
     await expect(page.getByLabel(/Beschreibung/)).toBeVisible();
     await expect(page.getByLabel(/Gemeldet von/)).toBeVisible();
   });

@@ -6,6 +6,7 @@ import {
   getInspections,
   getDueInspections,
   getArticleInspections,
+  getInspectors,
   getInspectionCriteria,
   getInspectionReport,
   createInspection,
@@ -24,6 +25,7 @@ router.use(requirePermission(BIT_EQUIPMENT));
 
 router.get('/', getInspections);
 router.get('/due', getDueInspections);
+router.get('/inspectors', getInspectors);
 router.get('/report', getInspectionReport);
 router.get('/criteria/:articleId', getInspectionCriteria);
 router.get('/article/:articleId', getArticleInspections);

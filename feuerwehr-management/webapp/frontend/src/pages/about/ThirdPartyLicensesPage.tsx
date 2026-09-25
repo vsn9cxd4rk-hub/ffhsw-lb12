@@ -25,6 +25,7 @@ const libraries: Library[] = [
   { name: 'jspdf', version: '^4.2.1', license: 'MIT', url: 'https://github.com/parallax/jsPDF', category: 'frontend' },
   { name: 'jspdf-autotable', version: '^5.0.7', license: 'MIT', url: 'https://github.com/simonbengtsson/jsPDF-AutoTable', category: 'frontend' },
   { name: 'qrcode', version: '^1.5.4', license: 'MIT', url: 'https://github.com/soldair/node-qrcode', category: 'frontend' },
+  { name: 'jsbarcode', version: '^3.12.3', license: 'MIT', url: 'https://github.com/lindell/JsBarcode', category: 'frontend' },
   { name: 'react-hook-form', version: '^7.54.2', license: 'MIT', url: 'https://react-hook-form.com', category: 'frontend' },
   { name: '@hookform/resolvers', version: '^3.9.1', license: 'MIT', url: 'https://github.com/react-hook-form/resolvers', category: 'frontend' },
   { name: 'zod', version: '^3.24.2', license: 'MIT', url: 'https://zod.dev', category: 'frontend' },

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AxiosResponse } from 'axios';
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/solid';
+import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { Article, ArticleInspection, InspectionCriterion, InspectionType } from '../../types';
 import { Modal } from '../ui/Modal';
 import { Input } from '../ui/Input';
@@ -10,6 +11,7 @@ import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { inspectionsApi } from '../../api/inspections';
 import { settingsApi } from '../../api/settings';
+import { defectsApi } from '../../api/defects';
 
 interface Props {
   isOpen: boolean;
@@ -31,12 +33,19 @@ export function CriteriaInspectionModal({ isOpen, onClose, articles, preselected
   const [criterionResults, setCriterionResults] = useState<Record<number, 'io' | 'nio'>>({});
   const [docFile, setDocFile] = useState<File | null>(null);
   const [error, setError] = useState('');
+  const [showDefectModal, setShowDefectModal] = useState(false);
 
   const { data: inspectionTypesRes } = useQuery({
     queryKey: ['inspection-types'],
     queryFn: () => settingsApi.getInspectionTypes(),
   });
   const inspectionTypes: InspectionType[] = inspectionTypesRes?.data?.data || [];
+
+  const { data: inspectorsRes } = useQuery({
+    queryKey: ['inspectors'],
+    queryFn: () => inspectionsApi.getInspectors(),
+  });
+  const inspectors = inspectorsRes?.data?.data || [];
 
   useEffect(() => {
     if (isOpen) {
@@ -133,15 +142,31 @@ export function CriteriaInspectionModal({ isOpen, onClose, articles, preselected
 
   const canSave = articleId && inspectedAt && inspectedBy && allCriteriaEvaluated;
 
+  // Prefill defect description with any criteria marked "nio" for convenience.
+  const failedCriteria = criteria.filter(c => criterionResults[c.id] === 'nio').map(c => c.name);
+  const defectPrefillDescription = failedCriteria.length > 0
+    ? `Prüfung nicht bestanden. Beanstandete Kriterien: ${failedCriteria.join(', ')}.`
+    : '';
+
   return (
+    <>
     <Modal isOpen={isOpen} onClose={onClose} title={isEditMode ? 'Prüfung bearbeiten' : 'Prüfung dokumentieren'} size="lg"
       footer={
-        <>
-          <Button variant="secondary" onClick={onClose}>Abbrechen</Button>
-          <Button variant="primary" onClick={() => mutation.mutate()} loading={mutation.isPending} disabled={!canSave}>
-            {isEditMode ? 'Änderungen speichern' : 'Prüfung speichern'}
-          </Button>
-        </>
+        <div className="flex items-center justify-between w-full">
+          <div>
+            {selectedArticle && (
+              <Button variant="secondary" icon={<ExclamationTriangleIcon />} onClick={() => setShowDefectModal(true)}>
+                Mangel erfassen
+              </Button>
+            )}
+          </div>
+          <div className="flex gap-3">
+            <Button variant="secondary" onClick={onClose}>Abbrechen</Button>
+            <Button variant="primary" onClick={() => mutation.mutate()} loading={mutation.isPending} disabled={!canSave}>
+              {isEditMode ? 'Änderungen speichern' : 'Prüfung speichern'}
+            </Button>
+          </div>
+        </div>
       }
     >
       <div className="space-y-4">
@@ -162,7 +187,18 @@ export function CriteriaInspectionModal({ isOpen, onClose, articles, preselected
           <Input label="Prüfdatum" value={inspectedAt} onChange={(e) => setInspectedAt(e.target.value)} type="date" required />
         </div>
 
-        <Input label="Prüfer" value={inspectedBy} onChange={(e) => setInspectedBy(e.target.value)} required />
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">Prüfer <span className="text-red-500">*</span></label>
+          <select value={inspectedBy} onChange={(e) => setInspectedBy(e.target.value)}
+            className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none bg-white">
+            <option value="">-- Prüfer wählen --</option>
+            {inspectors.map(m => <option key={m.id} value={m.name}>{m.name}</option>)}
+            {/* Bestehenden (ggf. frei eingetippten) Prüfer erhalten, falls er nicht in der Liste ist */}
+            {inspectedBy && !inspectors.some(m => m.name === inspectedBy) && (
+              <option value={inspectedBy}>{inspectedBy}</option>
+            )}
+          </select>
+        </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">Prüfart</label>
@@ -242,6 +278,116 @@ export function CriteriaInspectionModal({ isOpen, onClose, articles, preselected
             Nächste Prüfung fällig am: <strong>{nextDueDateStr}</strong>
           </div>
         )}
+      </div>
+    </Modal>
+
+    {selectedArticle && (
+      <DefectFromInspectionModal
+        isOpen={showDefectModal}
+        onClose={() => setShowDefectModal(false)}
+        article={selectedArticle}
+        defaultReportedBy={inspectedBy}
+        defaultReportedAt={inspectedAt}
+        defaultDescription={defectPrefillDescription}
+      />
+    )}
+    </>
+  );
+}
+
+// =====================
+// Defect capture from within an inspection
+// =====================
+
+interface DefectFromInspectionProps {
+  isOpen: boolean;
+  onClose: () => void;
+  article: Article;
+  defaultReportedBy: string;
+  defaultReportedAt: string;
+  defaultDescription: string;
+}
+
+function DefectFromInspectionModal({ isOpen, onClose, article, defaultReportedBy, defaultReportedAt, defaultDescription }: DefectFromInspectionProps) {
+  const queryClient = useQueryClient();
+  const [description, setDescription] = useState('');
+  const [severity, setSeverity] = useState('medium');
+  const [reportedBy, setReportedBy] = useState('');
+  const [reportedAt, setReportedAt] = useState(new Date().toISOString().split('T')[0]);
+  const [notes, setNotes] = useState('');
+  const [error, setError] = useState('');
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setDescription(defaultDescription);
+      setSeverity('medium');
+      setReportedBy(defaultReportedBy);
+      setReportedAt(defaultReportedAt || new Date().toISOString().split('T')[0]);
+      setNotes('');
+      setError('');
+      setSaved(false);
+    }
+  }, [isOpen, defaultDescription, defaultReportedBy, defaultReportedAt]);
+
+  const mutation = useMutation({
+    mutationFn: () => defectsApi.create({
+      articleId: article.id,
+      reportedBy,
+      reportedAt,
+      description,
+      severity,
+      notes: notes || undefined,
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['defects'] });
+      queryClient.invalidateQueries({ queryKey: ['article-defects', article.id] });
+      setSaved(true);
+      setTimeout(onClose, 900);
+    },
+    onError: (err: unknown) => {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Speichern fehlgeschlagen';
+      setError(msg);
+    },
+  });
+
+  const canSave = description.trim() && reportedBy.trim();
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title="Mangel erfassen" size="md"
+      footer={
+        <>
+          <Button variant="secondary" onClick={onClose}>Abbrechen</Button>
+          <Button variant="primary" onClick={() => mutation.mutate()} loading={mutation.isPending} disabled={!canSave || saved}>
+            Mangel speichern
+          </Button>
+        </>
+      }
+    >
+      <div className="space-y-3">
+        {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-md">{error}</div>}
+        {saved && <div className="bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-3 rounded-md">Mangel gespeichert.</div>}
+
+        <div className="text-sm text-gray-600">
+          Artikel: <strong className="text-gray-900">{article.name}</strong>
+          {article.inventoryNumber ? ` (${article.inventoryNumber})` : ''}
+        </div>
+
+        <Textarea label="Beschreibung" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} required />
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Schweregrad</label>
+            <select value={severity} onChange={(e) => setSeverity(e.target.value)}
+              className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none bg-white">
+              <option value="low">Gering</option><option value="medium">Mittel</option><option value="high">Hoch</option><option value="critical">Kritisch</option>
+            </select>
+          </div>
+          <Input label="Gemeldet von" value={reportedBy} onChange={(e) => setReportedBy(e.target.value)} required />
+        </div>
+
+        <Input label="Meldedatum" value={reportedAt} onChange={(e) => setReportedAt(e.target.value)} type="date" />
+        <Textarea label="Bemerkungen" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
       </div>
     </Modal>
   );
