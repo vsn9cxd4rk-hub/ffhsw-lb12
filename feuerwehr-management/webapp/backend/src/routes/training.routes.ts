@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import { authenticate } from '../middleware/auth.middleware';
+import { requireAdmin, requirePermissionForWrite } from '../middleware/permission.middleware';
+import { BIT_TRAINING } from '../config/permissionBits';
 import {
   getCourses, createCourse, getCourse, updateCourse, deleteCourse,
   uploadCertificate, certificateUpload, downloadCertificate, deleteCertificate,
@@ -9,10 +11,14 @@ import {
 const router = Router();
 router.use(authenticate);
 
+// Categories are master data maintained under Einstellungen (admin only); reading stays open
 router.get('/categories', getCategories);
-router.post('/categories', createCategory);
-router.put('/categories/:id', updateCategory);
-router.delete('/categories/:id', deleteCategory);
+router.post('/categories', requireAdmin, createCategory);
+router.put('/categories/:id', requireAdmin, updateCategory);
+router.delete('/categories/:id', requireAdmin, deleteCategory);
+
+// Everyone may view courses/certificates; changes need BIT_TRAINING
+router.use(requirePermissionForWrite(BIT_TRAINING));
 
 router.get('/courses', getCourses);
 router.post('/courses', createCourse);

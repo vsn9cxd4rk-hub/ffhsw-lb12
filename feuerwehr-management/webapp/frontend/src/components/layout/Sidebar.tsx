@@ -20,29 +20,27 @@ import { cn } from '../../utils/cn';
 import { useAuthStore } from '../../store/auth.store';
 import { BIT_VEHICLES, BIT_OPERATIONS, BIT_EQUIPMENT } from '../../config/permissionBits';
 
-// groups: null = alle, [1] = nur Admin. bit = Fähigkeiten-Bit (unabhängig von der Gruppen-Zuordnung).
-const GROUP_ADMIN = 1;
-
+// bit = Fähigkeiten-Bit, adminOnly = nur Benutzer mit isAdmin (wie requireAdmin im Backend).
 interface NavItem {
   name: string;
   href: string;
   icon: React.ElementType;
   bit?: string;
-  groups?: number[] | null;
+  adminOnly?: boolean;
 }
 
 const navigation: NavItem[] = [
-  { name: 'Dashboard', href: '/dashboard', icon: HomeIcon, groups: null },
-  { name: 'Personal', href: '/members', icon: UserGroupIcon, groups: [GROUP_ADMIN] },
+  { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
+  { name: 'Personal', href: '/members', icon: UserGroupIcon, adminOnly: true },
   { name: 'Fahrzeuge', href: '/vehicles', icon: TruckIcon, bit: BIT_VEHICLES },
   { name: 'Bestandsliste', href: '/inventory', icon: ArchiveBoxIcon, bit: BIT_EQUIPMENT },
   { name: 'Prüfbuch', href: '/inspections', icon: ClipboardDocumentCheckIcon, bit: BIT_EQUIPMENT },
   { name: 'Mängel', href: '/defects', icon: ExclamationTriangleIcon, bit: BIT_EQUIPMENT },
   { name: 'Einsätze', href: '/operations', icon: FireIcon, bit: BIT_OPERATIONS },
   { name: 'Statistik', href: '/statistics', icon: ChartBarSquareIcon, bit: BIT_OPERATIONS },
-  { name: 'Veranstaltungen', href: '/events', icon: CalendarIcon, groups: null },
-  { name: 'Ausbildung', href: '/training', icon: AcademicCapIcon, groups: null },
-  { name: 'Einstellungen', href: '/settings', icon: Cog6ToothIcon, groups: [GROUP_ADMIN] },
+  { name: 'Veranstaltungen', href: '/events', icon: CalendarIcon },
+  { name: 'Ausbildung', href: '/training', icon: AcademicCapIcon },
+  { name: 'Einstellungen', href: '/settings', icon: Cog6ToothIcon, adminOnly: true },
 ];
 
 interface SidebarProps {
@@ -55,9 +53,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   const visibleNavigation = navigation.filter(item => {
     if (user?.isAdmin) return true;
+    if (item.adminOnly) return false;
     if (item.bit) return !!user?.permissions?.[item.bit];
-    if (!item.groups) return true;
-    return user?.groupId ? item.groups.includes(user.groupId) : false;
+    return true;
   });
 
   return (

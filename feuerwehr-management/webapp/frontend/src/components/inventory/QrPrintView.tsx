@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import QRCode from 'qrcode';
 import JsBarcode from 'jsbarcode';
 import { Article } from '../../types';
+import { escapeHtml, openPrintWindow } from '../../utils/html';
 
 interface QrEtikettProps {
   article: Article;
@@ -67,28 +68,42 @@ export function barcodeValue(article: Article): string | null {
   return article.mpFeuerInventoryNumber || article.inventoryNumber || null;
 }
 
+// Single print label (QR or barcode): `graphic` is trusted markup generated here (an <img>
+// with a data: URL or a JsBarcode SVG); every article field is escaped.
+function buildLabelHtml(title: string, width: string, graphic: string, lines: { cls: string; text: string }[]): string {
+  return `<html><head><title>${escapeHtml(title)}</title><style>body{margin:0;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif}
+    .label{text-align:center;width:${width};height:30mm;padding:2mm;border:0.5px dashed #ccc;display:flex;flex-direction:column;align-items:center;justify-content:center}
+    img{width:20mm;height:20mm} svg{max-width:46mm} .inv{font-size:8pt;font-weight:bold} .name{font-size:7pt} .lb{font-size:6pt;color:#666}
+    @media print{body{height:auto}.label{border:none}}</style></head>
+    <body><div class="label">${graphic}${lines.map(l => `<div class="${l.cls}">${escapeHtml(l.text)}</div>`).join('')}</div></body></html>`;
+}
+
+// Opens a print window with a QR code label for the article.
+export async function printQrLabel(article: Article, baseUrl: string) {
+  if (!article.inventoryNumber) return;
+  const url = await QRCode.toDataURL(`${baseUrl}/scan/${article.inventoryNumber}`, { width: 200, margin: 2 });
+  openPrintWindow(buildLabelHtml('QR Etikett', '40mm', `<img src="${escapeHtml(url)}"/>`, [
+    { cls: 'inv', text: article.inventoryNumber },
+    { cls: 'name', text: article.name },
+    { cls: 'lb', text: article.designationLB || 'LB12' },
+  ]), 'width=300,height=400');
+}
+
 // Opens a print window with a Code128 barcode label for the article.
 export function printBarcodeLabel(article: Article) {
   const value = barcodeValue(article);
   if (!value) return;
-  const printWin = window.open('', '_blank', 'width=400,height=300');
-  if (!printWin) return;
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   try {
     JsBarcode(svg, value, { format: 'CODE128', displayValue: true, fontSize: 16, height: 70, margin: 6 });
   } catch {
-    printWin.close();
     return;
   }
-  const container = document.createElement('div');
-  container.appendChild(svg);
-  printWin.document.write(`<html><head><title>Barcode Etikett</title><style>body{margin:0;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif}
-    .label{text-align:center;width:50mm;height:30mm;padding:2mm;border:0.5px dashed #ccc;display:flex;flex-direction:column;align-items:center;justify-content:center}
-    svg{max-width:46mm} .name{font-size:7pt} .lb{font-size:6pt;color:#666}
-    @media print{body{height:auto}.label{border:none}}</style></head>
-    <body><div class="label">${container.innerHTML}<div class="name">${article.name}</div><div class="lb">${article.designationLB || 'LB12'}</div></div></body></html>`);
-  printWin.document.close();
-  setTimeout(() => { printWin.print(); }, 300);
+  // outerHTML serialises the SVG DOM, so the barcode text inside it is already escaped
+  openPrintWindow(buildLabelHtml('Barcode Etikett', '50mm', svg.outerHTML, [
+    { cls: 'name', text: article.name },
+    { cls: 'lb', text: article.designationLB || 'LB12' },
+  ]), 'width=400,height=300');
 }
 
 interface BarcodeSingleProps {

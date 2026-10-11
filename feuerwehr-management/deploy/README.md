@@ -39,17 +39,17 @@
 
 ```bash
 # Projekt auf den Server übertragen
-scp -r /pfad/zum/projekt/ benutzer@server:/tmp/fuerwehr/
+scp -r /pfad/zum/projekt/ benutzer@server:/tmp/feuerwehr/
 
 # Auf dem Server als root
-sudo bash /tmp/fuerwehr/deploy/install.sh
+sudo bash /tmp/feuerwehr/deploy/install-debian.sh   # Manjaro: install-manjaro.sh
 ```
 
 Das Installationsskript führt folgende Schritte automatisch durch:
 
 - System aktualisieren
 - Node.js 20, MySQL, Nginx, PM2 installieren
-- Systembenutzer `fuerwehr` anlegen
+- Systembenutzer `lb12admin` anlegen
 - Verzeichnisstruktur erstellen
 - MySQL-Datenbank und Benutzer einrichten
 - `.env`-Konfigurationsdatei erstellen
@@ -74,7 +74,7 @@ Nach der Installation:
 ## Verzeichnisstruktur
 
 ```
-/var/www/fuerwehr/
+/var/www/feuerwehrmanagement/
 ├── backend/          # Node.js-Backend (kompiliert)
 │   ├── dist/         # Kompilierter TypeScript-Code
 │   ├── node_modules/ # npm-Abhängigkeiten
@@ -92,7 +92,7 @@ Nach der Installation:
 │   └── check-health.sh
 └── ecosystem.config.js  # PM2-Konfiguration
 
-/var/log/fuerwehr/
+/var/log/feuerwehrmanagement/
 ├── pm2-out.log       # Backend-Ausgabe
 ├── pm2-error.log     # Backend-Fehler
 ├── backup.log        # Backup-Protokoll
@@ -103,13 +103,13 @@ Nach der Installation:
 
 ## Konfiguration
 
-Die gesamte Konfiguration befindet sich in `/var/www/fuerwehr/backend/.env`:
+Die gesamte Konfiguration befindet sich in `/var/www/feuerwehrmanagement/backend/.env`:
 
 ```env
 NODE_ENV=production
 PORT=3001
 
-DATABASE_URL="mysql://user:pass@localhost:3306/fuerwehr"
+DATABASE_URL="mysql://user:pass@localhost:3306/FFWVSLB12"
 
 JWT_ACCESS_SECRET=<zufälliger-schlüssel>
 JWT_REFRESH_SECRET=<zufälliger-schlüssel>
@@ -118,9 +118,9 @@ JWT_REFRESH_EXPIRES=7d
 
 CORS_ORIGIN=http://ihre-domain.de
 
-UPLOAD_PATH=/var/www/fuerwehr/uploads
+UPLOAD_PATH=/var/www/feuerwehrmanagement/uploads
 LOG_LEVEL=info
-LOG_PATH=/var/log/fuerwehr
+LOG_PATH=/var/log/feuerwehrmanagement
 
 # E-Mail (optional)
 SMTP_HOST=smtp.example.com
@@ -134,7 +134,7 @@ SMTP_FROM=noreply@feuerwehr.de
 Nach Änderungen an `.env` das Backend neu starten:
 
 ```bash
-sudo -u fuerwehr pm2 reload fuerwehr-backend --update-env
+sudo -u lb12admin pm2 reload feuerwehr-backend --update-env
 ```
 
 ---
@@ -144,7 +144,7 @@ sudo -u fuerwehr pm2 reload fuerwehr-backend --update-env
 ### Backend-Status prüfen
 
 ```bash
-pm2 status fuerwehr-backend
+pm2 status feuerwehr-backend
 pm2 monit
 ```
 
@@ -152,23 +152,23 @@ pm2 monit
 
 ```bash
 # Echtzeit-Logs
-pm2 logs fuerwehr-backend
+pm2 logs feuerwehr-backend
 
 # Letzte 100 Zeilen
-pm2 logs fuerwehr-backend --lines 100
+pm2 logs feuerwehr-backend --lines 100
 
 # Fehlerlog
-tail -f /var/log/fuerwehr/pm2-error.log
+tail -f /var/log/feuerwehrmanagement/pm2-error.log
 ```
 
 ### Backend neu starten
 
 ```bash
 # Graceful reload (ohne Downtime)
-sudo -u fuerwehr pm2 reload fuerwehr-backend --update-env
+sudo -u lb12admin pm2 reload feuerwehr-backend --update-env
 
 # Harter Neustart
-sudo -u fuerwehr pm2 restart fuerwehr-backend
+sudo -u lb12admin pm2 restart feuerwehr-backend
 ```
 
 ### Nginx-Status
@@ -183,10 +183,10 @@ systemctl reload nginx
 
 ```bash
 # Mit Datenbankbenutzer aus .env
-source /var/www/fuerwehr/backend/.env
+source /var/www/feuerwehrmanagement/backend/.env
 mysql -u $(echo $DATABASE_URL | sed -E 's|mysql://([^:]+):.*|\1|') \
       -p $(echo $DATABASE_URL | sed -E 's|.*:([^@]+)@.*|\1|') \
-      fuerwehr
+      FFWVSLB12
 ```
 
 ---
@@ -196,31 +196,31 @@ mysql -u $(echo $DATABASE_URL | sed -E 's|mysql://([^:]+):.*|\1|') \
 ### Manuelles Backup
 
 ```bash
-sudo -u fuerwehr /var/www/fuerwehr/scripts/backup.sh
+sudo -u lb12admin /var/www/feuerwehrmanagement/scripts/backup.sh
 ```
 
 Backups werden gespeichert in:
-- `/var/www/fuerwehr/backups/daily/` – 30 Tages-Backups
-- `/var/www/fuerwehr/backups/monthly/` – 12 Monats-Backups
+- `/var/www/feuerwehrmanagement/backups/daily/` – 30 Tages-Backups
+- `/var/www/feuerwehrmanagement/backups/monthly/` – 12 Monats-Backups
 
 ### Automatisches Backup (Cron)
 
-Täglich um 02:00 Uhr automatisch – konfiguriert durch `install.sh`.
+Täglich um 02:00 Uhr automatisch – konfiguriert durch das Installationsskript.
 
 Prüfen mit:
 ```bash
-crontab -l -u fuerwehr
+crontab -l -u lb12admin
 ```
 
 ### Restore
 
 ```bash
 # Interaktiv (zeigt verfügbare Backups)
-sudo bash /var/www/fuerwehr/scripts/restore.sh
+sudo bash /var/www/feuerwehrmanagement/scripts/restore.sh
 
 # Direkt mit Backup-Datei
-sudo bash /var/www/fuerwehr/scripts/restore.sh \
-  /var/www/fuerwehr/backups/daily/fuerwehr_20251201_020000.tar.gz
+sudo bash /var/www/feuerwehrmanagement/scripts/restore.sh \
+  /var/www/feuerwehrmanagement/backups/daily/feuerwehr_lb12_20251201_020000.tar.gz
 ```
 
 > **Achtung:** Der Restore überschreibt die aktuelle Datenbank und Uploads!
@@ -232,7 +232,7 @@ sudo bash /var/www/fuerwehr/scripts/restore.sh \
 ### Aus Quellcode aktualisieren
 
 ```bash
-sudo bash /var/www/fuerwehr/scripts/update.sh /pfad/zum/neuen/quellcode
+sudo bash /var/www/feuerwehrmanagement/scripts/update.sh /pfad/zum/neuen/quellcode
 ```
 
 Das Update-Skript führt folgendes aus:
@@ -256,6 +256,10 @@ mysql -u FFWVSLB12 -p FFWVSLB12 < deploy/migrate-add-agt-exercise.sql
 ```
 
 Alle Migrationen sind idempotent (können mehrfach ausgeführt werden).
+
+**Update von 1.3.x auf 1.4.0:** `deploy/migrate-1.3.x-to-1.4.0.sql`; die
+vollständige Anleitung inklusive nginx-Anpassung steht in
+[UPDATE-MANJARO.md](UPDATE-MANJARO.md).
 
 **Direktes Update von 1.1.0 auf 1.3.0:** Version 1.1.1 und 1.2.1 enthielten
 keine Datenbankänderungen, daher deckt die Sammel-Migration
@@ -437,9 +441,9 @@ Für die Migration von der alten Java-Swing-Anwendung:
 
 ```bash
 # Stellen Sie sicher, dass die neue DB-Schema eingespielt ist
-# (passiert automatisch durch install.sh)
+# (passiert automatisch durch das Installationsskript)
 
-sudo bash /var/www/fuerwehr/scripts/migrate-from-java.sh
+sudo bash /var/www/feuerwehrmanagement/scripts/migrate-from-java.sh
 ```
 
 Das Migrationsskript überträgt:
@@ -477,13 +481,44 @@ certbot renew --dry-run
 
 ```bash
 # Konfigurationsdatei bearbeiten
-nano /etc/nginx/sites-available/fuerwehr
+# (Debian/Ubuntu; unter Manjaro: /etc/nginx/conf.d/feuerwehrmanagement.conf)
+nano /etc/nginx/sites-available/feuerwehrmanagement
 
 # Syntax prüfen und neu laden
 nginx -t && systemctl reload nginx
 ```
 
-Eine Vorlage für die Nginx-Konfiguration befindet sich unter `deploy/nginx/fuerwehr.conf`.
+Eine Vorlage für die Nginx-Konfiguration befindet sich unter `deploy/nginx/feuerwehr.conf`.
+
+### Security-Header-Snippet
+
+Die Security-Header (Content-Security-Policy, X-Frame-Options, X-Content-Type-Options,
+Referrer-Policy, Permissions-Policy) stehen in `deploy/nginx/security-headers.conf`.
+Die Installationsskripte kopieren die Datei nach
+`/etc/nginx/snippets/feuerwehr-security-headers.conf`. Bei einer bestehenden
+Installation (Update auf 1.4.0) von Hand:
+
+```bash
+sudo mkdir -p /etc/nginx/snippets
+sudo cp deploy/nginx/security-headers.conf /etc/nginx/snippets/feuerwehr-security-headers.conf
+```
+
+In der Server-Konfiguration wird das Snippet auf Server-Ebene **und** in jeder
+Location mit eigenem `add_header` eingebunden, weil nginx `add_header` sonst
+nicht vererbt (siehe Vorlage):
+
+```nginx
+include /etc/nginx/snippets/feuerwehr-security-headers.conf;
+```
+
+HSTS ist bewusst nicht enthalten, da die Standardinstallation im LAN über HTTP läuft.
+
+### Kein direkter Zugriff auf Uploads
+
+Seit 1.4.0 liefert nginx hochgeladene Dateien nicht mehr direkt aus. Alle
+Downloads laufen über die authentifizierte API. Ein aus älteren Installationen
+stammender Block `location /uploads/ { ... }` muss aus der Server-Konfiguration
+entfernt werden.
 
 ---
 
@@ -493,13 +528,13 @@ Eine Vorlage für die Nginx-Konfiguration befindet sich unter `deploy/nginx/fuer
 
 ```bash
 # Logs prüfen
-pm2 logs fuerwehr-backend --lines 50
+pm2 logs feuerwehr-backend --lines 50
 
 # .env prüfen
-cat /var/www/fuerwehr/backend/.env
+cat /var/www/feuerwehrmanagement/backend/.env
 
 # Manuell testen
-cd /var/www/fuerwehr/backend
+cd /var/www/feuerwehrmanagement/backend
 node dist/server.js
 ```
 
@@ -510,10 +545,10 @@ node dist/server.js
 systemctl status mysql
 
 # Verbindung testen
-mysql -u fuerwehr -p fuerwehr -e "SELECT 1"
+mysql -u FFWVSLB12 -p FFWVSLB12 -e "SELECT 1"
 
 # Datenbankbenutzer prüfen
-mysql -u root -p -e "SHOW GRANTS FOR 'fuerwehr'@'localhost'"
+mysql -u root -p -e "SHOW GRANTS FOR 'FFWVSLB12'@'localhost'"
 ```
 
 ### Frontend-Fehler (404 bei Seitenaufruf)
@@ -521,11 +556,11 @@ mysql -u root -p -e "SHOW GRANTS FOR 'fuerwehr'@'localhost'"
 Nginx-SPA-Fallback prüfen:
 ```bash
 # Konfiguration prüfen
-grep -A3 "location /" /etc/nginx/sites-available/fuerwehr
+grep -A3 "location /" /etc/nginx/sites-available/feuerwehrmanagement
 # Muss enthalten: try_files $uri $uri/ /index.html;
 
 # Frontend-Dateien vorhanden?
-ls /var/www/fuerwehr/frontend/
+ls /var/www/feuerwehrmanagement/frontend/
 ```
 
 ### Backend-Port belegt
@@ -544,13 +579,13 @@ ss -tlnp | grep 3001
 df -h
 
 # Backup-Größe
-du -sh /var/www/fuerwehr/backups/
+du -sh /var/www/feuerwehrmanagement/backups/
 
 # Logs-Größe
-du -sh /var/log/fuerwehr/
+du -sh /var/log/feuerwehrmanagement/
 
 # Alte Logs manuell löschen
-pm2 flush fuerwehr-backend
+pm2 flush feuerwehr-backend
 ```
 
 ---
@@ -561,11 +596,11 @@ pm2 flush fuerwehr-backend
 |---|---|
 | `pm2 status` | Übersicht aller Prozesse |
 | `pm2 monit` | Interaktives Monitoring |
-| `pm2 logs fuerwehr-backend` | Backend-Logs (Echtzeit) |
-| `pm2 reload fuerwehr-backend` | Graceful Reload |
+| `pm2 logs feuerwehr-backend` | Backend-Logs (Echtzeit) |
+| `pm2 reload feuerwehr-backend` | Graceful Reload |
 | `systemctl status nginx` | Nginx-Status |
 | `systemctl reload nginx` | Nginx neu laden |
 | `systemctl status mysql` | MySQL-Status |
-| `/var/www/fuerwehr/scripts/backup.sh` | Manuelles Backup |
-| `/var/www/fuerwehr/scripts/update.sh` | System aktualisieren |
-| `/var/www/fuerwehr/scripts/restore.sh` | Aus Backup wiederherstellen |
+| `/var/www/feuerwehrmanagement/scripts/backup.sh` | Manuelles Backup |
+| `/var/www/feuerwehrmanagement/scripts/update.sh` | System aktualisieren |
+| `/var/www/feuerwehrmanagement/scripts/restore.sh` | Aus Backup wiederherstellen |

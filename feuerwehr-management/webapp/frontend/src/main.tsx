@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { QueryClient, QueryClientProvider, MutationCache } from '@tanstack/react-query';
 import App from './App';
 import { ToastContainer, useToastStore } from './components/ui/Toast';
+import { restoreSession, setSessionEndedHandler } from './api/client';
 import './index.css';
 
 const mutationCache = new MutationCache({
@@ -24,6 +25,15 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+// On a shared PC the next user must not see the previous user's cached data
+setSessionEndedHandler(() => queryClient.clear());
+
+// Remove token/user data left in localStorage by older versions
+localStorage.removeItem('accessToken');
+localStorage.removeItem('fuerwehr-auth');
+
+void restoreSession();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

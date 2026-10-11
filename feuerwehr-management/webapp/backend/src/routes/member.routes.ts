@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { authenticate } from '../middleware/auth.middleware';
-import { requireAdmin, requirePermission } from '../middleware/permission.middleware';
-import { BIT_OPERATIONS } from '../config/permissionBits';
+import { requireAdmin, requireAnyPermission } from '../middleware/permission.middleware';
+import { BIT_OPERATIONS, BIT_TRAINING } from '../config/permissionBits';
 import {
   getMembers, createMember, getMember, updateMember, deleteMember, getMemberHistory,
   createMemberFamily, updateMemberFamily, deleteMemberFamily,
@@ -17,11 +17,13 @@ const router = Router();
 
 router.use(authenticate);
 
-// Read access: member list is needed for the Einsätze/Kräftenachweis personnel picker
-// (see OperationDetailPage's personnel picker). It excludes bank/examination/family data.
+// Read access: the member list is needed for the Einsätze/Kräftenachweis personnel picker
+// (see OperationDetailPage). For non-admins getMembers returns only name, rank, group and
+// qualifications (PICKER_SELECT) – no contact, birth, health or licence data.
 // Full member records (incl. medical exam dates, IBAN, family contacts) stay admin-only.
-router.get('/groups', requirePermission(BIT_OPERATIONS), getMemberGroups);
-router.get('/', requirePermission(BIT_OPERATIONS), getMembers);
+// (also used by the Lehrgang form, hence BIT_TRAINING)
+router.get('/groups', requireAnyPermission(BIT_OPERATIONS, BIT_TRAINING), getMemberGroups);
+router.get('/', requireAnyPermission(BIT_OPERATIONS, BIT_TRAINING), getMembers);
 router.get('/:id', requireAdmin, getMember);
 router.get('/:id/history', requireAdmin, getMemberHistory);
 router.get('/:id/courses', requireAdmin, getMemberCourses);

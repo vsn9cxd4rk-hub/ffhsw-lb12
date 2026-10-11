@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { prisma } from '../config/database';
 import { sendSuccess, sendError } from '../utils/response';
 import { convertDates } from '../utils/dates';
+import { pickWritable } from '../utils/body';
 
 const LOGBOOK_DATE_FIELDS = ['date'];
 const EQUIPMENT_INSPECTION_DATE_FIELDS = ['lastInspection', 'nextInspection'];
@@ -25,7 +26,7 @@ export async function getVehicles(req: Request, res: Response): Promise<void> {
 export async function createVehicle(req: Request, res: Response): Promise<void> {
   try {
     const vehicle = await prisma.vehicle.create({
-      data: req.body,
+      data: pickWritable('Vehicle', req.body) as any,
       include: { inspection: true },
     });
     sendSuccess(res, vehicle, 201);
@@ -58,7 +59,7 @@ export async function updateVehicle(req: Request, res: Response): Promise<void> 
     const id = parseInt(req.params.id);
     const vehicle = await prisma.vehicle.update({
       where: { id },
-      data: req.body,
+      data: pickWritable('Vehicle', req.body),
       include: { inspection: true },
     });
     sendSuccess(res, vehicle);
@@ -129,7 +130,7 @@ export async function createLogbookEntry(req: Request, res: Response): Promise<v
   try {
     const vehicleId = parseInt(req.params.id);
     const entry = await prisma.logbookEntry.create({
-      data: { ...convertDates(req.body, LOGBOOK_DATE_FIELDS), vehicleId } as any,
+      data: { ...convertDates(pickWritable('LogbookEntry', req.body, ['vehicleId']), LOGBOOK_DATE_FIELDS), vehicleId } as any,
     });
     sendSuccess(res, entry, 201);
   } catch (err) {
@@ -142,7 +143,7 @@ export async function updateLogbookEntry(req: Request, res: Response): Promise<v
     const id = parseInt(req.params.entryId);
     const entry = await prisma.logbookEntry.update({
       where: { id },
-      data: convertDates(req.body, LOGBOOK_DATE_FIELDS) as any,
+      data: convertDates(pickWritable('LogbookEntry', req.body, ['vehicleId']), LOGBOOK_DATE_FIELDS) as any,
     });
     sendSuccess(res, entry);
   } catch (err) {
@@ -167,7 +168,7 @@ export async function createEquipmentInspection(req: Request, res: Response): Pr
   try {
     const vehicleId = parseInt(req.params.id);
     const inspection = await prisma.equipmentInspection.create({
-      data: { ...convertDates(req.body, EQUIPMENT_INSPECTION_DATE_FIELDS), vehicleId } as any,
+      data: { ...convertDates(pickWritable('EquipmentInspection', req.body, ['vehicleId']), EQUIPMENT_INSPECTION_DATE_FIELDS), vehicleId } as any,
     });
     sendSuccess(res, inspection, 201);
   } catch (err) {
@@ -180,7 +181,7 @@ export async function updateEquipmentInspection(req: Request, res: Response): Pr
     const id = parseInt(req.params.inspId);
     const inspection = await prisma.equipmentInspection.update({
       where: { id },
-      data: convertDates(req.body, EQUIPMENT_INSPECTION_DATE_FIELDS) as any,
+      data: convertDates(pickWritable('EquipmentInspection', req.body, ['vehicleId']), EQUIPMENT_INSPECTION_DATE_FIELDS) as any,
     });
     sendSuccess(res, inspection);
   } catch (err) {

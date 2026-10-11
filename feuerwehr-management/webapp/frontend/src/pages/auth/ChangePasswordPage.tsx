@@ -24,14 +24,22 @@ export function ChangePasswordPage() {
       setError('Das neue Passwort muss mindestens 8 Zeichen lang sein.');
       return;
     }
+    if (!/[a-z]/.test(form.newPassword) || !/[A-Z]/.test(form.newPassword) || !/\d/.test(form.newPassword)) {
+      setError('Das Passwort muss Groß- und Kleinbuchstaben sowie eine Zahl enthalten.');
+      return;
+    }
+    if (form.newPassword === form.oldPassword) {
+      setError('Das neue Passwort muss sich vom bisherigen unterscheiden.');
+      return;
+    }
     setLoading(true);
     try {
       await authApi.changePassword(form.oldPassword, form.newPassword);
       setSuccess(true);
       setTimeout(() => logout(), 2000);
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Passwort konnte nicht geändert werden';
-      setError(msg);
+      const data = (err as { response?: { data?: { error?: string; details?: Array<{ msg?: string }> } } })?.response?.data;
+      setError(data?.details?.[0]?.msg || data?.error || 'Passwort konnte nicht geändert werden');
     } finally {
       setLoading(false);
     }

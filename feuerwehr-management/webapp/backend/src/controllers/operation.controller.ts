@@ -1,41 +1,22 @@
 import { Request, Response } from 'express';
-import path from 'path';
-import fs from 'fs';
-import multer from 'multer';
 import { prisma } from '../config/database';
 import { sendSuccess, sendError, sendPaginated } from '../utils/response';
 import { getPagination } from '../utils/pagination';
 import { convertDates } from '../utils/dates';
+import { pickWritable } from '../utils/body';
+import { recordUploadDir, removeUpload, sendUpload } from '../utils/files';
+import { createUpload, discardUpload } from '../utils/upload';
 
 const OPERATION_DATE_FIELDS = ['date'];
 
-// Multer configuration for document uploads
-const uploadDir = process.env.UPLOAD_PATH || './uploads';
+// vehicles/leaderCount/memberCount are derived from the Fahrzeugzeiten (syncOperationAggregates)
+const OPERATION_DERIVED_FIELDS = ['vehicles', 'leaderCount', 'memberCount'];
 
-const storage = multer.diskStorage({
-  destination: (req, _file, cb) => {
-    const dir = path.join(uploadDir, 'operations', req.params.id);
-    fs.mkdirSync(dir, { recursive: true });
-    cb(null, dir);
-  },
-  filename: (_req, file, cb) => {
-    const uniqueName = `${Date.now()}-${file.originalname}`;
-    cb(null, uniqueName);
-  },
+export const uploadMiddleware = createUpload({
+  destination: (req) => recordUploadDir('operations', req.params.id),
+  kinds: ['pdf', 'doc', 'docx'],
+  rejectMessage: 'Nur PDF- und Word-Dateien sind erlaubt',
 });
-
-export const uploadMiddleware = multer({
-  storage,
-  limits: { fileSize: 20 * 1024 * 1024 }, // 20MB
-  fileFilter: (_req, file, cb) => {
-    const allowed = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-    if (allowed.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Nur PDF- und Word-Dateien sind erlaubt'));
-    }
-  },
-}).single('file');
 
 export async function getOperations(req: Request, res: Response): Promise<void> {
   try {
@@ -73,7 +54,9 @@ export async function getOperations(req: Request, res: Response): Promise<void> 
 
 export async function createOperation(req: Request, res: Response): Promise<void> {
   try {
-    const op = await prisma.operation.create({ data: convertDates(req.body, OPERATION_DATE_FIELDS) as any });
+    const op = await prisma.operation.create({
+      data: convertDates(pickWritable('Operation', req.body, OPERATION_DERIVED_FIELDS), OPERATION_DATE_FIELDS) as any,
+    });
     sendSuccess(res, op, 201);
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -97,7 +80,7 @@ export async function getOperation(req: Request, res: Response): Promise<void> {
 export async function updateOperation(req: Request, res: Response): Promise<void> {
   try {
     const id = parseInt(req.params.id);
-    const data = convertDates(req.body, OPERATION_DATE_FIELDS) as any;
+    const data = convertDates(pickWritable('Operation', req.body, OPERATION_DERIVED_FIELDS), OPERATION_DATE_FIELDS) as any;
     const op = await prisma.operation.update({ where: { id }, data });
     sendSuccess(res, op);
   } catch (err) {
@@ -135,7 +118,9 @@ async function syncOperationAggregates(operationId: number): Promise<void> {
 export async function createOperationTime(req: Request, res: Response): Promise<void> {
   try {
     const operationId = parseInt(req.params.id);
-    const t = await prisma.operationTime.create({ data: { ...req.body, operationId } });
+    const t = await prisma.operationTime.create({
+      data: { ...pickWritable('OperationTime', req.body, ['operationId']), operationId } as any,
+    });
     await syncOperationAggregates(operationId);
     sendSuccess(res, t, 201);
   } catch (err) {
@@ -145,7 +130,10 @@ export async function createOperationTime(req: Request, res: Response): Promise<
 
 export async function updateOperationTime(req: Request, res: Response): Promise<void> {
   try {
-    const t = await prisma.operationTime.update({ where: { id: parseInt(req.params.timeId) }, data: req.body });
+    const t = await prisma.operationTime.update({
+      where: { id: parseInt(req.params.timeId) },
+      data: pickWritable('OperationTime', req.body, ['operationId']),
+    });
     await syncOperationAggregates(t.operationId);
     sendSuccess(res, t);
   } catch (err) {
@@ -217,6 +205,11 @@ export async function uploadDocument(req: Request, res: Response): Promise<void>
       sendError(res, 'Keine Datei hochgeladen', 400);
       return;
     }
+    if (!(await prisma.operation.findUnique({ where: { id: operationId }, select: { id: true } }))) {
+      discardUpload(req.file);
+      sendError(res, 'Einsatz nicht gefunden', 404);
+      return;
+    }
 
     const doc = await prisma.operationDocument.create({
       data: {
@@ -240,15 +233,7 @@ export async function downloadDocument(req: Request, res: Response): Promise<voi
       where: { id: parseInt(req.params.docId) },
     });
     if (!doc) { sendError(res, 'Dokument nicht gefunden', 404); return; }
-
-    if (!fs.existsSync(doc.filePath)) {
-      sendError(res, 'Datei nicht gefunden', 404);
-      return;
-    }
-
-    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(doc.fileName)}"`);
-    res.setHeader('Content-Type', doc.mimeType);
-    fs.createReadStream(doc.filePath).pipe(res);
+    sendUpload(res, doc.filePath, doc.fileName, doc.mimeType);
   } catch (err) {
     sendError(res, (err as Error).message);
   }
@@ -261,10 +246,7 @@ export async function deleteDocument(req: Request, res: Response): Promise<void>
     });
     if (!doc) { sendError(res, 'Dokument nicht gefunden', 404); return; }
 
-    if (fs.existsSync(doc.filePath)) {
-      fs.unlinkSync(doc.filePath);
-    }
-
+    removeUpload(doc.filePath);
     await prisma.operationDocument.delete({ where: { id: doc.id } });
     sendSuccess(res, { message: 'Dokument gelöscht' });
   } catch (err) {
@@ -321,7 +303,7 @@ export async function updatePersonnel(req: Request, res: Response): Promise<void
   try {
     const p = await prisma.operationPersonnel.update({
       where: { id: parseInt(req.params.personnelId) },
-      data: req.body,
+      data: pickWritable('OperationPersonnel', req.body, ['operationId']),
       include: {
         member: {
           select: {

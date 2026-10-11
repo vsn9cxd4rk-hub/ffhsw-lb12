@@ -1,39 +1,16 @@
 import { Request, Response } from 'express';
 import path from 'path';
-import fs from 'fs';
-import multer from 'multer';
 import { prisma } from '../config/database';
 import { sendSuccess, sendError } from '../utils/response';
+import { pickWritable } from '../utils/body';
+import { categoryUploadDir, removeUpload, sendUpload } from '../utils/files';
+import { createUpload, discardUpload } from '../utils/upload';
 
-const uploadDir = process.env.UPLOAD_PATH || './uploads';
-
-const templateStorage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    const dir = path.join(uploadDir, 'templates');
-    fs.mkdirSync(dir, { recursive: true });
-    cb(null, dir);
-  },
-  filename: (_req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  },
+export const templateUpload = createUpload({
+  destination: () => categoryUploadDir('templates'),
+  kinds: ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'xlsm'],
+  rejectMessage: 'Nur PDF-, Word- und Excel-Dateien sind erlaubt',
 });
-
-export const templateUpload = multer({
-  storage: templateStorage,
-  limits: { fileSize: 20 * 1024 * 1024 },
-  fileFilter: (_req, file, cb) => {
-    const allowed = [
-      'application/pdf',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'application/vnd.ms-excel',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'application/vnd.ms-excel.sheet.macroEnabled.12',
-    ];
-    if (allowed.includes(file.mimetype)) cb(null, true);
-    else cb(new Error('Nur PDF-, Word- und Excel-Dateien sind erlaubt'));
-  },
-}).single('file');
 
 export async function getSettings(_req: Request, res: Response): Promise<void> {
   try {
@@ -75,7 +52,7 @@ export async function getRanks(_req: Request, res: Response): Promise<void> {
 
 export async function createRank(req: Request, res: Response): Promise<void> {
   try {
-    const rank = await prisma.rank.create({ data: req.body });
+    const rank = await prisma.rank.create({ data: pickWritable('Rank', req.body) as any });
     sendSuccess(res, rank, 201);
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -84,7 +61,7 @@ export async function createRank(req: Request, res: Response): Promise<void> {
 
 export async function updateRank(req: Request, res: Response): Promise<void> {
   try {
-    const rank = await prisma.rank.update({ where: { id: parseInt(req.params.id) }, data: req.body });
+    const rank = await prisma.rank.update({ where: { id: parseInt(req.params.id) }, data: pickWritable('Rank', req.body) });
     sendSuccess(res, rank);
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -122,7 +99,7 @@ export async function getYears(_req: Request, res: Response): Promise<void> {
 
 export async function createYear(req: Request, res: Response): Promise<void> {
   try {
-    const y = await prisma.year.create({ data: req.body });
+    const y = await prisma.year.create({ data: pickWritable('Year', req.body) as any });
     sendSuccess(res, y, 201);
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -135,7 +112,7 @@ export async function updateYear(req: Request, res: Response): Promise<void> {
     if (req.body.isActive) {
       await prisma.year.updateMany({ where: { id: { not: id } }, data: { isActive: false } });
     }
-    const y = await prisma.year.update({ where: { id }, data: req.body });
+    const y = await prisma.year.update({ where: { id }, data: pickWritable('Year', req.body) });
     sendSuccess(res, y);
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -156,7 +133,7 @@ export async function uploadTemplate(req: Request, res: Response): Promise<void>
   try {
     if (!req.file) { sendError(res, 'Keine Datei hochgeladen', 400); return; }
     const name = req.body.name?.trim();
-    if (!name) { sendError(res, 'Name ist erforderlich', 400); return; }
+    if (!name) { discardUpload(req.file); sendError(res, 'Name ist erforderlich', 400); return; }
 
     const template = await prisma.template.create({
       data: {
@@ -182,19 +159,20 @@ export async function updateTemplate(req: Request, res: Response): Promise<void>
   try {
     const id = parseInt(req.params.id);
     const existing = await prisma.template.findUnique({ where: { id } });
-    if (!existing) { sendError(res, 'Template nicht gefunden', 404); return; }
+    if (!existing) { discardUpload(req.file); sendError(res, 'Template nicht gefunden', 404); return; }
 
     const data: Record<string, unknown> = { updatedBy: req.user?.username || 'System' };
     if (req.body.name) data.name = req.body.name.trim();
 
     if (req.file) {
-      if (fs.existsSync(existing.filePath)) fs.unlinkSync(existing.filePath);
       data.filePath = req.file.path;
       data.fileSize = req.file.size;
       data.mimeType = req.file.mimetype;
     }
 
     const template = await prisma.template.update({ where: { id }, data });
+    // Remove the replaced file only once the DB points at the new one
+    if (req.file) removeUpload(existing.filePath);
 
     await prisma.templateHistory.create({
       data: { templateId: id, action: req.file ? 'Datei ersetzt' : 'Aktualisiert', changedBy: req.user?.username || 'System' },
@@ -210,11 +188,7 @@ export async function downloadTemplate(req: Request, res: Response): Promise<voi
   try {
     const template = await prisma.template.findUnique({ where: { id: parseInt(req.params.id) } });
     if (!template) { sendError(res, 'Template nicht gefunden', 404); return; }
-    if (!fs.existsSync(template.filePath)) { sendError(res, 'Datei nicht gefunden', 404); return; }
-
-    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(template.name + path.extname(template.filePath))}"`);
-    res.setHeader('Content-Type', template.mimeType);
-    fs.createReadStream(template.filePath).pipe(res);
+    sendUpload(res, template.filePath, template.name + path.extname(template.filePath), template.mimeType);
   } catch (err) {
     sendError(res, (err as Error).message);
   }
@@ -224,7 +198,7 @@ export async function deleteTemplate(req: Request, res: Response): Promise<void>
   try {
     const template = await prisma.template.findUnique({ where: { id: parseInt(req.params.id) } });
     if (!template) { sendError(res, 'Template nicht gefunden', 404); return; }
-    if (fs.existsSync(template.filePath)) fs.unlinkSync(template.filePath);
+    removeUpload(template.filePath);
     await prisma.template.delete({ where: { id: template.id } });
     sendSuccess(res, { message: 'Template gelöscht' });
   } catch (err) {
@@ -275,7 +249,7 @@ export async function createDeviceClass(req: Request, res: Response): Promise<vo
 
 export async function updateDeviceClass(req: Request, res: Response): Promise<void> {
   try {
-    const dc = await prisma.deviceClass.update({ where: { id: parseInt(req.params.id) }, data: req.body });
+    const dc = await prisma.deviceClass.update({ where: { id: parseInt(req.params.id) }, data: pickWritable('DeviceClass', req.body) });
     sendSuccess(res, dc);
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -305,7 +279,7 @@ export async function createSubclass(req: Request, res: Response): Promise<void>
 
 export async function updateSubclass(req: Request, res: Response): Promise<void> {
   try {
-    const sc = await prisma.deviceSubclass.update({ where: { id: parseInt(req.params.id) }, data: req.body });
+    const sc = await prisma.deviceSubclass.update({ where: { id: parseInt(req.params.id) }, data: pickWritable('DeviceSubclass', req.body) });
     sendSuccess(res, sc);
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -344,7 +318,7 @@ export async function createCriterion(req: Request, res: Response): Promise<void
 
 export async function updateCriterion(req: Request, res: Response): Promise<void> {
   try {
-    const criterion = await prisma.inspectionCriterion.update({ where: { id: parseInt(req.params.id) }, data: req.body });
+    const criterion = await prisma.inspectionCriterion.update({ where: { id: parseInt(req.params.id) }, data: pickWritable('InspectionCriterion', req.body) });
     sendSuccess(res, criterion);
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -385,7 +359,7 @@ export async function createInspectionType(req: Request, res: Response): Promise
 
 export async function updateInspectionType(req: Request, res: Response): Promise<void> {
   try {
-    const t = await prisma.inspectionType.update({ where: { id: parseInt(req.params.id) }, data: req.body });
+    const t = await prisma.inspectionType.update({ where: { id: parseInt(req.params.id) }, data: pickWritable('InspectionType', req.body) });
     sendSuccess(res, t);
   } catch (err) {
     sendError(res, (err as Error).message);

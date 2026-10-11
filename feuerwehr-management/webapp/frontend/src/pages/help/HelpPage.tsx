@@ -281,7 +281,7 @@ npx prisma db seed`}</Code>
         <H3>.env Konfiguration</H3>
         <Code>{`NODE_ENV=production
 PORT=3001
-DATABASE_URL="mysql://FFWVSLB12:Ffw%23VSLB12!25@localhost:3306/FFWVSLB12"
+DATABASE_URL="mysql://FFWVSLB12:<DB-Passwort>@localhost:3306/FFWVSLB12"
 JWT_ACCESS_SECRET=<openssl rand -hex 32>
 JWT_REFRESH_SECRET=<openssl rand -hex 32>
 CORS_ORIGIN=http://localhost:3000
@@ -313,10 +313,10 @@ sudo systemctl enable nginx`}</Code>
         <Code>{`# Manuelles Backup
 mysqldump -u FFWVSLB12 -p FFWVSLB12 > backup-$(date +%Y%m%d).sql
 
-# Automatisches Backup per Cron (täglich um 2:00 Uhr)
-crontab -e
-# Folgende Zeile hinzufügen:
-0 2 * * * mysqldump -u FFWVSLB12 -pFfw#VSLB12!25 FFWVSLB12 > /var/www/feuerwehrmanagement/backups/backup-$(date +\\%Y\\%m\\%d).sql`}</Code>
+# Automatisches Backup per Cron (täglich um 2:00 Uhr) - richtet der Installer ein:
+0 2 * * * /var/www/feuerwehrmanagement/scripts/backup.sh >> /var/log/feuerwehrmanagement/backup.log 2>&1
+# backup.sh liest die DB-Zugangsdaten aus backend/.env, sichert DB + Uploads
+# (ohne .env) und legt die Archive nur für den App-Benutzer lesbar ab.`}</Code>
 
         <H3>Backup wiederherstellen</H3>
         <Code>{`mysql -u root -p FFWVSLB12 < backup-20260427.sql`}</Code>
@@ -344,12 +344,15 @@ tail -f /var/log/feuerwehrmanagement/pm2-out.log
 tail -f /var/log/feuerwehrmanagement/pm2-error.log`}</Code>
 
         <H3>Erster Login</H3>
-        <P>Nach der Installation melden Sie sich mit dem Standardbenutzer an:</P>
-        <ul className="mb-4">
-          <Li><strong>Benutzername:</strong> admin</Li>
-          <Li><strong>Passwort:</strong> Admin123!</Li>
-        </ul>
-        <P><strong>Wichtig:</strong> Ändern Sie das Passwort sofort nach der ersten Anmeldung über das Benutzermenü oben rechts.</P>
+        <P>
+          Der Installer legt den Benutzer <strong>admin</strong> mit einem zufälligen Startpasswort an und
+          zeigt es einmalig am Ende der Initialdaten-Einrichtung an. Beim ersten Login muss es durch ein
+          eigenes Passwort ersetzt werden; vorher ist die Anwendung gesperrt.
+        </P>
+        <P>
+          Dasselbe gilt für Passwörter, die ein Administrator in der Benutzerverwaltung vergibt oder
+          zurücksetzt: Der Benutzer legt beim nächsten Login ein eigenes Passwort fest.
+        </P>
 
         <H3>Ports</H3>
         <div className="overflow-x-auto mb-4">

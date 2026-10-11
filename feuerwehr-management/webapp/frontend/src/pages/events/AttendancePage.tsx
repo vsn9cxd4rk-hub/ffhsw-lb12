@@ -6,6 +6,8 @@ import { eventsApi } from '../../api/events';
 import { Button } from '../../components/ui/Button';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { formatDate, getEventCategoryLabel } from '../../utils/format';
+import { usePermission } from '../../hooks/usePermission';
+import { BIT_EVENTS } from '../../config/permissionBits';
 
 const STATUS_OPTIONS = [
   { value: 'present', label: 'Anwesend', color: 'bg-green-100 text-green-800', ring: 'ring-green-500' },
@@ -25,6 +27,7 @@ export function AttendancePage() {
   const [attendance, setAttendance] = useState<Record<number, string>>({});
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
+  const canEdit = usePermission(BIT_EVENTS);
 
   const { data, isLoading } = useQuery({
     queryKey: ['event-attendance', id],
@@ -57,6 +60,7 @@ export function AttendancePage() {
   });
 
   const setMemberStatus = (memberId: number, status: string) => {
+    if (!canEdit) return;
     setSaved(false);
     setAttendance((prev) => {
       if (prev[memberId] === status) {
@@ -104,10 +108,12 @@ export function AttendancePage() {
         <div className="text-center"><p className="text-2xl font-bold text-red-600">{absentCount}</p><p className="text-xs text-gray-500">Abwesend</p></div>
         <div className="text-center"><p className="text-2xl font-bold text-yellow-600">{excusedCount}</p><p className="text-xs text-gray-500">Entschuldigt</p></div>
         <div className="text-center"><p className="text-2xl font-bold text-gray-600">{members?.length || 0}</p><p className="text-xs text-gray-500">Gesamt</p></div>
-        <div className="ml-auto flex items-center gap-2">
-          <Button size="sm" variant="secondary" onClick={() => markAll('present')}>Alle anwesend</Button>
-          <Button size="sm" variant="secondary" onClick={() => markAll('absent')}>Alle abwesend</Button>
-        </div>
+        {canEdit && (
+          <div className="ml-auto flex items-center gap-2">
+            <Button size="sm" variant="secondary" onClick={() => markAll('present')}>Alle anwesend</Button>
+            <Button size="sm" variant="secondary" onClick={() => markAll('absent')}>Alle abwesend</Button>
+          </div>
+        )}
       </div>
 
       {error && (
@@ -145,10 +151,11 @@ export function AttendancePage() {
                         <button
                           key={value}
                           onClick={() => setMemberStatus(item.memberId, value)}
-                          className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
+                          disabled={!canEdit}
+                          className={`px-3 py-1 rounded-full text-xs font-medium transition-all disabled:cursor-default ${
                             currentStatus === value
                               ? `${color} ring-2 ring-offset-1 ${ring}`
-                              : 'bg-gray-100 text-gray-400 hover:bg-gray-200 hover:text-gray-600'
+                              : `bg-gray-100 text-gray-400 ${canEdit ? 'hover:bg-gray-200 hover:text-gray-600' : ''}`
                           }`}
                         >
                           {label}
@@ -171,12 +178,14 @@ export function AttendancePage() {
       </div>
 
       {/* Save button */}
-      <div className="flex justify-end items-center gap-3">
-        {saved && <span className="text-sm text-green-600 flex items-center gap-1"><CheckIcon className="h-4 w-4" />Gespeichert</span>}
-        <Button variant="primary" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending}>
-          Anwesenheit speichern
-        </Button>
-      </div>
+      {canEdit && (
+        <div className="flex justify-end items-center gap-3">
+          {saved && <span className="text-sm text-green-600 flex items-center gap-1"><CheckIcon className="h-4 w-4" />Gespeichert</span>}
+          <Button variant="primary" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending}>
+            Anwesenheit speichern
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

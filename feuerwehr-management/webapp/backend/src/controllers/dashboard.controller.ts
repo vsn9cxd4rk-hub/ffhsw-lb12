@@ -2,8 +2,10 @@ import { Request, Response } from 'express';
 import { prisma } from '../config/database';
 import { sendSuccess, sendError } from '../utils/response';
 
-export async function getDashboardStats(_req: Request, res: Response): Promise<void> {
+export async function getDashboardStats(req: Request, res: Response): Promise<void> {
   try {
+    // G25/G26/G30 dates are health data (Art. 9 DSGVO) - only admins see them
+    const isAdmin = !!req.user?.isAdmin;
     const currentYear = new Date().getFullYear();
     const yearStart = new Date(currentYear, 0, 1);
     const yearEnd = new Date(currentYear + 1, 0, 1);
@@ -45,17 +47,19 @@ export async function getDashboardStats(_req: Request, res: Response): Promise<v
         where: { nextInspection: { lte: reminderDate, gte: new Date() } },
         include: { vehicle: { select: { name: true } } },
       }),
-      prisma.memberExamination.findMany({
-        where: {
-          OR: [
-            { g25Date: { lte: reminderDate, gte: new Date() } },
-            { g26Date: { lte: reminderDate, gte: new Date() } },
-            { g30Date: { lte: reminderDate, gte: new Date() } },
-            { lkwLicenseExpiry: { lte: reminderDate, gte: new Date() } },
-          ],
-        },
-        include: { member: { select: { firstName: true, lastName: true } } },
-      }),
+      isAdmin
+        ? prisma.memberExamination.findMany({
+          where: {
+            OR: [
+              { g25Date: { lte: reminderDate, gte: new Date() } },
+              { g26Date: { lte: reminderDate, gte: new Date() } },
+              { g30Date: { lte: reminderDate, gte: new Date() } },
+              { lkwLicenseExpiry: { lte: reminderDate, gte: new Date() } },
+            ],
+          },
+          include: { member: { select: { firstName: true, lastName: true } } },
+        })
+        : Promise.resolve([]),
       // Articles with inspection interval (excluding decommissioned) and their latest inspection
       prisma.article.findMany({
         where: {
@@ -409,7 +413,7 @@ export async function getStatistics(req: Request, res: Response): Promise<void> 
   }
 }
 
-export async function getNotifications(_req: Request, res: Response): Promise<void> {
+export async function getNotifications(req: Request, res: Response): Promise<void> {
   try {
     const now = new Date();
     const twoMonths = new Date();
@@ -512,18 +516,17 @@ export async function getNotifications(_req: Request, res: Response): Promise<vo
       }
     }
 
-    // 4. Ablaufende med. Untersuchungen
-    const members = await prisma.member.findMany({
-      where: { isInactive: false, deletedAt: null },
-      include: { examination: true },
-    });
-
+    // 4. Ablaufende med. Untersuchungen (Gesundheitsdaten: nur für Admins)
     let examsDue = 0;
-    for (const m of members) {
-      if (!m.examination) continue;
-      const exams = [m.examination.g25Date, m.examination.g26Date, m.examination.g30Date];
-      for (const d of exams) {
-        if (d && d <= twoMonths) examsDue++;
+    if (req.user?.isAdmin) {
+      const exams = await prisma.memberExamination.findMany({
+        where: { member: { isInactive: false, deletedAt: null } },
+        select: { g25Date: true, g26Date: true, g30Date: true },
+      });
+      for (const e of exams) {
+        for (const d of [e.g25Date, e.g26Date, e.g30Date]) {
+          if (d && d <= twoMonths) examsDue++;
+        }
       }
     }
     if (examsDue > 0) {

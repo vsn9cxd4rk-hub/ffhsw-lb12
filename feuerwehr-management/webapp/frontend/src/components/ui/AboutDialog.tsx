@@ -1,7 +1,8 @@
-import React, { Fragment } from 'react';
+import React, { Fragment, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
+import { ChangelogDialog } from './ChangelogDialog';
 
 interface AboutDialogProps {
   isOpen: boolean;
@@ -10,6 +11,7 @@ interface AboutDialogProps {
 
 export function AboutDialog({ isOpen, onClose }: AboutDialogProps) {
   const navigate = useNavigate();
+  const [changelogOpen, setChangelogOpen] = useState(false);
 
   function openThirdParty() {
     onClose();
@@ -63,7 +65,17 @@ export function AboutDialog({ isOpen, onClose }: AboutDialogProps) {
                     <p className="text-[10px] text-red-600 tracking-wide mt-0.5 leading-tight">
                       Feuerwehr-Einsatz-Netzwerk-<br />Informations-eXchange
                     </p>
-                    <p className="text-xs text-gray-400 mt-2">Version {import.meta.env.VITE_APP_VERSION} · LB 12</p>
+                    <p className="text-xs text-gray-400 mt-2">
+                      <button
+                        type="button"
+                        onClick={() => setChangelogOpen(true)}
+                        className="underline decoration-dotted underline-offset-2 hover:text-red-600 transition-colors"
+                        title="Änderungen zur Vorgängerversion anzeigen"
+                      >
+                        Version {import.meta.env.VITE_APP_VERSION}
+                      </button>
+                      {' · LB 12'}
+                    </p>
                   </div>
 
                   <p className="text-sm text-gray-600 leading-relaxed">
@@ -97,6 +109,8 @@ export function AboutDialog({ isOpen, onClose }: AboutDialogProps) {
             </Transition.Child>
           </div>
         </div>
+        {/* Rendered inside the About dialog so focus and outside clicks stay in the dialog stack */}
+        <ChangelogDialog isOpen={changelogOpen} onClose={() => setChangelogOpen(false)} />
       </Dialog>
     </Transition>
   );

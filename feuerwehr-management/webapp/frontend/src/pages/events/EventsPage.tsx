@@ -12,6 +12,8 @@ import { Modal } from '../../components/ui/Modal';
 import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
 import { formatDate, getEventCategoryLabel, getEventCategoryColor } from '../../utils/format';
+import { usePermission } from '../../hooks/usePermission';
+import { BIT_EVENTS } from '../../config/permissionBits';
 
 const CATEGORY_OPTIONS = [
   { value: 1, label: 'Einsatz' },
@@ -58,6 +60,7 @@ export function EventsPage() {
   const [year, setYear] = useState(String(new Date().getFullYear()));
   const [page, setPage] = useState(1);
   const [showCreate, setShowCreate] = useState(false);
+  const canEdit = usePermission(BIT_EVENTS);
 
   const { data, isLoading } = useQuery({
     queryKey: ['events', category, year, page],
@@ -81,7 +84,7 @@ export function EventsPage() {
     { key: 'time', header: 'Zeit', render: (ev: Event) => ev.startTime ? `${ev.startTime}${ev.endTime ? ` - ${ev.endTime}` : ''}` : '-' },
     { key: 'attendance', header: 'Anwesenheit', render: (ev: Event) => (
       <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); navigate(`/events/${ev.id}/attendance`); }}>
-        Erfassen
+        {canEdit ? 'Erfassen' : 'Ansehen'}
       </Button>
     )},
   ];
@@ -103,7 +106,7 @@ export function EventsPage() {
             {years.map(y => <option key={y} value={y}>{y}</option>)}
           </select>
         </div>
-        <Button variant="primary" icon={<PlusIcon />} onClick={() => setShowCreate(true)}>Neue Veranstaltung</Button>
+        {canEdit && <Button variant="primary" icon={<PlusIcon />} onClick={() => setShowCreate(true)}>Neue Veranstaltung</Button>}
       </div>
 
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
@@ -112,7 +115,7 @@ export function EventsPage() {
         {data?.pagination && <Pagination {...data.pagination} onPageChange={setPage} />}
       </div>
 
-      <EventCreateModal isOpen={showCreate} onClose={() => setShowCreate(false)} />
+      {canEdit && <EventCreateModal isOpen={showCreate} onClose={() => setShowCreate(false)} />}
     </div>
   );
 }

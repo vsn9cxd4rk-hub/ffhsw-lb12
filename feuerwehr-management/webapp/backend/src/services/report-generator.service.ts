@@ -1,6 +1,7 @@
 import path from 'path';
 import fs from 'fs';
-import { execSync } from 'child_process';
+import { execFile } from 'child_process';
+import { promisify } from 'util';
 import PizZip from 'pizzip';
 import ExcelJS from 'exceljs';
 import Docxtemplater from 'docxtemplater';
@@ -16,47 +17,75 @@ function ensureTempDir() {
   }
 }
 
-function findLibreOffice(): string | null {
-  const candidates = [
-    'libreoffice',
-    'soffice',
-    '/usr/bin/libreoffice',
-    '/usr/bin/soffice',
-    'C:\\Program Files\\LibreOffice\\program\\soffice.exe',
-    'C:\\Program Files (x86)\\LibreOffice\\program\\soffice.exe',
-  ];
+const execFileAsync = promisify(execFile);
 
-  for (const cmd of candidates) {
+const LIBREOFFICE_CANDIDATES = [
+  'libreoffice',
+  'soffice',
+  '/usr/bin/libreoffice',
+  '/usr/bin/soffice',
+  'C:\\Program Files\\LibreOffice\\program\\soffice.exe',
+  'C:\\Program Files (x86)\\LibreOffice\\program\\soffice.exe',
+];
+
+// The lookup spawns up to six processes, so its result is cached. A miss is re-checked
+// after a minute, so installing LibreOffice later works without a backend restart.
+let libreOfficeLookup: { path: string | null; at: number } | null = null;
+
+async function findLibreOffice(): Promise<string | null> {
+  if (libreOfficeLookup && (libreOfficeLookup.path || Date.now() - libreOfficeLookup.at < 60_000)) {
+    return libreOfficeLookup.path;
+  }
+  let found: string | null = null;
+  for (const cmd of LIBREOFFICE_CANDIDATES) {
     try {
-      execSync(`"${cmd}" --version`, { stdio: 'pipe' });
-      return cmd;
+      await execFileAsync(cmd, ['--version'], { timeout: 15_000, windowsHide: true });
+      found = cmd;
+      break;
     } catch {
       // not found, try next
     }
   }
-  return null;
+  libreOfficeLookup = { path: found, at: Date.now() };
+  return found;
 }
 
-async function convertToPdf(inputPath: string): Promise<string> {
-  const libre = findLibreOffice();
-  if (!libre) {
-    throw new Error('LibreOffice nicht gefunden. Bitte LibreOffice installieren für PDF-Konvertierung.');
-  }
+// LibreOffice instances sharing one user profile interfere with each other, so
+// conversions run one at a time (previously execSync serialised them implicitly).
+let conversionQueue: Promise<unknown> = Promise.resolve();
 
-  const outDir = path.dirname(inputPath);
-  const cmd = `"${libre}" --headless --convert-to pdf --outdir "${outDir}" "${inputPath}"`;
+/**
+ * Converts an office file to PDF next to the input file. Runs asynchronously (the event
+ * loop stays free during the up to 60 s conversion) and without a shell – paths are passed
+ * as arguments, so nothing in them is ever interpreted.
+ */
+export async function convertToPdf(inputPath: string): Promise<string> {
+  const run = async (): Promise<string> => {
+    const libre = await findLibreOffice();
+    if (!libre) {
+      throw new Error('LibreOffice nicht gefunden. Bitte LibreOffice installieren für PDF-Konvertierung.');
+    }
 
-  try {
-    execSync(cmd, { stdio: 'pipe', timeout: 60000 });
-  } catch (err) {
-    throw new Error(`PDF-Konvertierung fehlgeschlagen: ${(err as Error).message}`);
-  }
+    const outDir = path.dirname(inputPath);
+    try {
+      await execFileAsync(libre, ['--headless', '--convert-to', 'pdf', '--outdir', outDir, inputPath], {
+        timeout: 60_000,
+        windowsHide: true,
+      });
+    } catch (err) {
+      throw new Error(`PDF-Konvertierung fehlgeschlagen: ${(err as Error).message}`);
+    }
 
-  const pdfPath = inputPath.replace(/\.[^.]+$/, '.pdf');
-  if (!fs.existsSync(pdfPath)) {
-    throw new Error('PDF wurde nicht erzeugt');
-  }
-  return pdfPath;
+    const pdfPath = inputPath.replace(/\.[^.]+$/, '.pdf');
+    if (!fs.existsSync(pdfPath)) {
+      throw new Error('PDF wurde nicht erzeugt');
+    }
+    return pdfPath;
+  };
+
+  const result = conversionQueue.then(run, run);
+  conversionQueue = result.catch(() => undefined);
+  return result;
 }
 
 async function getTemplateByName(name: string): Promise<string> {
@@ -646,7 +675,9 @@ async function saveGeneratedEventDocument(
 ): Promise<{ filePath: string; fileName: string }> {
   ensureTempDir();
   const timestamp = Date.now();
-  const docxPath = path.join(tempDir, `${baseFileName}_${timestamp}.docx`);
+  // The temp file is handed to LibreOffice: build its name from IDs only, never from the
+  // (user-editable) event name that goes into baseFileName.
+  const docxPath = path.join(tempDir, `event_${eventId}_${timestamp}.docx`);
   fs.writeFileSync(docxPath, buf);
 
   let finalPath: string;

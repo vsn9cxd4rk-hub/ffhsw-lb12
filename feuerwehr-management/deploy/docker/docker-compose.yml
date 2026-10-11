@@ -55,8 +55,6 @@ services:
     restart: unless-stopped
     ports:
       - "${HTTP_PORT:-80}:80"
-    volumes:
-      - uploads_data:/usr/share/nginx/uploads:ro
     networks:
       - feuerwehr
     depends_on:

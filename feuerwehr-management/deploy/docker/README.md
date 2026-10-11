@@ -33,16 +33,16 @@ Login: `admin` / `Admin123!` – **sofort nach dem ersten Login ändern.**
 
 ## Architektur
 
-- **frontend** (`nginx:1.27-alpine`): serviert die gebaute React-SPA, proxied
-  `/api/` zum `backend`-Service und `/uploads/` auf ein gemeinsames Volume.
+- **frontend** (`nginx:1.27-alpine`): serviert die gebaute React-SPA und proxied
+  `/api/` zum `backend`-Service. Hochgeladene Dateien liefert nginx nicht direkt
+  aus, Downloads laufen über die authentifizierte API.
   Einziger Service mit veröffentlichtem Host-Port.
 - **backend** (`node:22-bookworm-slim`): Express-API, kein veröffentlichter
   Port – nur über das interne Docker-Netzwerk erreichbar. Beim Start gleicht
   der Entrypoint das DB-Schema per `prisma db push` ab.
 - **db** (`mysql:8.4`): persistiert nach Volume `db_data`.
 
-Named Volumes: `db_data`, `uploads_data` (geteilt zwischen `backend` r/w und
-`frontend` r/o), `backend_logs`.
+Named Volumes: `db_data`, `uploads_data` (nur `backend`), `backend_logs`.
 
 ## Update auf eine neue Version
 
@@ -62,7 +62,7 @@ in dem Fall `docker compose logs backend` prüfen.
 
 - Kein TLS/HTTPS – Compose liefert nur Port 80. Für HTTPS entweder Zertifikate
   in `nginx.conf` einbinden (analog zum auskommentierten Certbot-Block in
-  `deploy/nginx/fuerwehr.conf`) oder einen Reverse-Proxy wie Caddy/Traefik
+  `deploy/nginx/feuerwehr.conf`) oder einen Reverse-Proxy wie Caddy/Traefik
   davorsetzen.
 - Kein automatisiertes Docker-Backup. `deploy/scripts/backup.sh`/`restore.sh`
   kennen nur die bare-metal-Pfade. Für ein manuelles DB-Backup:

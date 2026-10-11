@@ -17,6 +17,8 @@ model User {
   name      String?  @db.VarChar(255)
   isAdmin   Boolean  @default(false)
   isActive  Boolean  @default(true)
+  // Set for initial/reset passwords: the user must choose a new one before using the app
+  mustChangePassword Boolean @default(false)
   groupId   Int?
   memberId  Int?     @unique
   createdAt DateTime @default(now())

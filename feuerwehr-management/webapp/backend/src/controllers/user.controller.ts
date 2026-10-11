@@ -4,11 +4,18 @@ import { prisma } from '../config/database';
 import { authService } from '../services/auth.service';
 import { sendSuccess, sendError, sendPaginated } from '../utils/response';
 import { getPagination } from '../utils/pagination';
+import { pickWritable } from '../utils/body';
+import { passwordRules } from '../utils/password';
 
 export const createUserValidation = [
   body('username').trim().isLength({ min: 3 }).withMessage('Benutzername min. 3 Zeichen'),
-  body('password').isLength({ min: 8 }).withMessage('Passwort min. 8 Zeichen'),
+  passwordRules(body('password')),
   body('email').optional().isEmail().withMessage('Ungültige E-Mail-Adresse'),
+];
+
+export const updateUserValidation = [
+  passwordRules(body('password').optional({ values: 'falsy' })),
+  body('email').optional({ values: 'falsy' }).isEmail().withMessage('Ungültige E-Mail-Adresse'),
 ];
 
 export async function getUsers(req: Request, res: Response): Promise<void> {
@@ -27,7 +34,7 @@ export async function getUsers(req: Request, res: Response): Promise<void> {
         take,
         select: {
           id: true, username: true, email: true, name: true,
-          isAdmin: true, isActive: true, groupId: true, memberId: true,
+          isAdmin: true, isActive: true, groupId: true, memberId: true, mustChangePassword: true,
           group: { select: { id: true, name: true } },
           member: { select: { id: true, firstName: true, lastName: true } },
           createdAt: true,
@@ -71,10 +78,12 @@ export async function createUser(req: Request, res: Response): Promise<void> {
         isActive: isActive ?? true,
         groupId,
         memberId: memberId || null,
+        // the admin chose this password, so the user replaces it with a private one
+        mustChangePassword: true,
       },
       select: {
         id: true, username: true, email: true, name: true,
-        isAdmin: true, isActive: true, groupId: true, memberId: true, createdAt: true,
+        isAdmin: true, isActive: true, groupId: true, memberId: true, mustChangePassword: true, createdAt: true,
       },
     });
 
@@ -109,16 +118,31 @@ export async function updateUser(req: Request, res: Response): Promise<void> {
     const { email, name, isAdmin, isActive, groupId, memberId, password } = req.body;
 
     const data: Record<string, unknown> = {};
-    if (email !== undefined) data.email = email;
+    if (email !== undefined) data.email = email || null;
     if (name !== undefined) data.name = name;
-    if (isAdmin !== undefined) data.isAdmin = isAdmin;
-    if (isActive !== undefined) data.isActive = isActive;
+    if (isAdmin !== undefined) data.isAdmin = !!isAdmin;
+    if (isActive !== undefined) data.isActive = !!isActive;
     if (groupId !== undefined) {
       if (!groupId) { sendError(res, 'Berechtigungsgruppe ist erforderlich', 400); return; }
       data.groupId = groupId;
     }
     if (memberId !== undefined) data.memberId = memberId || null;
-    if (password) data.password = await authService.hashPassword(password);
+    if (password) {
+      data.password = await authService.hashPassword(password);
+      // A reset by someone else must not stay the user's password; resetting one's own is a normal change
+      data.mustChangePassword = id !== req.user!.id;
+    }
+
+    if (data.isAdmin === false || data.isActive === false) {
+      const target = await prisma.user.findUnique({ where: { id }, select: { isAdmin: true, isActive: true } });
+      if (target?.isAdmin && target.isActive) {
+        const otherAdmins = await prisma.user.count({ where: { isAdmin: true, isActive: true, id: { not: id } } });
+        if (otherAdmins === 0) {
+          sendError(res, 'Der letzte aktive Administrator kann nicht herabgestuft oder deaktiviert werden', 400);
+          return;
+        }
+      }
+    }
 
     const user = await prisma.user.update({
       where: { id },
@@ -130,6 +154,13 @@ export async function updateUser(req: Request, res: Response): Promise<void> {
         createdAt: true,
       },
     });
+
+    // A password reset or deactivation must end the user's running sessions; without this
+    // the old refresh tokens keep working for up to JWT_REFRESH_EXPIRES.
+    if (data.password || data.isActive === false) {
+      await authService.logoutAll(id);
+    }
+
     sendSuccess(res, user);
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -162,7 +193,7 @@ export async function getPermissionGroups(_req: Request, res: Response): Promise
 
 export async function createPermissionGroup(req: Request, res: Response): Promise<void> {
   try {
-    const group = await prisma.permissionGroup.create({ data: req.body });
+    const group = await prisma.permissionGroup.create({ data: pickWritable('PermissionGroup', req.body) as any });
     sendSuccess(res, group, 201);
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -172,7 +203,7 @@ export async function createPermissionGroup(req: Request, res: Response): Promis
 export async function updatePermissionGroup(req: Request, res: Response): Promise<void> {
   try {
     const id = parseInt(req.params.id);
-    const group = await prisma.permissionGroup.update({ where: { id }, data: req.body });
+    const group = await prisma.permissionGroup.update({ where: { id }, data: pickWritable('PermissionGroup', req.body) });
     sendSuccess(res, group);
   } catch (err) {
     sendError(res, (err as Error).message);

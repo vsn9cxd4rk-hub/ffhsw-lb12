@@ -1,17 +1,30 @@
-import { Request, Response } from 'express';
+import { Request, Response, CookieOptions } from 'express';
 import { body } from 'express-validator';
 import { authService } from '../services/auth.service';
 import { sendSuccess, sendError } from '../utils/response';
-import { verifyRefreshToken } from '../config/jwt';
+import { getRefreshTokenExpiry } from '../config/jwt';
 import { prisma } from '../config/database';
+import { passwordRules } from '../utils/password';
 
-const COOKIE_OPTIONS = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'lax' as const,
-  maxAge: 7 * 24 * 60 * 60 * 1000,
-  path: '/api/auth',
-};
+const COOKIE_PATH = '/api/auth';
+
+// `secure` follows the actual request scheme (nginx sets X-Forwarded-Proto, trust proxy is on):
+// a Secure cookie is silently dropped by the browser on plain-HTTP LAN installs, which would
+// make every session end with the first access-token expiry. COOKIE_SECURE=true forces it.
+function refreshCookieOptions(req: Request): CookieOptions {
+  return {
+    httpOnly: true,
+    secure: process.env.COOKIE_SECURE === 'true' || req.secure,
+    sameSite: 'lax',
+    expires: getRefreshTokenExpiry(),
+    path: COOKIE_PATH,
+  };
+}
+
+function clearRefreshCookie(req: Request, res: Response): void {
+  const { expires: _expires, ...options } = refreshCookieOptions(req);
+  res.clearCookie('refreshToken', options);
+}
 
 export const loginValidation = [
   body('username').trim().notEmpty().withMessage('Benutzername ist erforderlich'),
@@ -23,7 +36,7 @@ export async function login(req: Request, res: Response): Promise<void> {
     const { username, password } = req.body;
     const result = await authService.login(username, password);
 
-    res.cookie('refreshToken', result.refreshToken, COOKIE_OPTIONS);
+    res.cookie('refreshToken', result.refreshToken, refreshCookieOptions(req));
     sendSuccess(res, {
       accessToken: result.accessToken,
       user: result.user,
@@ -33,13 +46,15 @@ export async function login(req: Request, res: Response): Promise<void> {
   }
 }
 
+// Works without a valid access token: logging out after the access token expired must still
+// revoke the session, otherwise the refresh token stays usable for its full lifetime.
 export async function logout(req: Request, res: Response): Promise<void> {
   try {
     const refreshToken = req.cookies.refreshToken;
-    if (refreshToken && req.user) {
-      await authService.logout(req.user.id, refreshToken);
+    if (refreshToken) {
+      await authService.logout(refreshToken);
     }
-    res.clearCookie('refreshToken', { path: '/api/auth' });
+    clearRefreshCookie(req, res);
     sendSuccess(res, { message: 'Erfolgreich abgemeldet' });
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -54,19 +69,11 @@ export async function refresh(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    // Verify token format first
-    try {
-      verifyRefreshToken(refreshToken);
-    } catch {
-      res.clearCookie('refreshToken', { path: '/api/auth' });
-      sendError(res, 'Ungültiger Refresh Token', 401);
-      return;
-    }
-
-    const result = await authService.refreshToken(refreshToken);
-    sendSuccess(res, { accessToken: result.accessToken });
+    // Also returns the current user so clients pick up changed rights without a new login.
+    const session = await authService.refreshToken(refreshToken);
+    sendSuccess(res, session);
   } catch (err) {
-    res.clearCookie('refreshToken', { path: '/api/auth' });
+    clearRefreshCookie(req, res);
     sendError(res, (err as Error).message, 401);
   }
 }
@@ -82,6 +89,7 @@ export async function getMe(req: Request, res: Response): Promise<void> {
         name: true,
         isAdmin: true,
         isActive: true,
+        mustChangePassword: true,
         groupId: true,
         memberId: true,
         group: true,
@@ -102,18 +110,14 @@ export async function getMe(req: Request, res: Response): Promise<void> {
 
 export const changePasswordValidation = [
   body('oldPassword').notEmpty().withMessage('Aktuelles Passwort ist erforderlich'),
-  body('newPassword')
-    .isLength({ min: 8 })
-    .withMessage('Neues Passwort muss mindestens 8 Zeichen haben')
-    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
-    .withMessage('Passwort muss Groß-/Kleinbuchstaben und eine Zahl enthalten'),
+  passwordRules(body('newPassword')),
 ];
 
 export async function changePassword(req: Request, res: Response): Promise<void> {
   try {
     const { oldPassword, newPassword } = req.body;
     await authService.changePassword(req.user!.id, oldPassword, newPassword);
-    res.clearCookie('refreshToken', { path: '/api/auth' });
+    clearRefreshCookie(req, res);
     sendSuccess(res, { message: 'Passwort erfolgreich geändert. Bitte neu anmelden.' });
   } catch (err) {
     sendError(res, (err as Error).message, 400);

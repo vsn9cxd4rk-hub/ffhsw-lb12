@@ -14,6 +14,8 @@ import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
 import { Textarea } from '../../components/ui/Textarea';
 import { formatDate, getCourseStatusLabel, getCourseStatusColor } from '../../utils/format';
+import { usePermission } from '../../hooks/usePermission';
+import { BIT_TRAINING } from '../../config/permissionBits';
 
 const STATUS_OPTIONS = [
   { value: 'pending', label: 'Geplant' },
@@ -22,7 +24,7 @@ const STATUS_OPTIONS = [
   { value: 'failed', label: 'Nicht bestanden' },
 ];
 
-function CourseFormModal({ isOpen, onClose, editCourse }: { isOpen: boolean; onClose: () => void; editCourse?: Course | null }) {
+function CourseFormModal({ isOpen, onClose, editCourse, canEdit }: { isOpen: boolean; onClose: () => void; editCourse?: Course | null; canEdit: boolean }) {
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
@@ -52,7 +54,12 @@ function CourseFormModal({ isOpen, onClose, editCourse }: { isOpen: boolean; onC
   }, [editCourse?.id, editCourse?.certificatePath]);
 
   const { data: categories } = useQuery({ queryKey: ['course-categories'], queryFn: () => trainingApi.getCategories().then(r => r.data.data as CourseCategory[]) });
-  const { data: membersData } = useQuery({ queryKey: ['members-search', ''], queryFn: () => membersApi.getAll({ isInactive: false, limit: 200 }).then(r => r.data.data) });
+  // The member picker needs GET /members (BIT_OPERATIONS); read-only viewers see the name from the course instead
+  const { data: membersData } = useQuery({
+    queryKey: ['members-search', ''],
+    queryFn: () => membersApi.getAll({ isInactive: false, limit: 200 }).then(r => r.data.data),
+    enabled: canEdit,
+  });
 
   const mutation = useMutation({
     mutationFn: () => {
@@ -115,10 +122,12 @@ function CourseFormModal({ isOpen, onClose, editCourse }: { isOpen: boolean; onC
   const isValid = form.memberId && form.categoryId;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={editCourse ? 'Lehrgang bearbeiten' : 'Neuer Lehrgang'} size="lg"
-      footer={<><Button variant="secondary" onClick={onClose}>Abbrechen</Button><Button variant="primary" onClick={() => mutation.mutate()} loading={mutation.isPending} disabled={!isValid}>Speichern</Button></>}
+    <Modal isOpen={isOpen} onClose={onClose} title={!canEdit ? 'Lehrgang' : editCourse ? 'Lehrgang bearbeiten' : 'Neuer Lehrgang'} size="lg"
+      footer={canEdit
+        ? <><Button variant="secondary" onClick={onClose}>Abbrechen</Button><Button variant="primary" onClick={() => mutation.mutate()} loading={mutation.isPending} disabled={!isValid}>Speichern</Button></>
+        : <Button variant="secondary" onClick={onClose}>Schließen</Button>}
     >
-      <div className="space-y-3">
+      <fieldset disabled={!canEdit} className="space-y-3">
         {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-md">{error}</div>}
 
         <div>
@@ -126,6 +135,9 @@ function CourseFormModal({ isOpen, onClose, editCourse }: { isOpen: boolean; onC
           <select value={form.memberId} onChange={(e) => u('memberId', e.target.value)} disabled={!!editCourse}
             className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none bg-white disabled:bg-gray-100">
             <option value="">-- Bitte wählen --</option>
+            {editCourse?.member && !membersData && (
+              <option value={editCourse.memberId}>{editCourse.member.lastName}, {editCourse.member.firstName}</option>
+            )}
             {(membersData || []).map((m: Member) => <option key={m.id} value={m.id}>{m.lastName}, {m.firstName}</option>)}
           </select>
         </div>
@@ -147,10 +159,11 @@ function CourseFormModal({ isOpen, onClose, editCourse }: { isOpen: boolean; onC
         </div>
         <Input label="Ort" value={form.location} onChange={(e) => u('location', e.target.value)} />
         <Textarea label="Notizen" value={form.notes} onChange={(e) => u('notes', e.target.value)} rows={2} />
+      </fieldset>
 
-        {/* Certificate section - only for existing courses */}
-        {editCourse && (
-          <div className="border-t border-gray-200 pt-4 mt-2">
+      {/* Certificate section - only for existing courses (outside the fieldset: downloading stays possible read-only) */}
+      {editCourse && (
+          <div className="border-t border-gray-200 pt-4 mt-5">
             <h4 className="text-sm font-semibold text-gray-700 mb-2">Urkunde / Zertifikat</h4>
             {editCourse.certificatePath ? (
               <div className="p-3 bg-green-50 border border-green-200 rounded-md space-y-3">
@@ -164,11 +177,15 @@ function CourseFormModal({ isOpen, onClose, editCourse }: { isOpen: boolean; onC
                   <Button variant="secondary" size="sm" icon={<ArrowDownTrayIcon />} onClick={handleCertificateDownload}>
                     Herunterladen
                   </Button>
-                  <Button variant="danger" size="sm" icon={<TrashIcon />} onClick={() => deleteCertMutation.mutate()} loading={deleteCertMutation.isPending}>
-                    Entfernen
-                  </Button>
+                  {canEdit && (
+                    <Button variant="danger" size="sm" icon={<TrashIcon />} onClick={() => deleteCertMutation.mutate()} loading={deleteCertMutation.isPending}>
+                      Entfernen
+                    </Button>
+                  )}
                 </div>
               </div>
+            ) : !canEdit ? (
+              <p className="text-sm text-gray-500">Keine Urkunde hinterlegt.</p>
             ) : (
               <div className="flex items-center gap-3">
                 <input ref={fileInputRef} type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={handleCertificateUpload} className="hidden" />
@@ -179,8 +196,7 @@ function CourseFormModal({ isOpen, onClose, editCourse }: { isOpen: boolean; onC
               </div>
             )}
           </div>
-        )}
-      </div>
+      )}
     </Modal>
   );
 }
@@ -192,6 +208,7 @@ export function TrainingPage() {
   const [page, setPage] = useState(1);
   const [showForm, setShowForm] = useState(false);
   const [editCourse, setEditCourse] = useState<Course | null>(null);
+  const canEdit = usePermission(BIT_TRAINING);
 
   const { data: categories } = useQuery({ queryKey: ['course-categories'], queryFn: () => trainingApi.getCategories().then(r => r.data.data) });
 
@@ -237,7 +254,7 @@ export function TrainingPage() {
             {STATUS_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
         </div>
-        <Button variant="primary" icon={<PlusIcon />} onClick={openCreate}>Neuer Lehrgang</Button>
+        {canEdit && <Button variant="primary" icon={<PlusIcon />} onClick={openCreate}>Neuer Lehrgang</Button>}
       </div>
 
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
@@ -247,7 +264,7 @@ export function TrainingPage() {
       </div>
 
       {showForm && (
-        <CourseFormModal key={editCourse?.id || 'new'} isOpen={showForm} onClose={closeForm} editCourse={editCourse} />
+        <CourseFormModal key={editCourse?.id || 'new'} isOpen={showForm} onClose={closeForm} editCourse={editCourse} canEdit={canEdit} />
       )}
     </div>
   );

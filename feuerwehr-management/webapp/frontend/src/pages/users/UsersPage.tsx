@@ -33,7 +33,8 @@ function UserFormModal({ isOpen, onClose, editUser }: { isOpen: boolean; onClose
       : usersApi.create({ ...form, groupId: form.groupId ? parseInt(form.groupId) : null, memberId: form.memberId ? parseInt(form.memberId) : null } as User & { password: string }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['users'] }); setError(''); onClose(); },
     onError: (err: unknown) => {
-      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Speichern fehlgeschlagen';
+      const data = (err as { response?: { data?: { error?: string; details?: { msg?: string }[] } } })?.response?.data;
+      const msg = data?.details?.[0]?.msg || data?.error || 'Speichern fehlgeschlagen';
       setError(msg);
     },
   });
@@ -84,6 +85,9 @@ function UserFormModal({ isOpen, onClose, editUser }: { isOpen: boolean; onClose
             Aktiv
           </label>
         </div>
+        <p className="text-xs text-gray-500">
+          Passwort: mindestens 8 Zeichen mit Groß-/Kleinbuchstaben und einer Zahl. Ein hier vergebenes Passwort muss der Benutzer beim nächsten Login durch ein eigenes ersetzen.
+        </p>
       </div>
     </Modal>
   );
@@ -120,6 +124,7 @@ export function UsersPage() {
       <div className="flex gap-1">
         {u.isAdmin && <Badge variant="danger">Admin</Badge>}
         <Badge variant={u.isActive ? 'success' : 'default'}>{u.isActive ? 'Aktiv' : 'Inaktiv'}</Badge>
+        {u.mustChangePassword && <Badge variant="warning">Passwortwechsel offen</Badge>}
       </div>
     )},
     { key: 'actions', header: '', render: (u: User) => (

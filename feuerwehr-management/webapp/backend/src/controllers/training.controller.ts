@@ -1,36 +1,21 @@
 import { Request, Response } from 'express';
 import path from 'path';
-import fs from 'fs';
-import multer from 'multer';
 import { prisma } from '../config/database';
 import { sendSuccess, sendError, sendPaginated } from '../utils/response';
 import { getPagination } from '../utils/pagination';
 import { convertDates } from '../utils/dates';
+import { pickWritable } from '../utils/body';
+import { categoryUploadDir, removeUpload, sendUpload } from '../utils/files';
+import { createUpload, discardUpload } from '../utils/upload';
 
 const COURSE_DATE_FIELDS = ['startDate', 'endDate'];
 
-const uploadDir = process.env.UPLOAD_PATH || './uploads';
-
-const certificateStorage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    const dir = path.join(uploadDir, 'certificates');
-    fs.mkdirSync(dir, { recursive: true });
-    cb(null, dir);
-  },
-  filename: (_req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  },
+export const certificateUpload = createUpload({
+  destination: () => categoryUploadDir('certificates'),
+  kinds: ['pdf', 'jpeg', 'png'],
+  field: 'certificate',
+  rejectMessage: 'Nur PDF- und Bilddateien sind erlaubt',
 });
-
-export const certificateUpload = multer({
-  storage: certificateStorage,
-  limits: { fileSize: 20 * 1024 * 1024 },
-  fileFilter: (_req, file, cb) => {
-    const allowed = ['application/pdf', 'image/jpeg', 'image/png'];
-    if (allowed.includes(file.mimetype)) cb(null, true);
-    else cb(new Error('Nur PDF- und Bilddateien sind erlaubt'));
-  },
-}).single('certificate');
 
 export async function getCourses(req: Request, res: Response): Promise<void> {
   try {
@@ -73,7 +58,7 @@ export async function getCourses(req: Request, res: Response): Promise<void> {
 export async function createCourse(req: Request, res: Response): Promise<void> {
   try {
     const course = await prisma.course.create({
-      data: convertDates(req.body, COURSE_DATE_FIELDS) as any,
+      data: convertDates(pickWritable('Course', req.body), COURSE_DATE_FIELDS) as any,
       include: { category: true, member: { select: { id: true, firstName: true, lastName: true } } },
     });
     sendSuccess(res, course, 201);
@@ -86,7 +71,7 @@ export async function getCourse(req: Request, res: Response): Promise<void> {
   try {
     const course = await prisma.course.findUnique({
       where: { id: parseInt(req.params.id) },
-      include: { category: true, member: true },
+      include: { category: true, member: { select: { id: true, firstName: true, lastName: true, rank: true } } },
     });
     if (!course) { sendError(res, 'Lehrgang nicht gefunden', 404); return; }
     sendSuccess(res, course);
@@ -99,7 +84,7 @@ export async function updateCourse(req: Request, res: Response): Promise<void> {
   try {
     const course = await prisma.course.update({
       where: { id: parseInt(req.params.id) },
-      data: convertDates(req.body, COURSE_DATE_FIELDS) as any,
+      data: convertDates(pickWritable('Course', req.body), COURSE_DATE_FIELDS) as any,
       include: { category: true },
     });
     sendSuccess(res, course);
@@ -124,18 +109,16 @@ export async function uploadCertificate(req: Request, res: Response): Promise<vo
     if (!req.file) { sendError(res, 'Keine Datei hochgeladen', 400); return; }
 
     const course = await prisma.course.findUnique({ where: { id } });
-    if (!course) { sendError(res, 'Lehrgang nicht gefunden', 404); return; }
-
-    // Delete old certificate if exists
-    if (course.certificatePath && fs.existsSync(course.certificatePath)) {
-      fs.unlinkSync(course.certificatePath);
-    }
+    if (!course) { discardUpload(req.file); sendError(res, 'Lehrgang nicht gefunden', 404); return; }
 
     const updated = await prisma.course.update({
       where: { id },
       data: { certificatePath: req.file.path },
       include: { category: true, member: { select: { id: true, firstName: true, lastName: true, rank: true } } },
     });
+
+    // Delete old certificate only after the DB points at the new one
+    removeUpload(course.certificatePath);
     sendSuccess(res, updated);
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -144,17 +127,15 @@ export async function uploadCertificate(req: Request, res: Response): Promise<vo
 
 export async function downloadCertificate(req: Request, res: Response): Promise<void> {
   try {
-    const course = await prisma.course.findUnique({ where: { id: parseInt(req.params.id) } });
+    const course = await prisma.course.findUnique({
+      where: { id: parseInt(req.params.id) },
+      include: { category: { select: { name: true } }, member: { select: { firstName: true, lastName: true } } },
+    });
     if (!course || !course.certificatePath) { sendError(res, 'Keine Urkunde vorhanden', 404); return; }
-
-    if (!fs.existsSync(course.certificatePath)) {
-      sendError(res, 'Datei nicht gefunden', 404);
-      return;
-    }
-
-    const fileName = path.basename(course.certificatePath);
-    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(fileName)}"`);
-    fs.createReadStream(course.certificatePath).pipe(res);
+    // Stored names are random UUIDs; offer a readable download name instead
+    const label = [`Urkunde`, course.category?.name, course.member?.lastName, course.member?.firstName]
+      .filter(Boolean).join('_').replace(/[\\/:*?"<>|]/g, '');
+    sendUpload(res, course.certificatePath, `${label}${path.extname(course.certificatePath)}`);
   } catch (err) {
     sendError(res, (err as Error).message);
   }
@@ -166,11 +147,8 @@ export async function deleteCertificate(req: Request, res: Response): Promise<vo
     const course = await prisma.course.findUnique({ where: { id } });
     if (!course) { sendError(res, 'Lehrgang nicht gefunden', 404); return; }
 
-    if (course.certificatePath && fs.existsSync(course.certificatePath)) {
-      fs.unlinkSync(course.certificatePath);
-    }
-
     await prisma.course.update({ where: { id }, data: { certificatePath: null } });
+    removeUpload(course.certificatePath);
     sendSuccess(res, { message: 'Urkunde gelöscht' });
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -189,7 +167,7 @@ export async function getCategories(_req: Request, res: Response): Promise<void>
 
 export async function createCategory(req: Request, res: Response): Promise<void> {
   try {
-    const cat = await prisma.courseCategory.create({ data: req.body });
+    const cat = await prisma.courseCategory.create({ data: pickWritable('CourseCategory', req.body) as any });
     sendSuccess(res, cat, 201);
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -200,7 +178,7 @@ export async function updateCategory(req: Request, res: Response): Promise<void>
   try {
     const cat = await prisma.courseCategory.update({
       where: { id: parseInt(req.params.id) },
-      data: req.body,
+      data: pickWritable('CourseCategory', req.body),
     });
     sendSuccess(res, cat);
   } catch (err) {

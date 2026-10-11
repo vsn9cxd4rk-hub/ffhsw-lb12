@@ -7,12 +7,14 @@ import { Article } from '../../types';
 export function ScanPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const isAuthenticated = useAuthStore(s => s.isAuthenticated);
+  const authStatus = useAuthStore(s => s.status);
+  const isAuthenticated = authStatus === 'authenticated';
   const [status, setStatus] = useState<'loading' | 'not-found' | 'redirecting'>('loading');
 
   useEffect(() => {
+    if (authStatus === 'unknown') return; // session is still being restored
     if (!isAuthenticated) {
-      navigate(`/login?redirect=/scan/${id}`, { replace: true });
+      navigate(`/login?redirect=${encodeURIComponent(`/scan/${id}`)}`, { replace: true });
       return;
     }
     if (!id) { setStatus('not-found'); return; }
@@ -44,7 +46,7 @@ export function ScanPage() {
         setStatus('not-found');
       }
     })();
-  }, [id, isAuthenticated, navigate]);
+  }, [id, authStatus, isAuthenticated, navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">

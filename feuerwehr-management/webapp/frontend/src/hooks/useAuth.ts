@@ -1,18 +1,20 @@
 import { useAuthStore } from '../store/auth.store';
 import { authApi } from '../api/auth';
+import { announceLogin, logoutEverywhere } from '../api/client';
 import { useNavigate } from 'react-router-dom';
 
 export function useAuth() {
-  const { user, accessToken, isAuthenticated, isLoading, setAuth, clearAuth, setLoading } = useAuthStore();
+  const { user, accessToken, isAuthenticated, isLoading, setAuth, setLoading } = useAuthStore();
   const navigate = useNavigate();
 
-  const login = async (username: string, password: string) => {
+  const login = async (username: string, password: string, redirectTo = '/dashboard') => {
     setLoading(true);
     try {
       const response = await authApi.login(username, password);
       const { accessToken: token, user: userData } = response.data.data;
       setAuth(userData, token);
-      navigate('/dashboard');
+      announceLogin();
+      navigate(redirectTo);
     } catch (error) {
       setLoading(false);
       throw error;
@@ -20,14 +22,8 @@ export function useAuth() {
   };
 
   const logout = async () => {
-    try {
-      await authApi.logout();
-    } catch {
-      // ignore errors
-    } finally {
-      clearAuth();
-      navigate('/login');
-    }
+    await logoutEverywhere();
+    navigate('/login');
   };
 
   return {

@@ -3,3 +3,6 @@
 export const BIT_VEHICLES = 'br1'; // Fahrzeuge (incl. Fahrtenbuch, Gerätepüfungen am Fahrzeug)
 export const BIT_OPERATIONS = 'br2'; // Einsätze, Statistik, Personalliste für Kräftenachweis
 export const BIT_EQUIPMENT = 'br3'; // Gerätewart-Bereich: Bestandsliste, Prüfbuch, Mängel
+// Read access to the following areas is open to every logged-in user; the bit grants writing.
+export const BIT_EVENTS = 'br4'; // Veranstaltungen/BSW pflegen: Anwesenheit, Dokumente, Berichte
+export const BIT_TRAINING = 'br5'; // Ausbildung pflegen: Lehrgänge, Urkunden

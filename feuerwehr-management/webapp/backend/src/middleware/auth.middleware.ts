@@ -3,6 +3,8 @@ import { verifyAccessToken } from '../config/jwt';
 import { prisma } from '../config/database';
 import { sendError } from '../utils/response';
 
+const PASSWORD_CHANGE_ALLOWED = new Set(['GET /api/auth/me', 'PUT /api/auth/change-password']);
+
 export async function authenticate(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const authHeader = req.headers.authorization;
@@ -42,6 +44,13 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
       memberId: user.memberId,
       permissions,
     };
+
+    // Initial or admin-reset password: everything except reading the own account and
+    // changing the password is blocked until a new password is set.
+    if (user.mustChangePassword && !PASSWORD_CHANGE_ALLOWED.has(`${req.method} ${req.baseUrl}${req.path}`)) {
+      res.status(403).json({ success: false, error: 'Bitte zuerst das Passwort ändern', code: 'PASSWORD_CHANGE_REQUIRED' });
+      return;
+    }
 
     next();
   } catch {

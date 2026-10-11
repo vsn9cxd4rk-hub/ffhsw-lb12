@@ -8,12 +8,14 @@ import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Table } from '../../components/ui/Table';
 import { Badge } from '../../components/ui/Badge';
-import { BIT_VEHICLES, BIT_OPERATIONS, BIT_EQUIPMENT } from '../../config/permissionBits';
+import { BIT_VEHICLES, BIT_OPERATIONS, BIT_EQUIPMENT, BIT_EVENTS, BIT_TRAINING } from '../../config/permissionBits';
 
 const CAPABILITIES = [
   { bit: BIT_VEHICLES, label: 'Fahrzeuge' },
   { bit: BIT_OPERATIONS, label: 'Einsätze / Statistik' },
   { bit: BIT_EQUIPMENT, label: 'Gerätewart-Bereich (Bestand/Prüfbuch/Mängel)' },
+  { bit: BIT_EVENTS, label: 'Veranstaltungen pflegen (Anwesenheit, BSW, Dokumente)' },
+  { bit: BIT_TRAINING, label: 'Ausbildung pflegen (Lehrgänge, Urkunden)' },
 ];
 
 export function PermissionGroupSettings() {
@@ -75,7 +77,7 @@ export function PermissionGroupSettings() {
   ];
 
   return (
-    <Card title="Berechtigungsgruppen" subtitle="Jede Gruppe kann beliebige Fähigkeiten kombinieren - z.B. Gerätewart und Gruppenführer in einer Gruppe.">
+    <Card title="Berechtigungsgruppen" subtitle="Jede Gruppe kann beliebige Fähigkeiten kombinieren - z.B. Gerätewart und Gruppenführer in einer Gruppe. Veranstaltungen und Ausbildung kann jeder einsehen; die Fähigkeit erlaubt das Bearbeiten.">
       <div className="space-y-4">
         <div className="flex justify-end">
           <Button variant="primary" icon={<PlusIcon />} onClick={openCreate}>Neue Gruppe</Button>

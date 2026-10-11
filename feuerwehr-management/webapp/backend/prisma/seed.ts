@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 
 const prisma = new PrismaClient();
 
@@ -33,20 +34,22 @@ async function main() {
   const geraetewarteGroup = await prisma.permissionGroup.upsert({
     where: { id: 2 },
     update: { name: 'Gerätewarte', description: 'Zugriff auf Fahrzeuge, Bestandsliste und Prüfbuch' },
+    // Bits only on create: an existing installation keeps what was set in the UI
     create: {
       id: 2,
       name: 'Gerätewarte',
       description: 'Zugriff auf Fahrzeuge, Bestandsliste und Prüfbuch',
+      br1: true, br3: true, // Fahrzeuge, Gerätewart-Bereich
     },
   });
 
   const userGroup = await prisma.permissionGroup.upsert({
     where: { id: 3 },
-    update: { name: 'Benutzer', description: 'Zugriff auf eigene Daten, Veranstaltungen und Ausbildung' },
+    update: { name: 'Benutzer', description: 'Veranstaltungen und Ausbildung ansehen' },
     create: {
       id: 3,
       name: 'Benutzer',
-      description: 'Zugriff auf eigene Daten, Veranstaltungen und Ausbildung',
+      description: 'Veranstaltungen und Ausbildung ansehen',
     },
   });
 
@@ -57,6 +60,7 @@ async function main() {
       id: 4,
       name: 'Maschinisten',
       description: 'Wie Benutzer, zusätzlich Fahrzeuge und Fahrtenbuch',
+      br1: true, // Fahrzeuge
     },
   });
 
@@ -67,27 +71,34 @@ async function main() {
       id: 5,
       name: 'Gruppenführer',
       description: 'Wie Benutzer, zusätzlich Berichte bei Einsätzen und Veranstaltungen',
+      br2: true, br4: true, br5: true, // Einsätze, Veranstaltungen pflegen, Ausbildung pflegen
     },
   });
 
   console.log('Permission groups created:', adminGroup.name, geraetewarteGroup.name, userGroup.name, machinistenGroup.name, gruppenfuehrerGroup.name);
 
-  // Create admin user
-  const hashedPassword = await bcrypt.hash('Admin123!', 12);
-  const admin = await prisma.user.upsert({
-    where: { username: 'admin' },
-    update: {},
-    create: {
-      username: 'admin',
-      email: 'admin@feuerwehr.local',
-      password: hashedPassword,
-      name: 'Administrator',
-      isAdmin: true,
-      isActive: true,
-      groupId: adminGroup.id,
-    },
-  });
-  console.log('Admin user created:', admin.username);
+  // Create admin user with a one-time random password (printed below, must be changed at first login).
+  // An existing admin keeps its password: the seed is idempotent and runs on every install/update.
+  const existingAdmin = await prisma.user.findUnique({ where: { username: 'admin' } });
+  let initialAdminPassword: string | null = null;
+  if (!existingAdmin) {
+    initialAdminPassword = process.env.INITIAL_ADMIN_PASSWORD || generatePassword();
+    await prisma.user.create({
+      data: {
+        username: 'admin',
+        email: 'admin@feuerwehr.local',
+        password: await bcrypt.hash(initialAdminPassword, 12),
+        name: 'Administrator',
+        isAdmin: true,
+        isActive: true,
+        mustChangePassword: true,
+        groupId: adminGroup.id,
+      },
+    });
+    console.log('Admin user created: admin');
+  } else {
+    console.log('Admin user exists, password unchanged');
+  }
 
   // Create ranks (Dienstgrade)
   const ranks = [
@@ -346,10 +357,23 @@ async function main() {
   console.log('Device classes with subclasses and criteria created');
 
   console.log('\nSeed completed successfully!');
-  console.log('Default admin credentials:');
-  console.log('  Username: admin');
-  console.log('  Password: Admin123!');
-  console.log('\nIMPORTANT: Change the admin password immediately after first login!');
+  if (initialAdminPassword) {
+    console.log('\n==================================================================');
+    console.log('  Erstanmeldung');
+    console.log('    Benutzername: admin');
+    console.log(`    Passwort:     ${initialAdminPassword}`);
+    console.log('  Das Passwort wird nur jetzt angezeigt und muss beim ersten Login');
+    console.log('  geändert werden.');
+    console.log('==================================================================\n');
+  }
+}
+
+// Readable random password that satisfies the change-password rules (upper, lower, digit).
+function generatePassword(): string {
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+  const bytes = crypto.randomBytes(14);
+  const body = Array.from(bytes, (b) => alphabet[b % alphabet.length]).join('');
+  return `${body.slice(0, 4)}-${body.slice(4, 8)}-${body.slice(8, 12)}-A${body.slice(12)}a7`;
 }
 
 main()

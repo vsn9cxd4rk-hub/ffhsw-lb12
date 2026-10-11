@@ -305,15 +305,18 @@ success "Backend gestartet"
 # Nginx konfigurieren
 # --------------------------------------------------------------------------
 info "Nginx wird konfiguriert..."
+# Security-Header-Snippet (CSP usw.), wird von der Server-Konfiguration eingebunden
+mkdir -p /etc/nginx/snippets
+cp "$SCRIPT_DIR/nginx/security-headers.conf" /etc/nginx/snippets/feuerwehr-security-headers.conf
+
 cat > "/etc/nginx/sites-available/$APP_NAME" <<EOF
 server {
     listen 80;
     server_name $APP_DOMAIN;
 
-    # Security headers
-    add_header X-Frame-Options "SAMEORIGIN" always;
-    add_header X-XSS-Protection "1; mode=block" always;
-    add_header X-Content-Type-Options "nosniff" always;
+    # Security-Header (in jeder Location mit eigenem add_header erneut eingebunden,
+    # weil nginx add_header sonst nicht vererbt)
+    include /etc/nginx/snippets/feuerwehr-security-headers.conf;
 
     # Frontend (React SPA)
     root ${APP_DIR}/frontend;
@@ -328,6 +331,7 @@ server {
     location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2)$ {
         expires 1y;
         add_header Cache-Control "public, immutable";
+        include /etc/nginx/snippets/feuerwehr-security-headers.conf;
         try_files \$uri =404;
     }
 
@@ -346,15 +350,14 @@ server {
         client_max_body_size 10M;
     }
 
-    # Uploads
-    location /uploads/ {
-        alias ${APP_DIR}/uploads/;
-        expires 30d;
-    }
+    # Upload-Dateien werden bewusst NICHT direkt ausgeliefert: alle Downloads
+    # laufen über authentifizierte API-Routen (/api/.../download).
 
     # SPA fallback
     location / {
         try_files \$uri \$uri/ /index.html;
+        add_header Cache-Control "no-store, no-cache, must-revalidate";
+        include /etc/nginx/snippets/feuerwehr-security-headers.conf;
     }
 
     location ~ /\. { deny all; }

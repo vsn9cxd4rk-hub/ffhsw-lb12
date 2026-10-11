@@ -12,6 +12,7 @@ import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { formatDate } from '../../utils/format';
+import { escapeHtml, openPrintWindow } from '../../utils/html';
 
 type Tab = 'fahrzeugdaten' | 'pruefungen' | 'fahrtenbuch';
 
@@ -260,18 +261,19 @@ function FahrtenbuchTab({ vehicleId, vehicleName }: { vehicleId: number; vehicle
     const totalKm = entries.reduce((sum, e) => sum + (e.endMileage - e.startMileage), 0);
     const rows = entries.map(e => `
       <tr>
-        <td>${new Date(e.date).toLocaleDateString('de-DE')}</td>
-        <td>${e.driver}</td>
-        <td>${e.purpose}</td>
-        <td>${e.destination || ''}</td>
-        <td style="text-align:right">${e.startMileage.toLocaleString('de-DE')}</td>
-        <td style="text-align:right">${e.endMileage.toLocaleString('de-DE')}</td>
-        <td style="text-align:right">${(e.endMileage - e.startMileage).toLocaleString('de-DE')}</td>
-        <td>${e.notes || ''}</td>
+        <td>${escapeHtml(new Date(e.date).toLocaleDateString('de-DE'))}</td>
+        <td>${escapeHtml(e.driver)}</td>
+        <td>${escapeHtml(e.purpose)}</td>
+        <td>${escapeHtml(e.destination)}</td>
+        <td style="text-align:right">${escapeHtml(Number(e.startMileage).toLocaleString('de-DE'))}</td>
+        <td style="text-align:right">${escapeHtml(Number(e.endMileage).toLocaleString('de-DE'))}</td>
+        <td style="text-align:right">${escapeHtml((e.endMileage - e.startMileage).toLocaleString('de-DE'))}</td>
+        <td>${escapeHtml(e.notes)}</td>
       </tr>`).join('');
 
+    const title = escapeHtml(vehicleName);
     const html = `<!DOCTYPE html>
-<html><head><title>Fahrtenbuch ${vehicleName}</title>
+<html><head><title>Fahrtenbuch ${title}</title>
 <style>
   body { font-family: Arial, sans-serif; font-size: 12px; margin: 20px; }
   h1 { font-size: 18px; margin-bottom: 4px; }
@@ -282,7 +284,7 @@ function FahrtenbuchTab({ vehicleId, vehicleName }: { vehicleId: number; vehicle
   tfoot td { font-weight: bold; background: #f9fafb; }
   @media print { body { margin: 0; } }
 </style></head><body>
-<h1>Fahrtenbuch: ${vehicleName}</h1>
+<h1>Fahrtenbuch: ${title}</h1>
 <h2>Erstellt am ${new Date().toLocaleDateString('de-DE')} &mdash; ${entries.length} Eintr\u00e4ge</h2>
 <table>
   <thead><tr>
@@ -293,18 +295,13 @@ function FahrtenbuchTab({ vehicleId, vehicleName }: { vehicleId: number; vehicle
   <tbody>${rows}</tbody>
   <tfoot><tr>
     <td colspan="6" style="text-align:right">Gesamt:</td>
-    <td style="text-align:right">${totalKm.toLocaleString('de-DE')} km</td>
+    <td style="text-align:right">${escapeHtml(totalKm.toLocaleString('de-DE'))} km</td>
     <td></td>
   </tr></tfoot>
 </table>
 </body></html>`;
 
-    const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      printWindow.document.write(html);
-      printWindow.document.close();
-      printWindow.onload = () => { printWindow.print(); };
-    }
+    openPrintWindow(html);
   };
 
   return (

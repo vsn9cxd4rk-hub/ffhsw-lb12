@@ -9,5 +9,7 @@ export default defineConfig({
     testTimeout: 15000,
     hookTimeout: 15000,
     sequence: { concurrent: false },
+    // Tests sign their own tokens; a fixed secret keeps them independent of the local .env
+    env: { JWT_ACCESS_SECRET: 'vitest-only-access-secret-0123456789abcdef' },
   },
 });

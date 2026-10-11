@@ -89,7 +89,10 @@ describe('Einsatzbericht-Generierung', () => {
       .set(authHeader());
 
     expect(res.status).toBe(201);
-    expect(res.body.data.fileName).toContain('Kraeftenachweis');
+    // one sheet per assigned vehicle (generatePersonnelSheets) -> array
+    expect(Array.isArray(res.body.data)).toBe(true);
+    expect(res.body.data.length).toBeGreaterThan(0);
+    expect(res.body.data[0].fileName).toContain('Kraeftenachweis');
   });
 
   it('Generierte Dokumente erscheinen in der Dokumentenliste', async () => {

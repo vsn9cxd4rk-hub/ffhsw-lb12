@@ -1,10 +1,13 @@
 import nodemailer from 'nodemailer';
 import { logger } from '../utils/logger';
 
-class EmailService {
-  private transporter: nodemailer.Transporter | null = null;
+// nodemailer >= 10 ships its own typings (no namespace export, no @types/nodemailer)
+type Transporter = ReturnType<typeof nodemailer.createTransport>;
 
-  private getTransporter(): nodemailer.Transporter {
+class EmailService {
+  private transporter: Transporter | null = null;
+
+  private getTransporter(): Transporter {
     if (!this.transporter) {
       this.transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,

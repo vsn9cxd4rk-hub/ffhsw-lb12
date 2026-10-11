@@ -1,5 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { authenticate } from '../middleware/auth.middleware';
+import { requirePermissionForWrite } from '../middleware/permission.middleware';
+import { BIT_EVENTS } from '../config/permissionBits';
 import {
   getEvents, createEvent, getEvent, updateEvent, deleteEvent,
   getAttendance, updateAttendance,
@@ -11,6 +13,8 @@ import { sendSuccess, sendError } from '../utils/response';
 
 const router = Router();
 router.use(authenticate);
+// Everyone may view events/attendance/documents; changes (incl. report generation) need BIT_EVENTS
+router.use(requirePermissionForWrite(BIT_EVENTS));
 
 router.get('/firewatches', getFireWatches);
 router.post('/firewatches', createFireWatch);

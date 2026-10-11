@@ -216,8 +216,9 @@ wie Debian/Ubuntu. Stattdessen wird ueber `conf.d/` eingebunden.
 ### Schritt 1: Konfigurationsdatei kopieren
 
 ```bash
-sudo mkdir -p /etc/nginx/conf.d
-sudo cp /pfad/zum/projekt/deploy/nginx/fuerwehr.conf /etc/nginx/conf.d/feuerwehr.conf
+sudo mkdir -p /etc/nginx/conf.d /etc/nginx/snippets
+sudo cp /pfad/zum/projekt/deploy/nginx/security-headers.conf /etc/nginx/snippets/feuerwehr-security-headers.conf
+sudo cp /pfad/zum/projekt/deploy/nginx/feuerwehr.conf /etc/nginx/conf.d/feuerwehr.conf
 ```
 
 ### Schritt 2: server_name anpassen

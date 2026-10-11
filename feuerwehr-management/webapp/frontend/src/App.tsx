@@ -25,11 +25,10 @@ import { UsersPage } from './pages/users/UsersPage';
 import { ScanPage } from './pages/scan/ScanPage';
 import { StatisticsPage } from './pages/statistics/StatisticsPage';
 import { ThirdPartyLicensesPage } from './pages/about/ThirdPartyLicensesPage';
-import { RequireGroup } from './components/layout/RequireGroup';
+import { RequireAdmin } from './components/layout/RequireAdmin';
 import { RequirePermission } from './components/layout/RequirePermission';
 import { BIT_VEHICLES, BIT_OPERATIONS, BIT_EQUIPMENT } from './config/permissionBits';
 
-const GROUP_ADMIN = 1;
 
 export default function App() {
   return (
@@ -45,9 +44,9 @@ export default function App() {
           <Route path="/dashboard" element={<DashboardPage />} />
 
           {/* Members - Admin only. Gruppenführer get member names via the Operations personnel picker (GET /members), not this page. */}
-          <Route path="/members" element={<RequireGroup allowedGroups={[GROUP_ADMIN]}><MembersPage /></RequireGroup>} />
-          <Route path="/members/new" element={<RequireGroup allowedGroups={[GROUP_ADMIN]}><MemberFormPage /></RequireGroup>} />
-          <Route path="/members/:id" element={<RequireGroup allowedGroups={[GROUP_ADMIN]}><MemberDetailPage /></RequireGroup>} />
+          <Route path="/members" element={<RequireAdmin><MembersPage /></RequireAdmin>} />
+          <Route path="/members/new" element={<RequireAdmin><MemberFormPage /></RequireAdmin>} />
+          <Route path="/members/:id" element={<RequireAdmin><MemberDetailPage /></RequireAdmin>} />
 
           {/* Vehicles - capability: Fahrzeuge */}
           <Route path="/vehicles" element={<RequirePermission bit={BIT_VEHICLES}><VehiclesPage /></RequirePermission>} />
@@ -79,7 +78,7 @@ export default function App() {
           <Route path="/training" element={<TrainingPage />} />
 
           {/* Settings */}
-          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/settings" element={<RequireAdmin><SettingsPage /></RequireAdmin>} />
 
           {/* Help */}
           <Route path="/help" element={<HelpPage />} />
@@ -88,7 +87,7 @@ export default function App() {
           <Route path="/password" element={<ChangePasswordPage />} />
 
           {/* Admin */}
-          <Route path="/admin/users" element={<UsersPage />} />
+          <Route path="/admin/users" element={<RequireAdmin><UsersPage /></RequireAdmin>} />
 
           {/* Third-party licenses */}
           <Route path="/third-party-licenses" element={<ThirdPartyLicensesPage />} />

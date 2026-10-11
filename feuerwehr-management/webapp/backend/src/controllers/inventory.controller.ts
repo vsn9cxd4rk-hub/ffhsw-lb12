@@ -1,33 +1,16 @@
 import { Request, Response } from 'express';
-import path from 'path';
-import fs from 'fs';
-import multer from 'multer';
 import { prisma } from '../config/database';
 import { sendSuccess, sendError, sendPaginated } from '../utils/response';
 import { getPagination } from '../utils/pagination';
+import { pickWritable } from '../utils/body';
+import { categoryUploadDir, removeUpload, sendUpload } from '../utils/files';
+import { createUpload, discardUpload } from '../utils/upload';
 
-// Multer config for article documents
-const uploadDir = process.env.UPLOAD_PATH || './uploads';
-
-const articleDocStorage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    const dir = path.join(uploadDir, 'article-documents');
-    fs.mkdirSync(dir, { recursive: true });
-    cb(null, dir);
-  },
-  filename: (_req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  },
+export const articleDocUpload = createUpload({
+  destination: () => categoryUploadDir('article-documents'),
+  kinds: ['pdf'],
+  rejectMessage: 'Nur PDF-Dateien sind erlaubt',
 });
-
-export const articleDocUpload = multer({
-  storage: articleDocStorage,
-  limits: { fileSize: 20 * 1024 * 1024 },
-  fileFilter: (_req, file, cb) => {
-    if (file.mimetype === 'application/pdf') cb(null, true);
-    else cb(new Error('Nur PDF-Dateien sind erlaubt'));
-  },
-}).single('file');
 
 // Warehouses
 export async function getWarehouses(req: Request, res: Response): Promise<void> {
@@ -63,7 +46,7 @@ export async function getWarehouses(req: Request, res: Response): Promise<void> 
 
 export async function createWarehouse(req: Request, res: Response): Promise<void> {
   try {
-    const w = await prisma.warehouse.create({ data: req.body });
+    const w = await prisma.warehouse.create({ data: pickWritable('Warehouse', req.body) as any });
     sendSuccess(res, w, 201);
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -72,7 +55,7 @@ export async function createWarehouse(req: Request, res: Response): Promise<void
 
 export async function updateWarehouse(req: Request, res: Response): Promise<void> {
   try {
-    const w = await prisma.warehouse.update({ where: { id: parseInt(req.params.id) }, data: req.body });
+    const w = await prisma.warehouse.update({ where: { id: parseInt(req.params.id) }, data: pickWritable('Warehouse', req.body) });
     sendSuccess(res, w);
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -173,8 +156,9 @@ export async function createArticle(req: Request, res: Response): Promise<void> 
       deviceSubclassId, manufacturingDate, specification, serialNumber, din, isDecommissioned,
       commissionedDate, decommissionedDate, designationLB, communityInventoryNumber,
       mpFeuerInventoryNumber, retirementPeriodMonths,
-      ...rest
+      ...body
     } = req.body;
+    const rest = pickWritable('Article', body);
     const article = await prisma.article.create({
       data: {
         ...rest,
@@ -190,7 +174,7 @@ export async function createArticle(req: Request, res: Response): Promise<void> 
         communityInventoryNumber: communityInventoryNumber || null,
         mpFeuerInventoryNumber: mpFeuerInventoryNumber || null,
         retirementPeriodMonths: retirementPeriodMonths ? parseInt(retirementPeriodMonths) : null,
-      },
+      } as any,
       include: { warehouse: true, deviceSubclass: { include: { deviceClass: true } } },
     });
     sendSuccess(res, article, 201);
@@ -227,7 +211,7 @@ export async function updateArticle(req: Request, res: Response): Promise<void> 
       deviceSubclassId, manufacturingDate, commissionedDate, decommissionedDate,
       retirementPeriodMonths, ...rest
     } = req.body;
-    const data: Record<string, unknown> = { ...rest };
+    const data: Record<string, unknown> = pickWritable('Article', rest);
     if (deviceSubclassId !== undefined) data.deviceSubclassId = deviceSubclassId || null;
     if (manufacturingDate !== undefined) data.manufacturingDate = manufacturingDate ? new Date(manufacturingDate) : null;
     if (commissionedDate !== undefined) data.commissionedDate = commissionedDate ? new Date(commissionedDate) : null;
@@ -262,7 +246,7 @@ export async function assignArticle(req: Request, res: Response): Promise<void> 
   try {
     const articleId = parseInt(req.params.id);
     const assignment = await prisma.articleAssignment.create({
-      data: { ...req.body, articleId },
+      data: { ...pickWritable('ArticleAssignment', req.body, ['articleId']), articleId } as any,
       include: { warehouse: true },
     });
     sendSuccess(res, assignment, 201);
@@ -275,7 +259,7 @@ export async function updateAssignment(req: Request, res: Response): Promise<voi
   try {
     const a = await prisma.articleAssignment.update({
       where: { id: parseInt(req.params.assignId) },
-      data: req.body,
+      data: pickWritable('ArticleAssignment', req.body, ['articleId']),
       include: { warehouse: true },
     });
     sendSuccess(res, a);
@@ -311,6 +295,11 @@ export async function uploadArticleDocument(req: Request, res: Response): Promis
   try {
     if (!req.file) { sendError(res, 'Keine Datei hochgeladen', 400); return; }
     const articleId = parseInt(req.params.id);
+    if (!(await prisma.article.findUnique({ where: { id: articleId }, select: { id: true } }))) {
+      discardUpload(req.file);
+      sendError(res, 'Artikel nicht gefunden', 404);
+      return;
+    }
     const doc = await prisma.articleDocument.create({
       data: {
         articleId,
@@ -331,11 +320,7 @@ export async function downloadArticleDocument(req: Request, res: Response): Prom
   try {
     const doc = await prisma.articleDocument.findUnique({ where: { id: parseInt(req.params.docId) } });
     if (!doc) { sendError(res, 'Dokument nicht gefunden', 404); return; }
-    if (!fs.existsSync(doc.filePath)) { sendError(res, 'Datei nicht gefunden', 404); return; }
-
-    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(doc.fileName)}"`);
-    res.setHeader('Content-Type', doc.mimeType);
-    fs.createReadStream(doc.filePath).pipe(res);
+    sendUpload(res, doc.filePath, doc.fileName, doc.mimeType);
   } catch (err) {
     sendError(res, (err as Error).message);
   }
@@ -345,7 +330,7 @@ export async function deleteArticleDocument(req: Request, res: Response): Promis
   try {
     const doc = await prisma.articleDocument.findUnique({ where: { id: parseInt(req.params.docId) } });
     if (!doc) { sendError(res, 'Dokument nicht gefunden', 404); return; }
-    if (fs.existsSync(doc.filePath)) fs.unlinkSync(doc.filePath);
+    removeUpload(doc.filePath);
     await prisma.articleDocument.delete({ where: { id: doc.id } });
     sendSuccess(res, { message: 'Dokument gelöscht' });
   } catch (err) {
@@ -371,7 +356,7 @@ export async function createArticleStandard(req: Request, res: Response): Promis
   try {
     const articleId = parseInt(req.params.id);
     const standard = await prisma.articleInspectionStandard.create({
-      data: { articleId, ...req.body },
+      data: { ...pickWritable('ArticleInspectionStandard', req.body, ['articleId']), articleId } as any,
     });
     sendSuccess(res, standard, 201);
   } catch (err) {
@@ -383,7 +368,7 @@ export async function updateArticleStandard(req: Request, res: Response): Promis
   try {
     const standard = await prisma.articleInspectionStandard.update({
       where: { id: parseInt(req.params.stdId) },
-      data: req.body,
+      data: pickWritable('ArticleInspectionStandard', req.body, ['articleId']),
     });
     sendSuccess(res, standard);
   } catch (err) {
@@ -418,7 +403,7 @@ export async function createArticleSchedule(req: Request, res: Response): Promis
   try {
     const articleId = parseInt(req.params.id);
     const schedule = await prisma.articleInspectionSchedule.create({
-      data: { articleId, ...req.body },
+      data: { ...pickWritable('ArticleInspectionSchedule', req.body, ['articleId']), articleId } as any,
       include: { inspectionType: true },
     });
     sendSuccess(res, schedule, 201);
@@ -431,7 +416,7 @@ export async function updateArticleSchedule(req: Request, res: Response): Promis
   try {
     const schedule = await prisma.articleInspectionSchedule.update({
       where: { id: parseInt(req.params.schedId) },
-      data: req.body,
+      data: pickWritable('ArticleInspectionSchedule', req.body, ['articleId']),
       include: { inspectionType: true },
     });
     sendSuccess(res, schedule);
@@ -505,11 +490,11 @@ export async function createDefect(req: Request, res: Response): Promise<void> {
     const { reportedAt, articleId, subject, ...rest } = req.body;
     const defect = await prisma.articleDefect.create({
       data: {
-        ...rest,
+        ...pickWritable('ArticleDefect', rest),
         articleId: articleId ? parseInt(articleId) : null,
         subject: subject || null,
         reportedAt: reportedAt ? new Date(reportedAt) : new Date(),
-      },
+      } as any,
       include: { article: true },
     });
     sendSuccess(res, defect, 201);
@@ -521,7 +506,7 @@ export async function createDefect(req: Request, res: Response): Promise<void> {
 export async function updateDefect(req: Request, res: Response): Promise<void> {
   try {
     const { reportedAt, resolvedAt, ...rest } = req.body;
-    const data: Record<string, unknown> = { ...rest };
+    const data: Record<string, unknown> = pickWritable('ArticleDefect', rest);
     if (reportedAt !== undefined) data.reportedAt = reportedAt ? new Date(reportedAt) : null;
     if (resolvedAt !== undefined) data.resolvedAt = resolvedAt ? new Date(resolvedAt) : null;
 
@@ -576,11 +561,11 @@ export async function createRepair(req: Request, res: Response): Promise<void> {
     const { repairedAt, articleId, subject, ...rest } = req.body;
     const repair = await prisma.articleRepair.create({
       data: {
-        ...rest,
+        ...pickWritable('ArticleRepair', rest),
         articleId: articleId ? parseInt(articleId) : null,
         subject: subject || null,
         repairedAt: repairedAt ? new Date(repairedAt) : new Date(),
-      },
+      } as any,
       include: { article: true, defect: true },
     });
     sendSuccess(res, repair, 201);
@@ -592,7 +577,7 @@ export async function createRepair(req: Request, res: Response): Promise<void> {
 export async function updateRepair(req: Request, res: Response): Promise<void> {
   try {
     const { repairedAt, ...rest } = req.body;
-    const data: Record<string, unknown> = { ...rest };
+    const data: Record<string, unknown> = pickWritable('ArticleRepair', rest);
     if (repairedAt !== undefined) data.repairedAt = repairedAt ? new Date(repairedAt) : null;
 
     const repair = await prisma.articleRepair.update({

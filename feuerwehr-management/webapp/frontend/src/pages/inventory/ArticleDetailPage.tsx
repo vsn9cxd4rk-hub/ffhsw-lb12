@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeftIcon, PlusIcon, TrashIcon, ArrowDownTrayIcon, ClipboardDocumentCheckIcon } from '@heroicons/react/24/outline';
 import { Article, ArticleInspection, ArticleDefect, ArticleRepair, ArticleInspectionStandard, ArticleInspectionSchedule, ArticleDocument, InspectionType } from '../../types';
-import { QrSingleView, BarcodeSingleView, printBarcodeLabel, barcodeValue } from '../../components/inventory/QrPrintView';
+import { QrSingleView, BarcodeSingleView, printBarcodeLabel, printQrLabel, barcodeValue } from '../../components/inventory/QrPrintView';
 import { Table } from '../../components/ui/Table';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
@@ -141,21 +141,7 @@ function StammdatenTab({ article }: { article: Article }) {
           {article.inventoryNumber && (
             <div className="bg-white rounded-lg border border-gray-200 p-4">
               <p className="text-xs font-medium text-gray-500 mb-3 text-center">QR-Code</p>
-              <QrSingleView article={article} baseUrl={baseUrl} onPrint={() => {
-                const printWin = window.open('', '_blank', 'width=300,height=400');
-                if (!printWin) return;
-                import('qrcode').then(QRCode => {
-                  QRCode.default.toDataURL(`${baseUrl}/scan/${article.inventoryNumber}`, { width: 200, margin: 2 }).then((url: string) => {
-                    printWin.document.write(`<html><head><title>QR Etikett</title><style>body{margin:0;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif}
-                    .label{text-align:center;width:40mm;height:30mm;padding:2mm;border:0.5px dashed #ccc}
-                    img{width:20mm;height:20mm} .inv{font-size:8pt;font-weight:bold} .name{font-size:7pt} .lb{font-size:6pt;color:#666}
-                    @media print{body{height:auto}.label{border:none}}</style></head>
-                    <body><div class="label"><img src="${url}"/><div class="inv">${article.inventoryNumber}</div><div class="name">${article.name}</div><div class="lb">${article.designationLB || 'LB12'}</div></div></body></html>`);
-                    printWin.document.close();
-                    setTimeout(() => { printWin.print(); }, 300);
-                  });
-                });
-              }} />
+              <QrSingleView article={article} baseUrl={baseUrl} onPrint={() => { printQrLabel(article, baseUrl); }} />
             </div>
           )}
           {barcodeValue(article) && (

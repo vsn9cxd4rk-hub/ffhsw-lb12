@@ -12,6 +12,8 @@ import { Card } from '../../components/ui/Card';
 import { Table } from '../../components/ui/Table';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { formatDate, getEventCategoryLabel } from '../../utils/format';
+import { usePermission } from '../../hooks/usePermission';
+import { BIT_EVENTS } from '../../config/permissionBits';
 
 const CATEGORY_BSW = 3;
 const CATEGORY_UEBUNG = 5;
@@ -27,6 +29,7 @@ export function EventDetailPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<'details' | 'bsw' | 'uebung' | 'documents'>('details');
+  const canEdit = usePermission(BIT_EVENTS);
 
   const { data: event, isLoading } = useQuery({
     queryKey: ['event', id],
@@ -67,15 +70,26 @@ export function EventDetailPage() {
         </nav>
       </div>
 
-      {tab === 'details' && <EventDetailsTab event={event} onSave={d => updateMutation.mutate(d)} saving={updateMutation.isPending} />}
-      {tab === 'bsw' && <EventBswTab event={event} onSave={d => updateMutation.mutate(d)} saving={updateMutation.isPending} />}
-      {tab === 'uebung' && <EventUebungTab event={event} onSave={d => updateMutation.mutate(d)} saving={updateMutation.isPending} />}
-      {tab === 'documents' && <EventDocumentsTab eventId={parseInt(id!)} />}
+      {!canEdit && (
+        <p className="text-xs text-gray-500">Nur Ansicht – zum Bearbeiten ist die Berechtigung „Veranstaltungen pflegen“ nötig.</p>
+      )}
+
+      {tab === 'details' && <EventDetailsTab event={event} onSave={d => updateMutation.mutate(d)} saving={updateMutation.isPending} canEdit={canEdit} />}
+      {tab === 'bsw' && <EventBswTab event={event} onSave={d => updateMutation.mutate(d)} saving={updateMutation.isPending} canEdit={canEdit} />}
+      {tab === 'uebung' && <EventUebungTab event={event} onSave={d => updateMutation.mutate(d)} saving={updateMutation.isPending} canEdit={canEdit} />}
+      {tab === 'documents' && <EventDocumentsTab eventId={parseInt(id!)} canEdit={canEdit} />}
     </div>
   );
 }
 
-function EventDetailsTab({ event, onSave, saving }: { event: Event; onSave: (d: Partial<Event>) => void; saving: boolean }) {
+interface EditableTabProps {
+  event: Event;
+  onSave: (d: Partial<Event>) => void;
+  saving: boolean;
+  canEdit: boolean;
+}
+
+function EventDetailsTab({ event, onSave, saving, canEdit }: EditableTabProps) {
   const [form, setForm] = useState({
     name: event.name,
     name2: event.name2 || '',
@@ -89,7 +103,7 @@ function EventDetailsTab({ event, onSave, saving }: { event: Event; onSave: (d: 
 
   return (
     <Card>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <fieldset disabled={!canEdit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Input label="Bezeichnung" value={form.name} onChange={e => u('name', e.target.value)} required />
         <Input label="Thema" value={form.name2} onChange={e => u('name2', e.target.value)} />
         <Input label="Datum" value={form.date} onChange={e => u('date', e.target.value)} type="date" />
@@ -100,17 +114,19 @@ function EventDetailsTab({ event, onSave, saving }: { event: Event; onSave: (d: 
         <div className="col-span-full">
           <label className="block text-sm font-medium text-gray-700 mb-1.5">Notizen</label>
           <textarea value={form.notes} onChange={e => u('notes', e.target.value)} rows={3}
-            className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none" />
+            className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none disabled:bg-gray-50" />
         </div>
-      </div>
-      <div className="mt-6 flex justify-end">
-        <Button variant="primary" onClick={() => onSave({ ...form, date: form.date ? new Date(form.date).toISOString() : undefined } as Partial<Event>)} loading={saving}>Speichern</Button>
-      </div>
+      </fieldset>
+      {canEdit && (
+        <div className="mt-6 flex justify-end">
+          <Button variant="primary" onClick={() => onSave({ ...form, date: form.date ? new Date(form.date).toISOString() : undefined } as Partial<Event>)} loading={saving}>Speichern</Button>
+        </div>
+      )}
     </Card>
   );
 }
 
-function EventUebungTab({ event, onSave, saving }: { event: Event; onSave: (d: Partial<Event>) => void; saving: boolean }) {
+function EventUebungTab({ event, onSave, saving, canEdit }: EditableTabProps) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isAgtExercise, setIsAgtExercise] = useState(event.isAgtExercise);
@@ -136,12 +152,14 @@ function EventUebungTab({ event, onSave, saving }: { event: Event; onSave: (d: P
       <Card title="Übung">
         <label className="flex items-center gap-2 text-sm text-gray-700">
           <input type="checkbox" checked={isAgtExercise} onChange={e => setIsAgtExercise(e.target.checked)}
-            className="rounded border-gray-300" />
+            disabled={!canEdit} className="rounded border-gray-300" />
           AGT-Übung
         </label>
-        <div className="mt-4 flex justify-end">
-          <Button variant="primary" onClick={() => onSave({ isAgtExercise })} loading={saving}>Speichern</Button>
-        </div>
+        {canEdit && (
+          <div className="mt-4 flex justify-end">
+            <Button variant="primary" onClick={() => onSave({ isAgtExercise })} loading={saving}>Speichern</Button>
+          </div>
+        )}
       </Card>
 
       <Card title="Teilnehmer">
@@ -149,20 +167,22 @@ function EventUebungTab({ event, onSave, saving }: { event: Event; onSave: (d: P
           Teilnehmer werden aus der aktiven Einsatzabteilung ausgewählt.
         </p>
         <Button variant="secondary" onClick={() => navigate(`/events/${event.id}/attendance`)}>
-          Teilnehmer erfassen
+          {canEdit ? 'Teilnehmer erfassen' : 'Teilnehmer ansehen'}
         </Button>
       </Card>
 
-      <Card title="Nachweis Übungsteilnahme">
-        {genError && <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-md mb-3">{genError}</div>}
-        {genSuccess && <div className="bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-3 rounded-md mb-3">{genSuccess}</div>}
-        <p className="text-sm text-gray-500 mb-3">
-          Erzeugt ein PDF mit der erfassten Anwesenheit und legt es im Tab "Dokumente" ab.
-        </p>
-        <Button variant="secondary" onClick={() => generateMutation.mutate()} loading={generateMutation.isPending}>
-          Nachweis als PDF erzeugen
-        </Button>
-      </Card>
+      {canEdit && (
+        <Card title="Nachweis Übungsteilnahme">
+          {genError && <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-md mb-3">{genError}</div>}
+          {genSuccess && <div className="bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-3 rounded-md mb-3">{genSuccess}</div>}
+          <p className="text-sm text-gray-500 mb-3">
+            Erzeugt ein PDF mit der erfassten Anwesenheit und legt es im Tab "Dokumente" ab.
+          </p>
+          <Button variant="secondary" onClick={() => generateMutation.mutate()} loading={generateMutation.isPending}>
+            Nachweis als PDF erzeugen
+          </Button>
+        </Card>
+      )}
     </div>
   );
 }
@@ -194,7 +214,7 @@ const BSW_ITEMS: Array<{ nr: number; text: string } | { section: string }> = [
 
 type BswStringField = Exclude<keyof BswData, 'checklist'>;
 
-function EventBswTab({ event, onSave, saving }: { event: Event; onSave: (d: Partial<Event>) => void; saving: boolean }) {
+function EventBswTab({ event, onSave, saving, canEdit }: EditableTabProps) {
   const queryClient = useQueryClient();
   const [data, setData] = useState<BswData>(event.bswData || {});
   const [genError, setGenError] = useState('');
@@ -231,10 +251,11 @@ function EventBswTab({ event, onSave, saving }: { event: Event; onSave: (d: Part
     <div className="space-y-4">
       {genError && <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-md">{genError}</div>}
       {genSuccess && <div className="bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-3 rounded-md">{genSuccess}</div>}
-      <p className="text-xs text-gray-500">Vor dem Erzeugen der PDFs bitte "Formular speichern" nicht vergessen - die PDFs werden aus dem gespeicherten Stand erzeugt.</p>
+      {canEdit && <p className="text-xs text-gray-500">Vor dem Erzeugen der PDFs bitte "Formular speichern" nicht vergessen - die PDFs werden aus dem gespeicherten Stand erzeugt.</p>}
 
+      <fieldset disabled={!canEdit} className="space-y-4">
       <Card title="Checkliste Brandsicherheitswache"
-        actions={<Button variant="secondary" size="sm" onClick={() => generateChecklistMutation.mutate()} loading={generateChecklistMutation.isPending}>Als PDF erzeugen</Button>}
+        actions={canEdit && <Button variant="secondary" size="sm" onClick={() => generateChecklistMutation.mutate()} loading={generateChecklistMutation.isPending}>Als PDF erzeugen</Button>}
       >
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
@@ -276,7 +297,7 @@ function EventBswTab({ event, onSave, saving }: { event: Event; onSave: (d: Part
       </Card>
 
       <Card title="Bericht Brandsicherheitswache"
-        actions={<Button variant="secondary" size="sm" onClick={() => generateReportMutation.mutate()} loading={generateReportMutation.isPending}>Als PDF erzeugen</Button>}
+        actions={canEdit && <Button variant="secondary" size="sm" onClick={() => generateReportMutation.mutate()} loading={generateReportMutation.isPending}>Als PDF erzeugen</Button>}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input label="Veranstaltungsort" value={data.veranstaltungsort || ''} onChange={e => u('veranstaltungsort', e.target.value)} />
@@ -306,15 +327,18 @@ function EventBswTab({ event, onSave, saving }: { event: Event; onSave: (d: Part
           </div>
         </div>
       </Card>
+      </fieldset>
 
-      <div className="flex justify-end">
-        <Button variant="primary" onClick={() => onSave({ bswData: data })} loading={saving}>Formular speichern</Button>
-      </div>
+      {canEdit && (
+        <div className="flex justify-end">
+          <Button variant="primary" onClick={() => onSave({ bswData: data })} loading={saving}>Formular speichern</Button>
+        </div>
+      )}
     </div>
   );
 }
 
-function EventDocumentsTab({ eventId }: { eventId: number }) {
+function EventDocumentsTab({ eventId, canEdit }: { eventId: number; canEdit: boolean }) {
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState('');
@@ -378,12 +402,12 @@ function EventDocumentsTab({ eventId }: { eventId: number }) {
   return (
     <div className="space-y-4">
       <Card title="Dokumente"
-        actions={
+        actions={canEdit && (
           <div>
             <input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx" onChange={handleUpload} className="hidden" />
             <Button variant="primary" icon={<PlusIcon />} onClick={() => fileInputRef.current?.click()} loading={uploading}>Dokument hochladen</Button>
           </div>
-        }
+        )}
       >
         {error && <div className="mb-4 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-md">{error}</div>}
         {!documents || documents.length === 0 ? (
@@ -397,17 +421,17 @@ function EventDocumentsTab({ eventId }: { eventId: number }) {
               { key: 'fileSize', header: 'Größe', render: (d: EventDocument) => formatFileSize(d.fileSize) },
               { key: 'uploadedBy', header: 'Hochgeladen von' },
               { key: 'createdAt', header: 'Datum', render: (d: EventDocument) => formatDate(d.createdAt) },
-              { key: 'actions', header: '', render: (d: EventDocument) => (
+              { key: 'actions', header: '', render: (d: EventDocument) => canEdit ? (
                 <Button variant="ghost" size="sm" onClick={(e: React.MouseEvent) => { e.stopPropagation(); deleteMutation.mutate(d.id); }}>
                   <TrashIcon className="h-4 w-4 text-red-500" />
                 </Button>
-              )},
+              ) : null },
             ]}
             data={documents}
             keyExtractor={d => d.id}
           />
         )}
-        <p className="mt-3 text-xs text-gray-400">Erlaubte Dateitypen: PDF, Word (max. 20 MB)</p>
+        {canEdit && <p className="mt-3 text-xs text-gray-400">Erlaubte Dateitypen: PDF, Word (max. 20 MB)</p>}
       </Card>
 
       {templates && templates.length > 0 && (

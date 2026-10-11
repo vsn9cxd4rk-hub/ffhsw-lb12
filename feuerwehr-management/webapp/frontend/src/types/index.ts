@@ -10,6 +10,8 @@ export interface User {
   group?: PermissionGroup;
   member?: { id: number; firstName: string; lastName: string } | null;
   permissions: Record<string, boolean>;
+  /** Initial or admin-reset password: the app only offers the password change until it is replaced */
+  mustChangePassword?: boolean;
   createdAt: string;
 }
 

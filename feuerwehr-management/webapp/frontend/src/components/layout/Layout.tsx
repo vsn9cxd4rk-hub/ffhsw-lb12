@@ -3,6 +3,8 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { useAuthStore } from '../../store/auth.store';
+import { LoadingSpinner } from '../ui/LoadingSpinner';
+import { ChangePasswordPage } from '../../pages/auth/ChangePasswordPage';
 
 const PAGE_TITLES: Record<string, string> = {
   '/dashboard': 'Dashboard',
@@ -28,12 +30,34 @@ function getPageTitle(pathname: string): string {
 }
 
 export function Layout() {
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const status = useAuthStore((s) => s.status);
+  const mustChangePassword = useAuthStore((s) => !!s.user?.mustChangePassword);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+  // Session is being restored from the refresh cookie after a page load
+  if (status === 'unknown') {
+    return <LoadingSpinner size="lg" message="Sitzung wird geladen..." />;
+  }
+
+  if (status !== 'authenticated') {
+    const redirect = encodeURIComponent(location.pathname + location.search);
+    return <Navigate to={`/login?redirect=${redirect}`} replace />;
+  }
+
+  // The backend rejects everything else until the initial/reset password is replaced
+  if (mustChangePassword) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="w-full max-w-md space-y-4">
+          <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 text-sm px-4 py-3 rounded-md">
+            Ihr Passwort wurde vom Administrator vergeben oder ist ein Startpasswort.
+            Bitte legen Sie jetzt ein eigenes Passwort fest.
+          </div>
+          <ChangePasswordPage />
+        </div>
+      </div>
+    );
   }
 
   return (

@@ -15,6 +15,7 @@ RUN npm run build
 FROM nginx:1.27-alpine AS runtime
 COPY --from=builder /app/dist /usr/share/nginx/html
 COPY deploy/docker/nginx.conf /etc/nginx/conf.d/default.conf
+COPY deploy/nginx/security-headers.conf /etc/nginx/snippets/feuerwehr-security-headers.conf
 
 EXPOSE 80
 

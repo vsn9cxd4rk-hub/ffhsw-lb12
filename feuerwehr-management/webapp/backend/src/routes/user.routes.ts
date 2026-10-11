@@ -4,7 +4,7 @@ import { requireAdmin } from '../middleware/permission.middleware';
 import {
   getUsers, createUser, getUser, updateUser, deleteUser,
   getPermissionGroups, createPermissionGroup, updatePermissionGroup, deletePermissionGroup,
-  createUserValidation,
+  createUserValidation, updateUserValidation,
 } from '../controllers/user.controller';
 import { validate } from '../middleware/validate.middleware';
 
@@ -19,7 +19,7 @@ router.post('/groups', requireAdmin, createPermissionGroup);
 router.put('/groups/:id', requireAdmin, updatePermissionGroup);
 router.delete('/groups/:id', requireAdmin, deletePermissionGroup);
 router.get('/:id', requireAdmin, getUser);
-router.put('/:id', requireAdmin, updateUser);
+router.put('/:id', requireAdmin, updateUserValidation, validate, updateUser);
 router.delete('/:id', requireAdmin, deleteUser);
 
 export default router;

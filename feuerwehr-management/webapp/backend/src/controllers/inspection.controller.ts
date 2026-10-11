@@ -1,33 +1,15 @@
 import { Request, Response } from 'express';
-import path from 'path';
-import fs from 'fs';
-import multer from 'multer';
 import { prisma } from '../config/database';
 import { sendSuccess, sendError, sendPaginated } from '../utils/response';
 import { getPagination } from '../utils/pagination';
+import { categoryUploadDir, removeUpload, sendUpload } from '../utils/files';
+import { createUpload, discardUpload } from '../utils/upload';
 
-const uploadDir = process.env.UPLOAD_PATH || './uploads';
-
-const inspectionDocStorage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    const dir = path.join(uploadDir, 'inspection-documents');
-    fs.mkdirSync(dir, { recursive: true });
-    cb(null, dir);
-  },
-  filename: (_req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  },
+export const inspectionDocUpload = createUpload({
+  destination: () => categoryUploadDir('inspection-documents'),
+  kinds: ['pdf'],
+  rejectMessage: 'Nur PDF-Dateien sind erlaubt',
 });
-
-export const inspectionDocUpload = multer({
-  storage: inspectionDocStorage,
-  limits: { fileSize: 20 * 1024 * 1024 },
-  fileFilter: (_req, file, cb) => {
-    const allowed = ['application/pdf'];
-    if (allowed.includes(file.mimetype)) cb(null, true);
-    else cb(new Error('Nur PDF-Dateien sind erlaubt'));
-  },
-}).single('file');
 
 // All inspections (paginated, filterable by result, deviceClassId, year, search)
 export async function getInspections(req: Request, res: Response): Promise<void> {
@@ -465,7 +447,7 @@ export async function uploadInspectionDocument(req: Request, res: Response): Pro
     const inspectionId = parseInt(req.params.id);
 
     const inspection = await prisma.articleInspection.findUnique({ where: { id: inspectionId } });
-    if (!inspection) { sendError(res, 'Prüfung nicht gefunden', 404); return; }
+    if (!inspection) { discardUpload(req.file); sendError(res, 'Prüfung nicht gefunden', 404); return; }
 
     const doc = await prisma.inspectionDocument.create({
       data: {
@@ -487,11 +469,7 @@ export async function downloadInspectionDocument(req: Request, res: Response): P
   try {
     const doc = await prisma.inspectionDocument.findUnique({ where: { id: parseInt(req.params.docId) } });
     if (!doc) { sendError(res, 'Dokument nicht gefunden', 404); return; }
-    if (!fs.existsSync(doc.filePath)) { sendError(res, 'Datei nicht gefunden', 404); return; }
-
-    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(doc.fileName)}"`);
-    res.setHeader('Content-Type', doc.mimeType);
-    fs.createReadStream(doc.filePath).pipe(res);
+    sendUpload(res, doc.filePath, doc.fileName, doc.mimeType);
   } catch (err) {
     sendError(res, (err as Error).message);
   }
@@ -501,7 +479,7 @@ export async function deleteInspectionDocument(req: Request, res: Response): Pro
   try {
     const doc = await prisma.inspectionDocument.findUnique({ where: { id: parseInt(req.params.docId) } });
     if (!doc) { sendError(res, 'Dokument nicht gefunden', 404); return; }
-    if (fs.existsSync(doc.filePath)) fs.unlinkSync(doc.filePath);
+    removeUpload(doc.filePath);
     await prisma.inspectionDocument.delete({ where: { id: doc.id } });
     sendSuccess(res, { message: 'Dokument gelöscht' });
   } catch (err) {

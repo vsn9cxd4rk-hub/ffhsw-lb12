@@ -9,7 +9,7 @@ import {
 const router = Router();
 
 router.post('/login', loginValidation, validate, login);
-router.post('/logout', authenticate, logout);
+router.post('/logout', logout);
 router.post('/refresh', refresh);
 router.get('/me', authenticate, getMe);
 router.put('/change-password', authenticate, changePasswordValidation, validate, changePassword);
