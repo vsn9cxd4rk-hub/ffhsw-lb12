@@ -64,19 +64,27 @@ function userOrIpKey(req: Request): string {
   const auth = req.headers.authorization;
   if (auth?.startsWith('Bearer ')) {
     try {
-      return `user:${verifyAccessToken(auth.substring(7)).userId}`;
+      // An expired token is still signed by us: the request that runs into the 401 before
+      // the refresh belongs to that user, not to the IP shared by the whole Feuerwehrhaus.
+      return `user:${verifyAccessToken(auth.substring(7), { ignoreExpiration: true }).userId}`;
     } catch {
-      // expired/invalid token: count against the IP
+      // invalid token: count against the IP
     }
   }
   return `ip:${req.ip}`;
 }
+
+// Refresh and logout need the httpOnly session cookie (a 512-bit random value), so they
+// cannot be brute-forced. Limiting them per IP would let the colleagues behind one NAT use
+// up the budget and end everybody's session at the next access-token expiry.
+const SESSION_ENDPOINTS = new Set(['/auth/refresh', '/auth/logout']);
 
 if (process.env.NODE_ENV !== 'development') {
   const generalLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: (req) => (userOrIpKey(req).startsWith('user:') ? 2000 : 300),
     keyGenerator: userOrIpKey,
+    skip: (req) => req.method === 'POST' && SESSION_ENDPOINTS.has(req.path),
     standardHeaders: true,
     legacyHeaders: false,
     message: { error: 'Zu viele Anfragen, bitte später versuchen.' },

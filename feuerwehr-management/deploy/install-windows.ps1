@@ -91,9 +91,7 @@ $dbPass = Read-Host "Datenbankpasswort für '$dbUser' [$DbPassDefault]"
 if ([string]::IsNullOrWhiteSpace($dbPass)) { $dbPass = $DbPassDefault }
 
 $jwtAccess  = Read-Host "JWT Access Secret (Enter für Zufallsschlüssel)"
-$jwtRefresh = Read-Host "JWT Refresh Secret (Enter für Zufallsschlüssel)"
 if ([string]::IsNullOrWhiteSpace($jwtAccess))  { $jwtAccess  = [Convert]::ToBase64String((1..64 | ForEach-Object { [byte](Get-Random -Max 256) })) }
-if ([string]::IsNullOrWhiteSpace($jwtRefresh)) { $jwtRefresh = [Convert]::ToBase64String((1..64 | ForEach-Object { [byte](Get-Random -Max 256) })) }
 
 Write-Host ""
 Write-Info "Starte Setup mit:"
@@ -220,7 +218,6 @@ PORT=3001
 DATABASE_URL="mysql://${dbUser}:${dbPassEncoded}@localhost:3306/${dbName}"
 
 JWT_ACCESS_SECRET=$jwtAccess
-JWT_REFRESH_SECRET=$jwtRefresh
 JWT_ACCESS_EXPIRES=15m
 JWT_REFRESH_EXPIRES=7d
 

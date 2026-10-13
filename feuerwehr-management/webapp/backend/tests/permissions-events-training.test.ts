@@ -17,6 +17,7 @@ let readerToken: string;
 let writerToken: string;
 let eventId: number;
 let courseId: number;
+let ownMemberId: number | null = null;
 
 async function makeUser(name: string, groupId: number): Promise<string> {
   const user = await prisma.user.create({ data: { username: `${name}-${STAMP}`, password: 'x', groupId } });
@@ -36,16 +37,19 @@ describe('Berechtigungen Veranstaltungen/Ausbildung', () => {
     writerToken = await makeUser('perm-writer', writerGroupId);
 
     eventId = (await prisma.event.create({ data: { name: `Perm-Test-${STAMP}`, date: new Date('2026-02-01'), category: 2 } })).id;
-    const member = await prisma.member.findFirst({ where: { deletedAt: null } });
-    const category = await prisma.courseCategory.findFirst();
-    if (member && category) {
-      courseId = (await prisma.course.create({ data: { memberId: member.id, categoryId: category.id } })).id;
-    }
+    // Own fixtures: on a fresh installation there are no members (and maybe no categories)
+    const member = await prisma.member.create({ data: { firstName: 'Perm', lastName: `Test-${STAMP}` } });
+    ownMemberId = member.id;
+    const category = (await prisma.courseCategory.findFirst())
+      ?? await prisma.courseCategory.create({ data: { name: `perm-cat-${STAMP}` } });
+    courseId = (await prisma.course.create({ data: { memberId: member.id, categoryId: category.id } })).id;
   });
 
   afterAll(async () => {
     await prisma.event.deleteMany({ where: { name: { startsWith: `Perm-Test-${STAMP}` } } });
     if (courseId) await prisma.course.deleteMany({ where: { id: courseId } });
+    if (ownMemberId) await prisma.member.deleteMany({ where: { id: ownMemberId } });
+    await prisma.courseCategory.deleteMany({ where: { name: `perm-cat-${STAMP}` } });
     await prisma.user.deleteMany({ where: { id: { in: userIds } } });
     await prisma.permissionGroup.deleteMany({ where: { id: { in: [readerGroupId, writerGroupId] } } });
   });
@@ -77,17 +81,13 @@ describe('Berechtigungen Veranstaltungen/Ausbildung', () => {
     const r = bearer(readerToken);
     expect((await request(app).get('/api/training/courses').set(r)).status).toBe(200);
     expect((await request(app).get('/api/training/categories').set(r)).status).toBe(200);
-    if (courseId) {
-      expect((await request(app).put(`/api/training/courses/${courseId}`).set(r).send({ notes: 'x' })).status).toBe(403);
-      expect((await request(app).delete(`/api/training/courses/${courseId}`).set(r)).status).toBe(403);
-    }
+    expect((await request(app).put(`/api/training/courses/${courseId}`).set(r).send({ notes: 'x' })).status).toBe(403);
+    expect((await request(app).delete(`/api/training/courses/${courseId}`).set(r)).status).toBe(403);
   });
 
   it('Mit BIT_TRAINING: Lehrgang ändern erlaubt, Kategorien bleiben Admin-Sache', async () => {
     const w = bearer(writerToken);
-    if (courseId) {
-      expect((await request(app).put(`/api/training/courses/${courseId}`).set(w).send({ notes: 'ok' })).status).toBe(200);
-    }
+    expect((await request(app).put(`/api/training/courses/${courseId}`).set(w).send({ notes: 'ok' })).status).toBe(200);
     expect((await request(app).post('/api/training/categories').set(w).send({ name: 'x' })).status).toBe(403);
   });
 });

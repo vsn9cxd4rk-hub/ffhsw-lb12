@@ -71,6 +71,8 @@ export async function refresh(req: Request, res: Response): Promise<void> {
 
     // Also returns the current user so clients pick up changed rights without a new login.
     const session = await authService.refreshToken(refreshToken);
+    // Same token, new expiry: the cookie follows the extended session
+    res.cookie('refreshToken', refreshToken, refreshCookieOptions(req));
     sendSuccess(res, session);
   } catch (err) {
     clearRefreshCookie(req, res);

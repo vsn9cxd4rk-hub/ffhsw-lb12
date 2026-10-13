@@ -1,15 +1,43 @@
 # Update-Anleitung: Version 1.3.x auf 1.4.0 (Manjaro Linux)
 
-## Überblick
+Gilt für Produktiv- und Backup-System. Pfade in dieser Anleitung: Installation unter
+`/var/www/feuerwehrmanagement`, neuer Quellcode (entpacktes Release-Paket oder Git-Checkout)
+unter `/pfad/zum/projekt`. Dauer ca. 15–20 Minuten, das Backend ist dabei ca. 1 Minute nicht
+erreichbar.
 
-Version 1.4.0 ist ein Sicherheits-Update. Für den Betrieb ändert sich:
+## Was sich ändert
 
-- Das Backend startet nur noch mit einem gültigen `JWT_ACCESS_SECRET` (mindestens 32 Zeichen, kein Platzhalter).
-- Neue Spalte `users.mustChangePassword`.
-- nginx liefert `/uploads/` nicht mehr direkt aus und setzt zusätzliche Security-Header.
-- Konten mit dem früheren Standardpasswort müssen es beim nächsten Login ändern.
+Für die Benutzer:
 
-Pfade in dieser Anleitung: Installation unter `/var/www/feuerwehrmanagement`, neuer Quellcode unter `/pfad/zum/projekt`.
+- Neue Berechtigungen „Veranstaltungen pflegen“ und „Ausbildung pflegen“. Gruppen mit
+  Einsatz-Berechtigung bekommen sie automatisch, alle anderen sehen Veranstaltungen und
+  Ausbildung nur noch lesend.
+- Vom Administrator vergebene Passwörter und das frühere Standardpasswort `Admin123!` müssen
+  beim nächsten Login geändert werden.
+- Die Anmeldung endet erst nach 7 Tagen **ohne Nutzung** (vorher fest 7 Tage nach dem Login,
+  auch mitten in der Arbeit). Lange offene Dialoge (z.B. Geräteprüfung) verlieren ihre
+  Eingaben nicht mehr, wenn der Server kurz nicht erreichbar ist.
+- Einsätze: Alarmzeit, Ausgerückt, Eingetroffen und Eingerückt werden nur noch pro Fahrzeug
+  im Tab „Fahrzeugzeiten“ erfasst. Im Einsatzbericht ist das Feld „Einsatzleiter“ jetzt
+  befüllt; ist der Ersteller nur Einheitenführer, wird der Einsatzleiter auf der
+  Details-Seite eingetragen. Bestehende Einsätze mit Rolle „Einheitenführer“ zeigen das neue
+  Feld leer an und lassen sich erst nach dem Eintragen wieder speichern.
+- Der Tab „Bericht“ beim Einsatz entfällt (der Einsatzbericht wird aus den Details erzeugt).
+  Wer dort Freitext gepflegt hat: Die Texte bleiben in der Datenbank erhalten, siehe
+  Prüfabfrage in Schritt 1.
+- **Browser:** Chrome/Edge ab 111, Firefox ab 128, Safari ab 16.4. Rechner mit Windows 7/8
+  (Chrome 109) zeigen die Oberfläche nicht mehr korrekt an.
+
+Für den Betrieb:
+
+| Bereich | Änderung | Wer erledigt es |
+| --- | --- | --- |
+| Node.js | mindestens Version 20 | Schritt 2 (manuell, falls nötig) |
+| `.env` | `JWT_ACCESS_SECRET` muss zufällig und mindestens 32 Zeichen lang sein, sonst startet das Backend nicht. `JWT_REFRESH_SECRET` wird nicht verwendet und kann entfallen. | Schritt 3 (manuell) |
+| Datenbank | neue Spalten `users.mustChangePassword` und `operations.commanderName` | `update.sh` (`deploy/migrate-1.3.x-to-1.4.0.sql`) |
+| Daten | Berechtigungen br4/br5 setzen, Konten mit Standardpasswort markieren, Upload-Pfade relativ zu `UPLOAD_PATH` speichern | automatisch beim ersten Backend-Start |
+| nginx | `/uploads/` wird nicht mehr direkt ausgeliefert (nur noch angemeldet über die API), zusätzliche Security-Header | Schritt 5 (manuell) |
+| E2E-Tests | Admin-Passwort kommt aus `E2E_ADMIN_PASSWORD` | nur wer Playwright nutzt |
 
 ## Produktivsystem
 
@@ -17,29 +45,66 @@ Pfade in dieser Anleitung: Installation unter `/var/www/feuerwehrmanagement`, ne
 
 ```bash
 sudo bash /var/www/feuerwehrmanagement/scripts/backup.sh
+ls -lh /var/www/feuerwehrmanagement/backups/ | tail -3
 ```
 
-### Schritt 2: JWT-Secret prüfen
+`update.sh` legt in Schritt 4 zusätzlich ein Backup an. Das hier ist der Stand für ein Rollback.
+
+Optional: Gibt es Freitexte aus dem entfallenden Tab „Bericht“? Ausgabe `0` heißt, nichts
+geht verloren; sonst die Texte bei Bedarf in die Einsatzdetails übernehmen.
 
 ```bash
-# Länge des Secrets ausgeben, muss mindestens 32 sein
-sudo grep '^JWT_ACCESS_SECRET=' /var/www/feuerwehrmanagement/backend/.env | cut -d= -f2- | tr -d '\n' | wc -c
+mysql -u FFWVSLB12 -p FFWVSLB12 -e "SELECT COUNT(*) FROM operation_reports WHERE TRIM(content) <> '';"
 ```
 
-Ist der Wert kürzer als 32 Zeichen oder ein Platzhalter (enthält z.B. `change-me` oder `change-in-production`), ein neues Secret erzeugen und in der `.env` eintragen:
+### Schritt 2: Node.js prüfen
 
 ```bash
-openssl rand -base64 48
+node -v
+```
+
+Ausgabe `v20.x` oder höher: weiter mit Schritt 3. Sonst aktualisieren:
+
+```bash
+sudo pacman -Syu nodejs npm
+node -v
+```
+
+`update.sh` bricht mit einer Meldung ab, wenn die Version zu alt ist.
+
+### Schritt 3: `.env` prüfen
+
+```bash
 sudo nano /var/www/feuerwehrmanagement/backend/.env
 ```
 
-### Schritt 3: Datenbank-Migration ausführen
+1. **`JWT_ACCESS_SECRET`** muss gesetzt, mindestens 32 Zeichen lang und kein Platzhalter sein
+   (enthält nicht `change-me` oder `change-in-production`). Länge prüfen:
 
-```bash
-mysql -u FFWVSLB12 -p FFWVSLB12 < /pfad/zum/projekt/deploy/migrate-1.3.x-to-1.4.0.sql
-```
+   ```bash
+   sudo grep '^JWT_ACCESS_SECRET=' /var/www/feuerwehrmanagement/backend/.env | cut -d= -f2- | tr -d '\n' | wc -c
+   ```
 
-Das Skript ist idempotent. `update.sh` gleicht das Schema in Schritt 4 zusätzlich per Prisma ab.
+   Ist der Wert ungültig, ein neues Secret erzeugen und eintragen:
+
+   ```bash
+   openssl rand -base64 48
+   ```
+
+   Ein neues Secret meldet nur die gerade laufenden Access-Tokens ab (15 Minuten Gültigkeit);
+   die Benutzer bleiben über ihre Sitzung angemeldet.
+
+2. **`JWT_REFRESH_SECRET`**: Zeile löschen (wird nicht verwendet, stört aber auch nicht).
+
+3. **`NODE_ENV=production`** muss gesetzt sein, sonst sind die Anmelde-Sperren gegen
+   Passwort-Raten aus.
+
+4. **`UPLOAD_PATH`** zeigt auf den Upload-Ordner, üblicherweise
+   `/var/www/feuerwehrmanagement/uploads`. Bitte nicht ändern: Die Pfade in der Datenbank
+   werden in Schritt 4 relativ zu diesem Ordner umgestellt.
+
+5. Optional `COOKIE_SECURE=false` ergänzen (Standard). Nur auf `true` setzen, wenn ein
+   TLS-Proxy davor steht, der `X-Forwarded-Proto` nicht weitergibt.
 
 ### Schritt 4: Anwendung aktualisieren
 
@@ -47,10 +112,31 @@ Das Skript ist idempotent. `update.sh` gleicht das Schema in Schritt 4 zusätzli
 sudo bash /var/www/feuerwehrmanagement/scripts/update.sh /pfad/zum/projekt
 ```
 
-Das Skript aktualisiert Backend und Frontend und startet das Backend neu. Beim ersten Start von 1.4.0 laufen automatisch:
+Das Skript prüft Node.js, legt ein Backup an, installiert die Abhängigkeiten exakt nach
+Lockfile (`npm ci`), baut Backend und Frontend, führt `deploy/migrate-1.3.x-to-1.4.0.sql`
+aus (idempotent) und startet das Backend neu.
 
-- Gruppen mit Einsatz-Berechtigung erhalten die neuen Berechtigungen „Veranstaltungen pflegen" und „Ausbildung pflegen".
+> Ältere `update.sh`-Versionen (1.3.x) fallen bei der Migration auf `prisma db push` zurück,
+> das an `events.bswData` scheitert. Das Skript aktualisiert sich zwar selbst, aber erst am
+> Ende des Laufs. Deshalb das neue Skript aus dem Quellcode verwenden:
+>
+> ```bash
+> sudo cp /pfad/zum/projekt/deploy/scripts/update.sh /var/www/feuerwehrmanagement/scripts/update.sh
+> ```
+>
+> und danach den Befehl oben ausführen.
+
+Beim ersten Start von 1.4.0 laufen einmalig automatisch:
+
+- Gruppen mit Einsatz-Berechtigung (br2) erhalten „Veranstaltungen pflegen“ (br4) und
+  „Ausbildung pflegen“ (br5).
 - Konten mit dem früheren Standardpasswort werden für den Passwortwechsel markiert.
+- Dateipfade der Uploads werden relativ zu `UPLOAD_PATH` gespeichert, z.B.
+  `templates/123-Vorlage.docx` statt `/var/www/feuerwehrmanagement/uploads/templates/...`.
+  Damit funktioniert ein Datenbank-Dump auf jedem System, auf das der Upload-Ordner
+  mitkopiert wird (Backup-System, Docker, lokale Entwicklung).
+
+Jede Datenmigration wird in der Tabelle `settings` vermerkt und läuft nie ein zweites Mal.
 
 ### Schritt 5: nginx anpassen
 
@@ -63,7 +149,9 @@ sudo cp /pfad/zum/projekt/deploy/nginx/security-headers.conf /etc/nginx/snippets
 ls /etc/nginx/conf.d/
 ```
 
-Die vorhandene Konfigurationsdatei durch `deploy/nginx/feuerwehr.conf` ersetzen (Dateiname beibehalten, damit nicht zwei Konfigurationen Port 80 belegen) und `server_name` wieder eintragen:
+Die vorhandene Konfigurationsdatei durch `deploy/nginx/feuerwehr.conf` ersetzen (Dateiname
+beibehalten, damit nicht zwei Konfigurationen Port 80 belegen) und `server_name` wieder
+eintragen:
 
 ```bash
 sudo cp /etc/nginx/conf.d/feuerwehrmanagement.conf /root/feuerwehrmanagement.conf.bak
@@ -72,43 +160,75 @@ sudo nano /etc/nginx/conf.d/feuerwehrmanagement.conf
 sudo nginx -t && sudo systemctl reload nginx
 ```
 
-Wer die bestehende Datei lieber von Hand anpasst: den Block `location /uploads/ { ... }` entfernen und die `include`-Zeilen für das Snippet wie in der Vorlage ergänzen.
+Wer die bestehende Datei lieber von Hand anpasst: den Block `location /uploads/ { ... }`
+entfernen und die `include`-Zeilen für das Snippet wie in der Vorlage ergänzen.
 
-### Schritt 6: Verifizierung
+### Schritt 6: Prüfen
 
 ```bash
 # Backend läuft
 pm2 status feuerwehr-backend
-pm2 logs feuerwehr-backend --lines 20
+
+# Datenmigrationen beim Start: drei Zeilen "Datenmigration migration...."
+pm2 logs feuerwehr-backend --lines 100 --nostream | grep Datenmigration
 
 # Security-Header werden gesetzt
 curl -sI http://localhost/ | grep -i content-security-policy
 
 # Kein /uploads/-Block mehr vorhanden: Ausgabe muss überall 0 sein
 sudo grep -c "location /uploads" /etc/nginx/conf.d/*.conf
+
+# Uploads sind ohne Anmeldung nicht mehr erreichbar: erwartet 404
+curl -s -o /dev/null -w '%{http_code}\n' http://localhost/uploads/
 ```
 
-Im Browser:
+Erwartet wird bei den Upload-Pfaden z.B.
+`Datenmigration migration.uploadPaths.relative: umgestellt (templates: 8, operation_documents: 11, ...)`.
+
+Im Browser (Strg+F5, damit die neue Oberfläche geladen wird):
 
 1. Anmelden. Konten mit dem früheren Standardpasswort werden zum Passwortwechsel aufgefordert.
 2. Ein vorhandenes Dokument herunterladen (z.B. Einsatzbericht oder Prüfprotokoll).
-3. Im Dialog „Über diese Anwendung" steht Version 1.4.0.
+3. Einen Einsatzbericht oder Kräftenachweis erzeugen (prüft die Vorlagen-Pfade).
+4. Einstellungen → Berechtigungsgruppen: Gruppen mit Einsatz-Berechtigung haben auch
+   „Veranstaltungen pflegen“ und „Ausbildung pflegen“.
+5. Im Dialog „Über diese Anwendung“ steht Version 1.4.0, ein Klick auf die Versionsnummer
+   zeigt die Änderungen.
 
-Startet das Backend nicht, steht der Grund im Log, typischerweise `JWT_ACCESS_SECRET ist ...` (zurück zu Schritt 2).
+Startet das Backend nicht, steht der Grund im Log (`pm2 logs feuerwehr-backend`),
+typischerweise `JWT_ACCESS_SECRET ist ...` (zurück zu Schritt 3).
+
+### Optional: Backend-Tests auf dem Server
+
+```bash
+sudo -u lb12admin bash /var/www/feuerwehrmanagement/scripts/run-backend-tests.sh /pfad/zum/projekt
+```
+
+`backup-integrity.test.ts` listet Datenbankeinträge, deren Datei im Upload-Ordner fehlt.
 
 ## Backup-System
 
-Der automatische Restore überträgt Datenbank, Uploads und `.env` vom Produktivsystem, aber weder den Programmcode noch die nginx-Konfiguration. Auf dem Backup-Rechner deshalb:
+Der automatische Restore überträgt Datenbank, Uploads und `.env` vom Produktivsystem, aber
+weder den Programmcode noch die nginx-Konfiguration. Auf dem Backup-Rechner deshalb:
 
-1. Schritt 4 ausführen (Anwendung aktualisieren).
-2. Schritt 5 ausführen (nginx anpassen).
+1. Schritt 2 (Node.js prüfen).
+2. Schritt 4 (Anwendung aktualisieren, gegebenenfalls vorher `update.sh` kopieren).
+3. Schritt 5 (nginx anpassen).
 
-Schritt 2 und 3 entfallen dort, sobald ein Restore nach dem Update des Produktivsystems gelaufen ist: Secret und neue Spalte kommen mit dem Backup.
+Schritt 3 entfällt, sobald nach dem Update des Produktivsystems ein Restore gelaufen ist:
+Secret, neue Spalte und umgestellte Pfade kommen mit dem Backup. Weicht `UPLOAD_PATH` auf
+dem Backup-System ab, ist das ab 1.4.0 kein Problem mehr.
+
+Spielt ein Restore noch einen Dump von **vor** dem Update ein (absolute Pfade, kein
+Migrationsvermerk), stellt der nächste Backend-Start die Pfade dort ebenfalls um. Auch ohne
+Umstellung funktionieren Downloads: Absolute Altpfade werden zur Laufzeit über die
+Ordnerstruktur (`templates/`, `operations/<id>/`, ...) auf das lokale `UPLOAD_PATH`
+abgebildet.
 
 ## Rollback
 
 ```bash
-# Backup aus Schritt 1 wiederherstellen
+# Backup aus Schritt 1 wiederherstellen (Datenbank und Uploads)
 sudo bash /var/www/feuerwehrmanagement/scripts/restore.sh
 
 # nginx-Konfiguration zurücksetzen
@@ -116,7 +236,11 @@ sudo cp /root/feuerwehrmanagement.conf.bak /etc/nginx/conf.d/feuerwehrmanagement
 sudo nginx -t && sudo systemctl reload nginx
 ```
 
-Den alten Programmstand anschließend mit `update.sh` aus dem vorherigen Quellcode einspielen. Die Spalte `mustChangePassword` stört Version 1.3.x nicht und kann bleiben.
+Den alten Programmstand anschließend mit `update.sh` aus dem 1.3.x-Quellcode einspielen.
+
+Der Datenbank-Restore ist Pflicht: 1.3.x versteht die relativen Upload-Pfade nicht
+(Downloads und Vorlagen würden mit „Datei nicht gefunden“ scheitern). Die Spalte
+`mustChangePassword` stört 1.3.x nicht.
 
 ---
 

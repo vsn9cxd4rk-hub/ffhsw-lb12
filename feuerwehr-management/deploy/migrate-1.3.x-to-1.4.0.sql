@@ -4,8 +4,10 @@
 --
 -- Kompatibel mit: MySQL 8.x und MariaDB 10.x+
 --
--- Schema-Änderung:
+-- Schema-Änderungen:
 --   users.mustChangePassword  (Passwortwechsel beim nächsten Login erzwingen)
+--   operations.commanderName  (tatsächlicher Einsatzleiter, wenn der Ersteller
+--                              nur Einheitenführer war; Freitext)
 --
 -- Keine SQL-Schritte nötig (automatisch beim ersten Backend-Start von 1.4.0):
 --   - Gruppen mit Einsatz-Berechtigung (br2) erhalten die neuen Berechtigungen
@@ -27,6 +29,17 @@ SET @col_exists = (
 );
 SET @sql = IF(@col_exists = 0,
   'ALTER TABLE `users` ADD COLUMN `mustChangePassword` TINYINT(1) NOT NULL DEFAULT 0 AFTER `isActive`',
+  'SELECT 1');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @col_exists = (
+  SELECT COUNT(*) FROM information_schema.COLUMNS
+  WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'operations' AND COLUMN_NAME = 'commanderName'
+);
+SET @sql = IF(@col_exists = 0,
+  'ALTER TABLE `operations` ADD COLUMN `commanderName` VARCHAR(100) NULL AFTER `authorRole`',
   'SELECT 1');
 PREPARE stmt FROM @sql;
 EXECUTE stmt;

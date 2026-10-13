@@ -96,7 +96,7 @@ export function PermissionGroupSettings() {
               <div className="space-y-2">
                 {CAPABILITIES.map(c => (
                   <label key={c.bit} className="flex items-center gap-2 text-sm cursor-pointer">
-                    <input type="checkbox" checked={!!form.bits[c.bit]} onChange={(e) => toggleBit(c.bit, e.target.checked)} className="rounded" />
+                    <input type="checkbox" checked={!!form.bits[c.bit]} onChange={(e) => toggleBit(c.bit, e.target.checked)} className="rounded-sm" />
                     {c.label}
                   </label>
                 ))}

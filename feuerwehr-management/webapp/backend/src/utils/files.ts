@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { sendError } from './response';
 
-function uploadRoot(): string {
+export function uploadRoot(): string {
   return path.resolve(process.env.UPLOAD_PATH || './uploads');
 }
 
@@ -22,14 +22,73 @@ export function recordUploadDir(kind: string, id: string): string {
 }
 
 /**
+ * Layout below UPLOAD_PATH: number of path segments that follow the category directory
+ * (record directories have the record id in between).
+ */
+const UPLOAD_LAYOUT: Record<string, number> = {
+  templates: 1,
+  certificates: 1,
+  'article-documents': 1,
+  'inspection-documents': 1,
+  operations: 2,
+  events: 2,
+};
+
+/**
+ * Turns a file below UPLOAD_PATH into the form stored in the DB: relative to UPLOAD_PATH,
+ * with forward slashes. This keeps DB dumps usable on another machine/OS with a different
+ * UPLOAD_PATH (backup server, Docker, local development).
+ */
+export function toStoredPath(absolutePath: string): string {
+  return path.relative(uploadRoot(), path.resolve(absolutePath)).split(path.sep).join('/');
+}
+
+/**
+ * Up to 1.4.0 absolute paths were stored, e.g. /var/www/feuerwehrmanagement/uploads/templates/x.
+ * They are mapped onto the current UPLOAD_PATH via the known directory layout, so a dump of
+ * the production system works wherever its uploads folder is copied to.
+ */
+export function legacyRelativePath(storedPath: string): string | null {
+  const segments = storedPath.split(/[\\/]+/).filter(Boolean);
+  for (let i = segments.length - 2; i >= 0; i--) {
+    const depth = UPLOAD_LAYOUT[segments[i]];
+    if (depth !== undefined && segments.length - 1 - i === depth) {
+      return segments.slice(i).join('/');
+    }
+  }
+  return null;
+}
+
+/** Absolute on Linux or Windows – DB dumps travel between both. */
+export function isAbsoluteAnyOs(p: string): boolean {
+  return path.posix.isAbsolute(p) || path.win32.isAbsolute(p);
+}
+
+/**
  * Resolves a stored file path and returns it only if it lies inside UPLOAD_PATH.
  * Paths in the DB are written by multer/report generation, but a path pointing elsewhere
  * (old data, manual edits) must never be streamed or unlinked.
  */
 export function resolveUploadPath(storedPath: string | null | undefined): string | null {
   if (!storedPath) return null;
-  const resolved = path.resolve(storedPath);
-  const rel = path.relative(uploadRoot(), resolved);
+  const root = uploadRoot();
+  let resolved: string;
+  if (!isAbsoluteAnyOs(storedPath)) {
+    resolved = path.resolve(root, storedPath);
+  } else {
+    // Absolute legacy path: use it as is if it is below the current UPLOAD_PATH, otherwise
+    // map it via the directory layout (it then necessarily lies below UPLOAD_PATH).
+    const direct = path.resolve(storedPath);
+    const directRel = path.relative(root, direct);
+    if (directRel && !directRel.startsWith('..') && !path.isAbsolute(directRel)) {
+      resolved = direct;
+    } else {
+      const legacy = legacyRelativePath(storedPath);
+      if (!legacy) return null;
+      resolved = path.resolve(root, legacy);
+    }
+  }
+  const rel = path.relative(root, resolved);
   if (!rel || rel.startsWith('..') || path.isAbsolute(rel)) return null;
   return resolved;
 }

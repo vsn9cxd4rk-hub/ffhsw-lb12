@@ -7,9 +7,9 @@ import ExcelJS from 'exceljs';
 import Docxtemplater from 'docxtemplater';
 import { prisma } from '../config/database';
 import { logger } from '../utils/logger';
+import { categoryUploadDir, recordUploadDir, resolveUploadPath, toStoredPath } from '../utils/files';
 
-const uploadDir = process.env.UPLOAD_PATH || './uploads';
-const tempDir = path.join(uploadDir, 'temp');
+const tempDir = categoryUploadDir('temp');
 
 function ensureTempDir() {
   if (!fs.existsSync(tempDir)) {
@@ -24,6 +24,7 @@ const LIBREOFFICE_CANDIDATES = [
   'soffice',
   '/usr/bin/libreoffice',
   '/usr/bin/soffice',
+  '/Applications/LibreOffice.app/Contents/MacOS/soffice',
   'C:\\Program Files\\LibreOffice\\program\\soffice.exe',
   'C:\\Program Files (x86)\\LibreOffice\\program\\soffice.exe',
 ];
@@ -95,10 +96,11 @@ async function getTemplateByName(name: string): Promise<string> {
   if (!template) {
     throw new Error(`Template "${name}" nicht gefunden. Bitte in Einstellungen → Templates hochladen.`);
   }
-  if (!fs.existsSync(template.filePath)) {
+  const file = resolveUploadPath(template.filePath);
+  if (!file || !fs.existsSync(file)) {
     throw new Error(`Template-Datei nicht gefunden: ${template.filePath}`);
   }
-  return template.filePath;
+  return file;
 }
 
 function escapeXml(str: string): string {
@@ -280,6 +282,47 @@ function buildReportFileName(
   return parts.join('_');
 }
 
+export const AUTHOR_ROLE_COMMANDER = 'Einsatzleiter';
+
+/**
+ * Prefixes a free-text name ("Vorname Nachname") with the member's rank. Only an exact
+ * first + last name match counts: matching either part alone would put a namesake's rank
+ * into the report.
+ */
+export async function withRank(name: string | null | undefined): Promise<string> {
+  const trimmed = (name || '').trim();
+  if (!trimmed) return '';
+  const parts = trimmed.split(/\s+/);
+  if (parts.length < 2) return trimmed;
+  const member = await prisma.member.findFirst({
+    where: { firstName: parts.slice(0, -1).join(' '), lastName: parts[parts.length - 1] },
+    select: { rank: true },
+  });
+  return member?.rank ? `${member.rank} ${trimmed}` : trimmed;
+}
+
+/**
+ * Einsatzleiter field of the report: the author when they led the operation themselves,
+ * otherwise the separately entered commander (author was only Einheitenführer).
+ */
+export async function reportCommander(op: {
+  authorRole: string | null;
+  createdByName: string | null;
+  commanderName: string | null;
+  commanderId: number | null;
+}): Promise<string> {
+  if ((op.authorRole || AUTHOR_ROLE_COMMANDER) === AUTHOR_ROLE_COMMANDER) {
+    return withRank(op.createdByName);
+  }
+  if (op.commanderName?.trim()) return withRank(op.commanderName);
+  // Data from before 1.4.0 may still reference a member
+  if (op.commanderId) {
+    const commander = await prisma.member.findUnique({ where: { id: op.commanderId } });
+    if (commander) return [commander.rank, commander.firstName, commander.lastName].filter(Boolean).join(' ');
+  }
+  return '';
+}
+
 export async function generateOperationReport(operationId: number): Promise<{ filePath: string; fileName: string }> {
   ensureTempDir();
 
@@ -289,11 +332,8 @@ export async function generateOperationReport(operationId: number): Promise<{ fi
   });
   if (!op) throw new Error('Einsatz nicht gefunden');
 
-  let commanderName = '';
-  if (op.commanderId) {
-    const commander = await prisma.member.findUnique({ where: { id: op.commanderId } });
-    if (commander) commanderName = `${commander.firstName} ${commander.lastName}`;
-  }
+  const commanderName = await reportCommander(op);
+  const creatorWithRank = await withRank(op.createdByName);
 
   const templatePath = await getTemplateByName('Einsatzbericht');
   const content = fs.readFileSync(templatePath);
@@ -306,7 +346,7 @@ export async function generateOperationReport(operationId: number): Promise<{ fi
 
   const tagData: Record<string, string> = {
     'Art des Berichtes': op.reportType || 'Einsatzbericht',
-    'Einsatzleiter': commanderName || '',
+    'Einsatzleiter': commanderName,
     'Einsatzstichwort': op.keyword || '',
     'Auftragsnummer': op.ilsOrderNumber || '',
     'Einsatzadresse': op.location,
@@ -318,7 +358,7 @@ export async function generateOperationReport(operationId: number): Promise<{ fi
     'Lage': op.situationOnArrival || '',
     'Maßnahmen': op.actionsTaken || '',
     'Einsatzmittel': op.resourcesUsed || '',
-    'Ersteller': op.createdByName || '',
+    'Ersteller': creatorWithRank,
     'Menschen gerettet': String(op.rescuedPersons || 0),
     'FW verletzt': String(op.injuredFirefighters || 0),
     'Menschen tot': String(op.deceasedPersons || 0),
@@ -359,40 +399,9 @@ export async function generateOperationReport(operationId: number): Promise<{ fi
 
   // Fill the "Ersteller-Rolle" dropdown (ID 1404645901)
   // For dropdowns we replace the entire sdtContent with a simple run
-  const authorRole = op.authorRole || 'Einsatzleiter';
+  const authorRole = op.authorRole || AUTHOR_ROLE_COMMANDER;
   const rolePattern = /(<w:id\s+w:val="1404645901"[\s\S]*?<w:sdtContent>)([\s\S]*?)(<\/w:sdtContent>)/s;
   xmlContent = xmlContent.replace(rolePattern, `$1<w:r><w:t>${escapeXml(authorRole)}</w:t></w:r>$3`);
-
-  // Add Dienstgrad (rank) to the Ersteller name field
-  let creatorWithRank = op.createdByName || '';
-  if (op.createdByName) {
-    // Try to find the member's rank
-    const creatorMember = await prisma.member.findFirst({
-      where: {
-        OR: [
-          { lastName: { contains: op.createdByName.split(' ').pop() || '' } },
-          { firstName: { contains: op.createdByName.split(' ')[0] || '' } },
-        ],
-      },
-      select: { rank: true, firstName: true, lastName: true },
-    });
-    if (creatorMember?.rank) {
-      creatorWithRank = `${creatorMember.rank} ${op.createdByName}`;
-    }
-  }
-  // Re-fill the Ersteller tag with rank included
-  const erstellerPattern = new RegExp(
-    `(<w:tag\\s+w:val="Ersteller"[^/]*/>.*?<w:sdtContent>)(.*?)(</w:sdtContent>)`, 's'
-  );
-  const erstellerMatch = xmlContent.match(erstellerPattern);
-  if (erstellerMatch) {
-    let firstDone = false;
-    const newContent = erstellerMatch[2].replace(/<w:t(?:\s[^>]*)?>([^<]*)<\/w:t>/g, () => {
-      if (!firstDone) { firstDone = true; return `<w:t>${escapeXml(creatorWithRank)}</w:t>`; }
-      return '<w:t></w:t>';
-    });
-    xmlContent = xmlContent.replace(erstellerMatch[0], erstellerMatch[1] + newContent + erstellerMatch[3]);
-  }
 
   // Replace the embedded OLE Excel object with a proper Word table containing vehicle times
   xmlContent = replaceOleWithVehicleTable(xmlContent, op.times);
@@ -455,7 +464,7 @@ export async function generateOperationReport(operationId: number): Promise<{ fi
     fileName = `${baseFileName}.docx`;
   }
 
-  const destDir = path.join(uploadDir, 'operations', String(operationId));
+  const destDir = recordUploadDir('operations', String(operationId));
   fs.mkdirSync(destDir, { recursive: true });
   const destPath = path.join(destDir, `${timestamp}-${fileName}`);
   fs.renameSync(finalPath, destPath);
@@ -465,27 +474,37 @@ export async function generateOperationReport(operationId: number): Promise<{ fi
   }
 
   const stat = fs.statSync(destPath);
+  const storedPath = toStoredPath(destPath);
   await prisma.operationDocument.create({
     data: {
       operationId,
       fileName,
-      filePath: destPath,
+      filePath: storedPath,
       fileSize: stat.size,
       mimeType: fileName.endsWith('.pdf') ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       uploadedBy: 'System (Generiert)',
     },
   });
 
-  return { filePath: destPath, fileName };
+  return { filePath: storedPath, fileName };
 }
 
-export async function generatePersonnelSheet(operationId: number, vehicleFilter?: string): Promise<{ filePath: string; fileName: string }> {
+// Rows per section (ausgerückt / Verstärkung) on the Kräftenachweis form
+const PERSONNEL_ROWS_PER_SHEET = 9;
+
+/**
+ * Erzeugt den Kräftenachweis für ein Fahrzeug (oder ohne Filter für den ganzen Einsatz).
+ * Das Formular hat je Abschnitt 9 Zeilen; weitere Kräfte kommen auf Folgeblätter (eigene
+ * Dateien mit dem Zusatz _Blatt2, _Blatt3, ...), statt stillschweigend zu entfallen.
+ */
+export async function generatePersonnelSheet(operationId: number, vehicleFilter?: string): Promise<{ filePath: string; fileName: string }[]> {
   ensureTempDir();
 
   const op = await prisma.operation.findUnique({
     where: { id: operationId },
     include: {
       personnel: {
+        orderBy: { id: 'asc' },
         include: {
           member: {
             select: {
@@ -501,15 +520,6 @@ export async function generatePersonnelSheet(operationId: number, vehicleFilter?
   if (!op) throw new Error('Einsatz nicht gefunden');
 
   const templatePath = await getTemplateByName('Kräftenachweis');
-  const workbook = new ExcelJS.Workbook();
-  await workbook.xlsx.readFile(templatePath);
-
-  const sheet = workbook.getWorksheet(1);
-  if (!sheet) throw new Error('Arbeitsblatt nicht gefunden');
-
-  sheet.getCell('B5').value = vehicleFilter !== undefined ? (vehicleFilter || 'ohne Fahrzeug') : (op.vehicles || '');
-  sheet.getCell('B7').value = `${op.keyword || ''} ${op.location}`.trim();
-  sheet.getCell('B8').value = `${new Date(op.date).toLocaleDateString('de-DE')} ${op.alarmTime || ''}`.trim();
 
   let personnel = op.personnel;
   if (vehicleFilter !== undefined) {
@@ -518,86 +528,102 @@ export async function generatePersonnelSheet(operationId: number, vehicleFilter?
 
   const deployed = personnel.filter(p => p.section === 'deployed');
   const reinforcement = personnel.filter(p => p.section === 'reinforcement');
+  const sheetCount = Math.max(
+    1,
+    Math.ceil(deployed.length / PERSONNEL_ROWS_PER_SHEET),
+    Math.ceil(reinforcement.length / PERSONNEL_ROWS_PER_SHEET),
+  );
 
-  for (let i = 0; i < Math.min(deployed.length, 9); i++) {
-    const row = 12 + i;
-    const p = deployed[i];
-    sheet.getCell(`A${row}`).value = p.function;
-    sheet.getCell(`B${row}`).value = `${p.member.lastName}, ${p.member.firstName}`;
-    if (p.member.qualAGT) sheet.getCell(`D${row}`).value = 'X';
-    if (p.member.qualGruppenfuehrer) sheet.getCell(`E${row}`).value = 'X';
-    if (p.member.qualZugfuehrer) sheet.getCell(`F${row}`).value = 'X';
-    if (p.member.qualLicenseC) sheet.getCell(`G${row}`).value = 'X';
-    if (p.member.qualLicenseB) sheet.getCell(`H${row}`).value = 'X';
+  const results: { filePath: string; fileName: string }[] = [];
+  for (let sheetIndex = 0; sheetIndex < sheetCount; sheetIndex++) {
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(templatePath);
+
+    const sheet = workbook.getWorksheet(1);
+    if (!sheet) throw new Error('Arbeitsblatt nicht gefunden');
+
+    sheet.getCell('B5').value = vehicleFilter !== undefined ? (vehicleFilter || 'ohne Fahrzeug') : (op.vehicles || '');
+    sheet.getCell('B7').value = `${op.keyword || ''} ${op.location}`.trim();
+    sheet.getCell('B8').value = `${new Date(op.date).toLocaleDateString('de-DE')} ${op.alarmTime || ''}`.trim();
+
+    const offset = sheetIndex * PERSONNEL_ROWS_PER_SHEET;
+    const sections = [
+      { firstRow: 12, entries: deployed.slice(offset, offset + PERSONNEL_ROWS_PER_SHEET) },
+      { firstRow: 24, entries: reinforcement.slice(offset, offset + PERSONNEL_ROWS_PER_SHEET) },
+    ];
+    for (const { firstRow, entries } of sections) {
+      entries.forEach((p, i) => {
+        const row = firstRow + i;
+        sheet.getCell(`A${row}`).value = p.function;
+        sheet.getCell(`B${row}`).value = `${p.member.lastName}, ${p.member.firstName}`;
+        if (p.member.qualAGT) sheet.getCell(`D${row}`).value = 'X';
+        if (p.member.qualGruppenfuehrer) sheet.getCell(`E${row}`).value = 'X';
+        if (p.member.qualZugfuehrer) sheet.getCell(`F${row}`).value = 'X';
+        if (p.member.qualLicenseC) sheet.getCell(`G${row}`).value = 'X';
+        if (p.member.qualLicenseB) sheet.getCell(`H${row}`).value = 'X';
+      });
+    }
+
+    // Alles auf eine Seitenbreite skalieren (Template hat sonst fitToPage=false,
+    // wodurch die letzten Spalten auf eine zusätzliche Seite umbrechen)
+    sheet.pageSetup = {
+      ...sheet.pageSetup,
+      fitToPage: true,
+      fitToWidth: 1,
+      fitToHeight: 0,
+    };
+
+    // Dropdown-Hilfsblätter (Fahrzeuge/Funktion/Mannschaft) ausblenden, damit sie
+    // beim PDF-Export nicht als zusätzliche Seiten mit ausgegeben werden
+    workbook.eachSheet(s => {
+      if (s !== sheet) s.state = 'hidden';
+    });
+
+    const timestamp = Date.now();
+    const xlsxPath = path.join(tempDir, `kraeftenachweis_${operationId}_${timestamp}_${sheetIndex + 1}.xlsx`);
+    await workbook.xlsx.writeFile(xlsxPath);
+
+    let finalPath: string;
+    let fileName: string;
+
+    const vehicleSuffix = vehicleFilter !== undefined ? `_${sanitizeFileNamePart(vehicleFilter || 'ohne-Fahrzeug').replace(/\s+/g, '')}` : '';
+    const sheetSuffix = sheetIndex > 0 ? `_Blatt${sheetIndex + 1}` : '';
+    const baseFileName = `${buildReportFileName(op, operationId, 'Kraeftenachweis')}${vehicleSuffix}${sheetSuffix}`;
+    try {
+      finalPath = await convertToPdf(xlsxPath);
+      fileName = `${baseFileName}.pdf`;
+    } catch (err) {
+      logger.warn(`PDF-Konvertierung fehlgeschlagen, liefere xlsx: ${(err as Error).message}`);
+      finalPath = xlsxPath;
+      fileName = `${baseFileName}.xlsx`;
+    }
+
+    const destDir = recordUploadDir('operations', String(operationId));
+    fs.mkdirSync(destDir, { recursive: true });
+    const destPath = path.join(destDir, `${timestamp}-${fileName}`);
+    fs.renameSync(finalPath, destPath);
+
+    if (finalPath !== xlsxPath && fs.existsSync(xlsxPath)) {
+      fs.unlinkSync(xlsxPath);
+    }
+
+    const stat = fs.statSync(destPath);
+    const storedPath = toStoredPath(destPath);
+    await prisma.operationDocument.create({
+      data: {
+        operationId,
+        fileName,
+        filePath: storedPath,
+        fileSize: stat.size,
+        mimeType: fileName.endsWith('.pdf') ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        uploadedBy: 'System (Generiert)',
+      },
+    });
+
+    results.push({ filePath: storedPath, fileName });
   }
 
-  for (let i = 0; i < Math.min(reinforcement.length, 9); i++) {
-    const row = 24 + i;
-    const p = reinforcement[i];
-    sheet.getCell(`A${row}`).value = p.function;
-    sheet.getCell(`B${row}`).value = `${p.member.lastName}, ${p.member.firstName}`;
-    if (p.member.qualAGT) sheet.getCell(`D${row}`).value = 'X';
-    if (p.member.qualGruppenfuehrer) sheet.getCell(`E${row}`).value = 'X';
-    if (p.member.qualZugfuehrer) sheet.getCell(`F${row}`).value = 'X';
-    if (p.member.qualLicenseC) sheet.getCell(`G${row}`).value = 'X';
-    if (p.member.qualLicenseB) sheet.getCell(`H${row}`).value = 'X';
-  }
-
-  // Alles auf eine Seitenbreite skalieren (Template hat sonst fitToPage=false,
-  // wodurch die letzten Spalten auf eine zusätzliche Seite umbrechen)
-  sheet.pageSetup = {
-    ...sheet.pageSetup,
-    fitToPage: true,
-    fitToWidth: 1,
-    fitToHeight: 0,
-  };
-
-  // Dropdown-Hilfsblätter (Fahrzeuge/Funktion/Mannschaft) ausblenden, damit sie
-  // beim PDF-Export nicht als zusätzliche Seiten mit ausgegeben werden
-  workbook.eachSheet(s => {
-    if (s !== sheet) s.state = 'hidden';
-  });
-
-  const timestamp = Date.now();
-  const xlsxPath = path.join(tempDir, `kraeftenachweis_${operationId}_${timestamp}.xlsx`);
-  await workbook.xlsx.writeFile(xlsxPath);
-
-  let finalPath: string;
-  let fileName: string;
-
-  const vehicleSuffix = vehicleFilter !== undefined ? `_${sanitizeFileNamePart(vehicleFilter || 'ohne-Fahrzeug').replace(/\s+/g, '')}` : '';
-  const baseFileName = `${buildReportFileName(op, operationId, 'Kraeftenachweis')}${vehicleSuffix}`;
-  try {
-    finalPath = await convertToPdf(xlsxPath);
-    fileName = `${baseFileName}.pdf`;
-  } catch (err) {
-    logger.warn(`PDF-Konvertierung fehlgeschlagen, liefere xlsx: ${(err as Error).message}`);
-    finalPath = xlsxPath;
-    fileName = `${baseFileName}.xlsx`;
-  }
-
-  const destDir = path.join(uploadDir, 'operations', String(operationId));
-  fs.mkdirSync(destDir, { recursive: true });
-  const destPath = path.join(destDir, `${timestamp}-${fileName}`);
-  fs.renameSync(finalPath, destPath);
-
-  if (finalPath !== xlsxPath && fs.existsSync(xlsxPath)) {
-    fs.unlinkSync(xlsxPath);
-  }
-
-  const stat = fs.statSync(destPath);
-  await prisma.operationDocument.create({
-    data: {
-      operationId,
-      fileName,
-      filePath: destPath,
-      fileSize: stat.size,
-      mimeType: fileName.endsWith('.pdf') ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      uploadedBy: 'System (Generiert)',
-    },
-  });
-
-  return { filePath: destPath, fileName };
+  return results;
 }
 
 /**
@@ -617,15 +643,15 @@ export async function generatePersonnelSheets(operationId: number): Promise<{ fi
   const hasUnassigned = normalized.some(v => v === '');
 
   if (vehicleNames.length === 0) {
-    return [await generatePersonnelSheet(operationId)];
+    return generatePersonnelSheet(operationId);
   }
 
   const results: { filePath: string; fileName: string }[] = [];
   for (const vehicleName of vehicleNames) {
-    results.push(await generatePersonnelSheet(operationId, vehicleName));
+    results.push(...await generatePersonnelSheet(operationId, vehicleName));
   }
   if (hasUnassigned) {
-    results.push(await generatePersonnelSheet(operationId, ''));
+    results.push(...await generatePersonnelSheet(operationId, ''));
   }
   return results;
 }
@@ -691,7 +717,7 @@ async function saveGeneratedEventDocument(
     fileName = `${baseFileName}.docx`;
   }
 
-  const destDir = path.join(uploadDir, 'events', String(eventId));
+  const destDir = recordUploadDir('events', String(eventId));
   fs.mkdirSync(destDir, { recursive: true });
   const destPath = path.join(destDir, `${timestamp}-${fileName}`);
   fs.renameSync(finalPath, destPath);
@@ -701,11 +727,12 @@ async function saveGeneratedEventDocument(
   }
 
   const stat = fs.statSync(destPath);
+  const storedPath = toStoredPath(destPath);
   await prisma.eventDocument.create({
     data: {
       eventId,
       fileName,
-      filePath: destPath,
+      filePath: storedPath,
       fileSize: stat.size,
       mimeType: fileName.endsWith('.pdf')
         ? 'application/pdf'
@@ -714,7 +741,7 @@ async function saveGeneratedEventDocument(
     },
   });
 
-  return { filePath: destPath, fileName };
+  return { filePath: storedPath, fileName };
 }
 
 function buildEventReportFileName(event: { date: Date; name: string }, eventId: number, art: string): string {

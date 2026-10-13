@@ -21,7 +21,7 @@ export function ChangelogDialog({ isOpen, onClose }: ChangelogDialogProps) {
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-[60]" onClose={close}>
+      <Dialog as="div" className="relative z-60" onClose={close}>
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-200" enterFrom="opacity-0" enterTo="opacity-100"

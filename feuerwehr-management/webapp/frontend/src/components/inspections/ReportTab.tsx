@@ -74,7 +74,7 @@ export function ReportTab({ search }: { search?: string }) {
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Geräteklasse</label>
           <select value={deviceClassId} onChange={(e) => setDeviceClassId(e.target.value ? parseInt(e.target.value) : '')}
-            className="block w-56 px-3 py-2 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none bg-white">
+            className="block w-56 px-3 py-2 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-hidden bg-white">
             <option value="">Alle Geräteklassen</option>
             {deviceClasses.map(dc => <option key={dc.id} value={dc.id}>{dc.name}</option>)}
           </select>
@@ -82,7 +82,7 @@ export function ReportTab({ search }: { search?: string }) {
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Jahr</label>
           <select value={year} onChange={(e) => setYear(e.target.value ? parseInt(e.target.value) : '')}
-            className="block w-32 px-3 py-2 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none bg-white">
+            className="block w-32 px-3 py-2 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-hidden bg-white">
             {years.map(y => <option key={y} value={y}>{y}</option>)}
           </select>
         </div>
@@ -92,7 +92,7 @@ export function ReportTab({ search }: { search?: string }) {
       </div>
 
       {/* Results table */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+      <div className="bg-white rounded-lg shadow-xs border border-gray-200">
         <Table
           columns={columns}
           data={inspections}

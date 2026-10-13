@@ -3,7 +3,8 @@ import path from 'path';
 import { prisma } from '../config/database';
 import { sendSuccess, sendError } from '../utils/response';
 import { pickWritable } from '../utils/body';
-import { categoryUploadDir, removeUpload, sendUpload } from '../utils/files';
+import { addMonths } from '../utils/dates';
+import { categoryUploadDir, removeUpload, sendUpload, toStoredPath } from '../utils/files';
 import { createUpload, discardUpload } from '../utils/upload';
 
 export const templateUpload = createUpload({
@@ -138,7 +139,7 @@ export async function uploadTemplate(req: Request, res: Response): Promise<void>
     const template = await prisma.template.create({
       data: {
         name,
-        filePath: req.file.path,
+        filePath: toStoredPath(req.file.path),
         fileSize: req.file.size,
         mimeType: req.file.mimetype,
         createdBy: req.user?.username || 'System',
@@ -165,7 +166,7 @@ export async function updateTemplate(req: Request, res: Response): Promise<void>
     if (req.body.name) data.name = req.body.name.trim();
 
     if (req.file) {
-      data.filePath = req.file.path;
+      data.filePath = toStoredPath(req.file.path);
       data.fileSize = req.file.size;
       data.mimeType = req.file.mimetype;
     }
@@ -589,8 +590,7 @@ export async function importInspections(req: Request, res: Response): Promise<vo
         // Calculate next due date
         let nextDueDate: Date | null = null;
         if (article.inspectionInterval) {
-          nextDueDate = new Date(inspectedAt);
-          nextDueDate.setMonth(nextDueDate.getMonth() + article.inspectionInterval);
+          nextDueDate = addMonths(new Date(inspectedAt), article.inspectionInterval);
         }
 
         try {

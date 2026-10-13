@@ -112,7 +112,6 @@ PORT=3001
 DATABASE_URL="mysql://user:pass@localhost:3306/FFWVSLB12"
 
 JWT_ACCESS_SECRET=<zufälliger-schlüssel>
-JWT_REFRESH_SECRET=<zufälliger-schlüssel>
 JWT_ACCESS_EXPIRES=15m
 JWT_REFRESH_EXPIRES=7d
 
@@ -236,14 +235,15 @@ sudo bash /var/www/feuerwehrmanagement/scripts/update.sh /pfad/zum/neuen/quellco
 ```
 
 Das Update-Skript führt folgendes aus:
-1. Pre-Update-Backup erstellen
-2. Backend-Code aktualisieren
-3. npm-Abhängigkeiten installieren
-4. TypeScript kompilieren
-5. Datenbankmigrationen ausführen
-6. Frontend neu bauen und deployen
-7. Hilfsskripte aktualisieren
-8. Backend per `pm2 reload` neu starten (ohne Downtime)
+1. Node.js-Version prüfen (ab 1.4.0 mindestens 20)
+2. Pre-Update-Backup erstellen
+3. Backend-Code aktualisieren
+4. npm-Abhängigkeiten laut Lockfile installieren (`npm ci`)
+5. TypeScript kompilieren
+6. SQL-Migrationen `deploy/migrate-1.3.x-to-*.sql` ausführen, danach devDependencies entfernen
+7. Frontend neu bauen und deployen
+8. Hilfsskripte aktualisieren
+9. Backend per `pm2 reload` neu starten (ohne Downtime); einmalige Datenmigrationen laufen beim Start
 
 ### Datenbankmigrationen manuell ausführen
 
@@ -257,8 +257,9 @@ mysql -u FFWVSLB12 -p FFWVSLB12 < deploy/migrate-add-agt-exercise.sql
 
 Alle Migrationen sind idempotent (können mehrfach ausgeführt werden).
 
-**Update von 1.3.x auf 1.4.0:** `deploy/migrate-1.3.x-to-1.4.0.sql`; die
-vollständige Anleitung inklusive nginx-Anpassung steht in
+**Update von 1.3.x auf 1.4.0:** `deploy/migrate-1.3.x-to-1.4.0.sql` (führt
+`update.sh` aus); die vollständige Anleitung inklusive nginx-Anpassung,
+`.env`-Prüfung und Browser-Voraussetzungen steht in
 [UPDATE-MANJARO.md](UPDATE-MANJARO.md).
 
 **Direktes Update von 1.1.0 auf 1.3.0:** Version 1.1.1 und 1.2.1 enthielten

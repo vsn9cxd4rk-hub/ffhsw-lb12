@@ -184,7 +184,7 @@ function ArticleSelector({ value, onChange, required }: { value: string; onChang
       <div className="grid grid-cols-2 gap-2">
         <select value={filterClass}
           onChange={(e) => { setFilterClass(e.target.value); setFilterSubclass(''); }}
-          className="px-2 py-1.5 border border-gray-300 rounded-md text-xs focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none bg-white">
+          className="px-2 py-1.5 border border-gray-300 rounded-md text-xs focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-hidden bg-white">
           <option value="">Alle Geräteklassen</option>
           <option value="none">Ohne Geräteklasse</option>
           {deviceClasses.map(dc => <option key={dc.id} value={dc.id}>{dc.name}</option>)}
@@ -192,7 +192,7 @@ function ArticleSelector({ value, onChange, required }: { value: string; onChang
         <select value={filterSubclass}
           onChange={(e) => setFilterSubclass(e.target.value)}
           disabled={!filterClass || filterClass === 'none'}
-          className="px-2 py-1.5 border border-gray-300 rounded-md text-xs focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none bg-white disabled:bg-gray-100">
+          className="px-2 py-1.5 border border-gray-300 rounded-md text-xs focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-hidden bg-white disabled:bg-gray-100">
           <option value="">Alle Unterklassen</option>
           {selectedClass?.subclasses?.map(sc => <option key={sc.id} value={sc.id}>{sc.name}</option>)}
         </select>
@@ -203,7 +203,7 @@ function ArticleSelector({ value, onChange, required }: { value: string; onChang
           const isSpecial = v.startsWith('vehicle_') || v === 'sonstige';
           onChange(v, isSpecial ? label : undefined);
         }}
-        className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none bg-white">
+        className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-hidden bg-white">
         <option value="">-- Auswählen --</option>
         {filtered.length > 0 && (
           <optgroup label="Artikel">

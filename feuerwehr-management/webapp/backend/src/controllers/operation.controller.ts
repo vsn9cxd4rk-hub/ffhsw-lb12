@@ -4,13 +4,17 @@ import { sendSuccess, sendError, sendPaginated } from '../utils/response';
 import { getPagination } from '../utils/pagination';
 import { convertDates } from '../utils/dates';
 import { pickWritable } from '../utils/body';
-import { recordUploadDir, removeUpload, sendUpload } from '../utils/files';
+import { recordUploadDir, removeUpload, sendUpload, toStoredPath } from '../utils/files';
 import { createUpload, discardUpload } from '../utils/upload';
+import { AUTHOR_ROLE_COMMANDER } from '../services/report-generator.service';
 
 const OPERATION_DATE_FIELDS = ['date'];
 
-// vehicles/leaderCount/memberCount are derived from the Fahrzeugzeiten (syncOperationAggregates)
-const OPERATION_DERIVED_FIELDS = ['vehicles', 'leaderCount', 'memberCount'];
+// vehicles/leaderCount/memberCount are derived from the Fahrzeugzeiten (syncOperationAggregates).
+// The per-operation departure/arrival/return times are no longer maintained: the report and
+// the Kräftenachweis take them per vehicle. alarmTime stays writable as the initial value from
+// the "Neuer Einsatz" dialog until a vehicle brings its own.
+const OPERATION_DERIVED_FIELDS = ['vehicles', 'leaderCount', 'memberCount', 'departureTime', 'arrivalTime', 'returnTime'];
 
 export const uploadMiddleware = createUpload({
   destination: (req) => recordUploadDir('operations', req.params.id),
@@ -68,7 +72,7 @@ export async function getOperation(req: Request, res: Response): Promise<void> {
     const id = parseInt(req.params.id);
     const op = await prisma.operation.findUnique({
       where: { id },
-      include: { times: true, reports: true },
+      include: { times: true },
     });
     if (!op) { sendError(res, 'Einsatz nicht gefunden', 404); return; }
     sendSuccess(res, op);
@@ -81,6 +85,8 @@ export async function updateOperation(req: Request, res: Response): Promise<void
   try {
     const id = parseInt(req.params.id);
     const data = convertDates(pickWritable('Operation', req.body, OPERATION_DERIVED_FIELDS), OPERATION_DATE_FIELDS) as any;
+    // A separate commander only exists when the author was not in charge themselves
+    if (data.authorRole === AUTHOR_ROLE_COMMANDER) data.commanderName = null;
     const op = await prisma.operation.update({ where: { id }, data });
     sendSuccess(res, op);
   } catch (err) {
@@ -98,20 +104,30 @@ export async function deleteOperation(req: Request, res: Response): Promise<void
 }
 
 // Times
+/** Earliest of the vehicles' alarm times ("HH:MM"), or null if none is set. */
+export function earliestAlarmTime(times: Array<{ alarmTime: string | null }>): string | null {
+  const valid = times.map(t => t.alarmTime?.trim() || '').filter(t => /^\d{1,2}:\d{2}$/.test(t));
+  if (valid.length === 0) return null;
+  return valid.reduce((a, b) => (a.padStart(5, '0') <= b.padStart(5, '0') ? a : b));
+}
+
 /**
  * Hält Operation.vehicles/leaderCount/memberCount als abgeleitete Summe über alle
  * Fahrzeugzeiten-Einträge aktuell, damit Übersichtsliste/Dashboard (die diese
  * Operation-Felder lesen) weiterhin den Gesamteinsatz korrekt zeigen, obwohl
  * Fahrzeug und Stärke jetzt pro Fahrzeug im Fahrzeugzeiten-Tab gepflegt werden.
+ * Die Alarmzeit des Einsatzes (Einsatzbericht, Kräftenachweis, Liste, Statistik) ist die
+ * früheste Fahrzeug-Alarmzeit; ohne Fahrzeug-Alarmzeit bleibt der Wert aus dem Anlegen.
  */
 async function syncOperationAggregates(operationId: number): Promise<void> {
   const times = await prisma.operationTime.findMany({ where: { operationId } });
   const vehicleNames = [...new Set(times.map(t => t.vehicleName.trim()).filter(Boolean))];
   const leaderCount = times.reduce((sum, t) => sum + t.leaderCount, 0);
   const memberCount = times.reduce((sum, t) => sum + t.memberCount, 0);
+  const alarmTime = earliestAlarmTime(times);
   await prisma.operation.update({
     where: { id: operationId },
-    data: { vehicles: vehicleNames.join(', '), leaderCount, memberCount },
+    data: { vehicles: vehicleNames.join(', '), leaderCount, memberCount, ...(alarmTime ? { alarmTime } : {}) },
   });
 }
 
@@ -151,39 +167,6 @@ export async function deleteOperationTime(req: Request, res: Response): Promise<
   }
 }
 
-// Reports
-export async function getOperationReport(req: Request, res: Response): Promise<void> {
-  try {
-    const operationId = parseInt(req.params.id);
-    const report = await prisma.operationReport.findFirst({ where: { operationId } });
-    sendSuccess(res, report);
-  } catch (err) {
-    sendError(res, (err as Error).message);
-  }
-}
-
-export async function upsertOperationReport(req: Request, res: Response): Promise<void> {
-  try {
-    const operationId = parseInt(req.params.id);
-    const existing = await prisma.operationReport.findFirst({ where: { operationId } });
-
-    let report;
-    if (existing) {
-      report = await prisma.operationReport.update({
-        where: { id: existing.id },
-        data: { content: req.body.content },
-      });
-    } else {
-      report = await prisma.operationReport.create({
-        data: { operationId, content: req.body.content, createdBy: req.user!.username },
-      });
-    }
-    sendSuccess(res, report);
-  } catch (err) {
-    sendError(res, (err as Error).message);
-  }
-}
-
 // Documents
 export async function getDocuments(req: Request, res: Response): Promise<void> {
   try {
@@ -215,7 +198,7 @@ export async function uploadDocument(req: Request, res: Response): Promise<void>
       data: {
         operationId,
         fileName: req.file.originalname,
-        filePath: req.file.path,
+        filePath: toStoredPath(req.file.path),
         fileSize: req.file.size,
         mimeType: req.file.mimetype,
         uploadedBy: req.user?.username || 'System',

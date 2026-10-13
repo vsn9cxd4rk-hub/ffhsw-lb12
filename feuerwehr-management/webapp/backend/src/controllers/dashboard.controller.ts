@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/database';
 import { sendSuccess, sendError } from '../utils/response';
+import { addMonths } from '../utils/dates';
 
 export async function getDashboardStats(req: Request, res: Response): Promise<void> {
   try {
@@ -12,8 +13,7 @@ export async function getDashboardStats(req: Request, res: Response): Promise<vo
     const reminderDays = 30;
     const reminderDate = new Date();
     reminderDate.setDate(reminderDate.getDate() + reminderDays);
-    const twoMonthsFromNow = new Date();
-    twoMonthsFromNow.setMonth(twoMonthsFromNow.getMonth() + 2);
+    const twoMonthsFromNow = addMonths(new Date(), 2);
 
     const [
       activeMembers,
@@ -33,28 +33,32 @@ export async function getDashboardStats(req: Request, res: Response): Promise<vo
         take: 5,
         select: { id: true, date: true, location: true, keyword: true, leaderCount: true, memberCount: true },
       }),
+      // No lower bound: an overdue date has to stay on the dashboard (red) until it is
+      // renewed. Retired vehicles and former members are left out instead.
       prisma.vehicleInspection.findMany({
         where: {
+          vehicle: { isRetired: false },
           OR: [
-            { tuevDate: { lte: reminderDate, gte: new Date() } },
-            { spDate: { lte: reminderDate, gte: new Date() } },
-            { serviceDate: { lte: reminderDate, gte: new Date() } },
+            { tuevDate: { lte: reminderDate } },
+            { spDate: { lte: reminderDate } },
+            { serviceDate: { lte: reminderDate } },
           ],
         },
         include: { vehicle: { select: { name: true } } },
       }),
       prisma.equipmentInspection.findMany({
-        where: { nextInspection: { lte: reminderDate, gte: new Date() } },
+        where: { nextInspection: { lte: reminderDate }, vehicle: { isRetired: false } },
         include: { vehicle: { select: { name: true } } },
       }),
       isAdmin
         ? prisma.memberExamination.findMany({
           where: {
+            member: { isInactive: false, deletedAt: null },
             OR: [
-              { g25Date: { lte: reminderDate, gte: new Date() } },
-              { g26Date: { lte: reminderDate, gte: new Date() } },
-              { g30Date: { lte: reminderDate, gte: new Date() } },
-              { lkwLicenseExpiry: { lte: reminderDate, gte: new Date() } },
+              { g25Date: { lte: reminderDate } },
+              { g26Date: { lte: reminderDate } },
+              { g30Date: { lte: reminderDate } },
+              { lkwLicenseExpiry: { lte: reminderDate } },
             ],
           },
           include: { member: { select: { firstName: true, lastName: true } } },
@@ -143,20 +147,21 @@ export async function getDashboardStats(req: Request, res: Response): Promise<vo
     }
 
     // Build upcoming medical exams list
-    const upcomingMedicalExamsList: Array<{ memberName: string; examType: string; dueDate: string }> = [];
+    const upcomingMedicalExamsList: Array<{ memberName: string; examType: string; dueDate: string; status: 'red' | 'yellow' }> = [];
+    const examStatus = (date: Date) => (date <= now ? 'red' : 'yellow');
     for (const exam of upcomingMedicalExams) {
       const memberName = `${exam.member.firstName} ${exam.member.lastName}`;
       if (exam.g25Date && exam.g25Date <= reminderDate) {
-        upcomingMedicalExamsList.push({ memberName, examType: 'G25', dueDate: exam.g25Date.toISOString() });
+        upcomingMedicalExamsList.push({ memberName, examType: 'G25', dueDate: exam.g25Date.toISOString(), status: examStatus(exam.g25Date) });
       }
       if (exam.g26Date && exam.g26Date <= reminderDate) {
-        upcomingMedicalExamsList.push({ memberName, examType: 'G26', dueDate: exam.g26Date.toISOString() });
+        upcomingMedicalExamsList.push({ memberName, examType: 'G26', dueDate: exam.g26Date.toISOString(), status: examStatus(exam.g26Date) });
       }
       if (exam.g30Date && exam.g30Date <= reminderDate) {
-        upcomingMedicalExamsList.push({ memberName, examType: 'G30', dueDate: exam.g30Date.toISOString() });
+        upcomingMedicalExamsList.push({ memberName, examType: 'G30', dueDate: exam.g30Date.toISOString(), status: examStatus(exam.g30Date) });
       }
       if (exam.lkwLicenseExpiry && exam.lkwLicenseExpiry <= reminderDate) {
-        upcomingMedicalExamsList.push({ memberName, examType: 'LKW-Führerschein', dueDate: exam.lkwLicenseExpiry.toISOString() });
+        upcomingMedicalExamsList.push({ memberName, examType: 'LKW-Führerschein', dueDate: exam.lkwLicenseExpiry.toISOString(), status: examStatus(exam.lkwLicenseExpiry) });
       }
     }
 
@@ -171,7 +176,7 @@ export async function getDashboardStats(req: Request, res: Response): Promise<vo
         if (statusDiff !== 0) return statusDiff;
         return a.dueDate.localeCompare(b.dueDate);
       }),
-      upcomingMedicalExams: upcomingMedicalExamsList.sort((a, b) => a.dueDate.localeCompare(b.dueDate)).slice(0, 10),
+      upcomingMedicalExams: upcomingMedicalExamsList.sort((a, b) => a.dueDate.localeCompare(b.dueDate)),
     });
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -416,8 +421,7 @@ export async function getStatistics(req: Request, res: Response): Promise<void> 
 export async function getNotifications(req: Request, res: Response): Promise<void> {
   try {
     const now = new Date();
-    const twoMonths = new Date();
-    twoMonths.setMonth(twoMonths.getMonth() + 2);
+    const twoMonths = addMonths(new Date(), 2);
 
     const notifications: Array<{ id: string; type: string; severity: 'red' | 'yellow' | 'info'; title: string; message: string; link?: string }> = [];
 

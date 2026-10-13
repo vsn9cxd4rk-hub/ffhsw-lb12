@@ -137,7 +137,7 @@ function StammdatenTab({ article }: { article: Article }) {
         </div>
       </div>
       {(article.inventoryNumber || barcodeValue(article)) && (
-        <div className="w-56 flex-shrink-0 space-y-4">
+        <div className="w-56 shrink-0 space-y-4">
           {article.inventoryNumber && (
             <div className="bg-white rounded-lg border border-gray-200 p-4">
               <p className="text-xs font-medium text-gray-500 mb-3 text-center">QR-Code</p>
@@ -347,7 +347,7 @@ function PruefintervalleTab({ articleId }: { articleId: number }) {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Prüfart</label>
             <select value={typeId} onChange={(e) => setTypeId(e.target.value)}
-              className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none bg-white">
+              className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-hidden bg-white">
               <option value="">-- Prüfart wählen --</option>
               {types.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
             </select>
@@ -425,7 +425,7 @@ function MaengelTab({ articleId, articleName }: { articleId: number; articleName
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Schweregrad</label>
               <select value={form.severity} onChange={(e) => setForm(f => ({ ...f, severity: e.target.value }))}
-                className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none bg-white">
+                className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-hidden bg-white">
                 <option value="low">Gering</option><option value="medium">Mittel</option><option value="high">Hoch</option><option value="critical">Kritisch</option>
               </select>
             </div>
@@ -540,7 +540,7 @@ function HistorieTab({ articleId }: { articleId: number }) {
             editId === i.id ? (
               <div className="flex items-center gap-1">
                 <input type="date" value={nextDate} onChange={(e) => setNextDate(e.target.value)}
-                  className="px-2 py-1 border border-gray-300 rounded text-xs w-32" />
+                  className="px-2 py-1 border border-gray-300 rounded-sm text-xs w-32" />
                 <button onClick={() => updateNextDateMut.mutate()} className="text-green-600 text-xs font-medium">OK</button>
                 <button onClick={() => setEditId(null)} className="text-gray-400 text-xs">X</button>
               </div>

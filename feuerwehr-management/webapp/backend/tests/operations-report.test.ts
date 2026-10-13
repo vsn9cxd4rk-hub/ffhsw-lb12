@@ -3,6 +3,7 @@ import request from 'supertest';
 import app from '../src/app';
 import { authHeader } from './setup';
 import { prisma } from '../src/config/database';
+import { templateState } from './templates';
 
 describe('Einsatzbericht-Generierung', () => {
   let operationId: number;
@@ -44,8 +45,7 @@ describe('Einsatzbericht-Generierung', () => {
   });
 
   it('POST /api/operations/:id/generate-report ohne Template gibt Fehlermeldung', async () => {
-    const hasTemplate = await prisma.template.findFirst({ where: { name: { contains: 'Einsatzbericht' } } });
-    if (hasTemplate) return; // Skip wenn Template vorhanden
+    if ((await templateState('Einsatzbericht')) !== 'missing') return; // Skip wenn Template vorhanden
 
     const res = await request(app)
       .post(`/api/operations/${operationId}/generate-report`)
@@ -56,8 +56,8 @@ describe('Einsatzbericht-Generierung', () => {
   });
 
   it('POST /api/operations/:id/generate-report mit Template erzeugt Dokument', async () => {
-    const hasTemplate = await prisma.template.findFirst({ where: { name: { contains: 'Einsatzbericht' } } });
-    if (!hasTemplate) return; // Skip wenn kein Template vorhanden
+    // Skip ohne nutzbares Template; fehlende Dateien meldet backup-integrity.test.ts
+    if ((await templateState('Einsatzbericht')) !== 'present') return;
 
     const res = await request(app)
       .post(`/api/operations/${operationId}/generate-report`)
@@ -69,8 +69,7 @@ describe('Einsatzbericht-Generierung', () => {
   });
 
   it('POST /api/operations/:id/generate-personnel-sheet ohne Template gibt Fehlermeldung', async () => {
-    const hasTemplate = await prisma.template.findFirst({ where: { name: { contains: 'Kräftenachweis' } } });
-    if (hasTemplate) return;
+    if ((await templateState('Kräftenachweis')) !== 'missing') return; // Skip wenn Template vorhanden
 
     const res = await request(app)
       .post(`/api/operations/${operationId}/generate-personnel-sheet`)
@@ -81,8 +80,8 @@ describe('Einsatzbericht-Generierung', () => {
   });
 
   it('POST /api/operations/:id/generate-personnel-sheet mit Template erzeugt Dokument', async () => {
-    const hasTemplate = await prisma.template.findFirst({ where: { name: { contains: 'Kräftenachweis' } } });
-    if (!hasTemplate) return;
+    // Skip ohne nutzbares Template; fehlende Dateien meldet backup-integrity.test.ts
+    if ((await templateState('Kräftenachweis')) !== 'present') return;
 
     const res = await request(app)
       .post(`/api/operations/${operationId}/generate-personnel-sheet`)

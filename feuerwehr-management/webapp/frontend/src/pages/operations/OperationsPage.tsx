@@ -53,7 +53,7 @@ function OperationCreateModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
         <Input label="Alarmzeit" value={form.alarmTime} onChange={(e) => u('alarmTime', e.target.value)} type="time" />
         <Input label="Einsatzort" value={form.location} onChange={(e) => u('location', e.target.value)} required />
         <Input label="Stichwort" value={form.keyword} onChange={(e) => u('keyword', e.target.value)} />
-        <p className="text-xs text-gray-500">Fahrzeuge und Stärke werden nach dem Anlegen im Tab „Fahrzeugzeiten" gepflegt.</p>
+        <p className="text-xs text-gray-500">Fahrzeuge, Stärke und Zeiten werden nach dem Anlegen im Tab „Fahrzeugzeiten" gepflegt; die Alarmzeit wird dort als Vorschlag übernommen.</p>
       </div>
     </Modal>
   );
@@ -105,7 +105,7 @@ export function OperationsPage() {
         </Button>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+      <div className="bg-white rounded-lg shadow-xs border border-gray-200">
         <Table
           columns={columns}
           data={data?.data || []}

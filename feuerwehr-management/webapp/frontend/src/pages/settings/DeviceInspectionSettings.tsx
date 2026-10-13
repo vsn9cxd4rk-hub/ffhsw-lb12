@@ -173,7 +173,7 @@ export function DeviceInspectionSettings() {
       {/* Edit Modal */}
       <Modal isOpen={!!editTarget} onClose={() => setEditTarget(null)} title={getEditTitle()} size="sm">
         <form onSubmit={e => { e.preventDefault(); saveClassMut.mutate(); }} className="space-y-4">
-          {error && <div className="bg-red-50 text-red-700 text-sm p-3 rounded">{error}</div>}
+          {error && <div className="bg-red-50 text-red-700 text-sm p-3 rounded-sm">{error}</div>}
           <Input label="Bezeichnung" value={editName} onChange={e => setEditName(e.target.value)} required />
           <div className="flex justify-end gap-2">
             <Button variant="secondary" type="button" onClick={() => setEditTarget(null)}>Abbrechen</Button>

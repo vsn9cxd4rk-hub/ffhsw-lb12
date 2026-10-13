@@ -2,7 +2,8 @@ import { Request, Response } from 'express';
 import { prisma } from '../config/database';
 import { sendSuccess, sendError, sendPaginated } from '../utils/response';
 import { getPagination } from '../utils/pagination';
-import { categoryUploadDir, removeUpload, sendUpload } from '../utils/files';
+import { addMonths } from '../utils/dates';
+import { categoryUploadDir, removeUpload, sendUpload, toStoredPath } from '../utils/files';
 import { createUpload, discardUpload } from '../utils/upload';
 
 export const inspectionDocUpload = createUpload({
@@ -249,8 +250,7 @@ export async function createInspection(req: Request, res: Response): Promise<voi
 
     let nextDueDate: Date | null = null;
     if (intervalMonths) {
-      nextDueDate = new Date(inspectedAt);
-      nextDueDate.setMonth(nextDueDate.getMonth() + intervalMonths);
+      nextDueDate = addMonths(new Date(inspectedAt), intervalMonths);
     }
 
     const inspection = await prisma.$transaction(async (tx) => {
@@ -314,8 +314,7 @@ export async function updateInspection(req: Request, res: Response): Promise<voi
 
     let nextDueDate = existing.nextDueDate;
     if (inspectedAt && existing.article.inspectionInterval) {
-      nextDueDate = new Date(inspectedAt);
-      nextDueDate.setMonth(nextDueDate.getMonth() + existing.article.inspectionInterval);
+      nextDueDate = addMonths(new Date(inspectedAt), existing.article.inspectionInterval);
     }
 
     let computedResult = existing.result;
@@ -453,7 +452,7 @@ export async function uploadInspectionDocument(req: Request, res: Response): Pro
       data: {
         inspectionId,
         fileName: req.file.originalname,
-        filePath: req.file.path,
+        filePath: toStoredPath(req.file.path),
         fileSize: req.file.size,
         mimeType: req.file.mimetype,
         uploadedBy: req.user?.username || 'System',

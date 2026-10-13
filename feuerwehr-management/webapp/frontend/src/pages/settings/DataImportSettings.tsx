@@ -176,7 +176,7 @@ export function DataImportSettings() {
           <label className="block text-sm font-medium text-gray-700 mb-1">Import-Typ</label>
           <select value={importType}
             onChange={(e) => { setImportType(e.target.value as ImportType); resetFile(); }}
-            className="block w-64 px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none bg-white">
+            className="block w-64 px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-hidden bg-white">
             <option value="articles">Bestandsliste (Artikel)</option>
             <option value="inspections">Prüfungen</option>
             <option value="members">Mitglieder (Personal)</option>
@@ -197,7 +197,7 @@ export function DataImportSettings() {
       {/* Column info */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <div className="flex items-start gap-2">
-          <InformationCircleIcon className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
+          <InformationCircleIcon className="h-5 w-5 text-blue-500 mt-0.5 shrink-0" />
           <div>
             <p className="text-sm font-medium text-blue-800 mb-2">
               CSV-Format: Trennzeichen Semikolon (;) oder Komma (,), UTF-8, mit Header-Zeile
@@ -225,7 +225,7 @@ export function DataImportSettings() {
           <DocumentTextIcon className="h-4 w-4" /> Beispiel-CSV anzeigen
         </summary>
         <div className="px-4 pb-3">
-          <pre className="text-xs bg-white border rounded p-3 overflow-x-auto font-mono">
+          <pre className="text-xs bg-white border rounded-sm p-3 overflow-x-auto font-mono">
             {columns.map(c => c.name).join(';')}{'\n'}
             {columns.map(c => c.example).join(';')}
           </pre>

@@ -114,7 +114,7 @@ function EventDetailsTab({ event, onSave, saving, canEdit }: EditableTabProps) {
         <div className="col-span-full">
           <label className="block text-sm font-medium text-gray-700 mb-1.5">Notizen</label>
           <textarea value={form.notes} onChange={e => u('notes', e.target.value)} rows={3}
-            className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none disabled:bg-gray-50" />
+            className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-hidden disabled:bg-gray-50" />
         </div>
       </fieldset>
       {canEdit && (
@@ -152,7 +152,7 @@ function EventUebungTab({ event, onSave, saving, canEdit }: EditableTabProps) {
       <Card title="Übung">
         <label className="flex items-center gap-2 text-sm text-gray-700">
           <input type="checkbox" checked={isAgtExercise} onChange={e => setIsAgtExercise(e.target.checked)}
-            disabled={!canEdit} className="rounded border-gray-300" />
+            disabled={!canEdit} className="rounded-sm border-gray-300" />
           AGT-Übung
         </label>
         {canEdit && (

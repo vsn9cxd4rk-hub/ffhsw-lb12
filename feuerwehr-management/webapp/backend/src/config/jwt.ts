@@ -42,12 +42,13 @@ export function signAccessToken(payload: JwtPayload): string {
   return jwt.sign(payload, accessSecret(), { expiresIn: ACCESS_EXPIRES } as jwt.SignOptions);
 }
 
-export function verifyAccessToken(token: string): JwtPayload {
-  return jwt.verify(token, accessSecret()) as JwtPayload;
+export function verifyAccessToken(token: string, options: { ignoreExpiration?: boolean } = {}): JwtPayload {
+  return jwt.verify(token, accessSecret(), options) as JwtPayload;
 }
 
-// Refresh tokens are opaque random values stored (hashed) in the DB, not JWTs;
-// JWT_REFRESH_EXPIRES only sets their lifetime in days.
+// Refresh tokens are opaque random values stored (hashed) in the DB, not JWTs.
+// JWT_REFRESH_EXPIRES sets in days how long a session survives without use; every refresh
+// starts the period again.
 export function getRefreshTokenExpiry(): Date {
   const days = parseInt(REFRESH_EXPIRES.replace('d', ''), 10) || 7;
   const expiry = new Date();

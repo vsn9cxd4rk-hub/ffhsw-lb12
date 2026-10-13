@@ -71,7 +71,7 @@ function DueTab({ onInspect, search }: { onInspect: (article: Article) => void; 
           <label className="block text-sm font-medium text-gray-700 mb-1">Geräteklasse</label>
           <select value={deviceClassId}
             onChange={(e) => { setDeviceClassId(e.target.value ? parseInt(e.target.value) : ''); setDeviceSubclassId(''); }}
-            className="block w-56 px-3 py-2 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none bg-white">
+            className="block w-56 px-3 py-2 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-hidden bg-white">
             <option value="">Alle Geräteklassen</option>
             {deviceClasses.map(dc => <option key={dc.id} value={dc.id}>{dc.name}</option>)}
           </select>
@@ -81,14 +81,14 @@ function DueTab({ onInspect, search }: { onInspect: (article: Article) => void; 
           <select value={deviceSubclassId}
             onChange={(e) => setDeviceSubclassId(e.target.value ? parseInt(e.target.value) : '')}
             disabled={!deviceClassId}
-            className="block w-56 px-3 py-2 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none bg-white disabled:bg-gray-100">
+            className="block w-56 px-3 py-2 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-hidden bg-white disabled:bg-gray-100">
             <option value="">Alle Unterklassen</option>
             {selectedClass?.subclasses?.map(sc => <option key={sc.id} value={sc.id}>{sc.name}</option>)}
           </select>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+      <div className="bg-white rounded-lg shadow-xs border border-gray-200">
         <Table
           columns={columns}
           data={dueArticles || []}
@@ -143,14 +143,14 @@ function HistoryTab({ search, onEdit }: { search: string; onEdit: (inspection: A
     { key: 'nextDueDate', header: 'Nächste Prüfung', sortable: true, sortValue: (i: ArticleInspection) => i.nextDueDate || '', render: (i: ArticleInspection) => i.nextDueDate ? formatDate(i.nextDueDate) : '-' },
     { key: 'actions', header: '', render: (i: ArticleInspection) => (
       <button onClick={(e) => { e.stopPropagation(); onEdit(i); }}
-        className="p-1.5 text-gray-400 hover:text-primary-600 rounded hover:bg-gray-100" title="Prüfung bearbeiten">
+        className="p-1.5 text-gray-400 hover:text-primary-600 rounded-sm hover:bg-gray-100" title="Prüfung bearbeiten">
         <PencilIcon className="h-4 w-4" />
       </button>
     )},
   ];
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+    <div className="bg-white rounded-lg shadow-xs border border-gray-200">
       <Table
         columns={columns}
         data={data?.data || []}

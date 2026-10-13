@@ -22,7 +22,7 @@ function StatCard({ icon: Icon, label, value, color }: {
   color: string;
 }) {
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <div className="bg-white rounded-lg shadow-xs border border-gray-200 p-6">
       <div className="flex items-center gap-4">
         <div className={`p-3 rounded-lg ${color}`}>
           <Icon className="h-6 w-6 text-white" />
@@ -72,7 +72,7 @@ export function DashboardPage() {
               {stats?.recentOperations?.map((op) => (
                 <li
                   key={op.id}
-                  className="py-3 flex items-center justify-between cursor-pointer hover:bg-gray-50 -mx-2 px-2 rounded"
+                  className="py-3 flex items-center justify-between cursor-pointer hover:bg-gray-50 -mx-2 px-2 rounded-sm"
                   onClick={() => navigate(`/operations/${op.id}`)}
                 >
                   <div>
@@ -124,6 +124,9 @@ export function DashboardPage() {
                         </li>
                       ))}
                     </ul>
+                    {stats.upcomingInspections.length > 5 && (
+                      <p className="mt-2 text-xs text-gray-500">+ {stats.upcomingInspections.length - 5} weitere</p>
+                    )}
                   </div>
                 )}
                 {stats?.upcomingMedicalExams && stats.upcomingMedicalExams.length > 0 && (
@@ -135,11 +138,15 @@ export function DashboardPage() {
                           <span className="text-gray-700">{exam.memberName}</span>
                           <div className="flex items-center gap-2">
                             <Badge variant="info">{exam.examType}</Badge>
+                            {exam.status === 'red' && <Badge variant="danger">Überfällig</Badge>}
                             <span className="text-gray-500 text-xs">{formatDate(exam.dueDate)}</span>
                           </div>
                         </li>
                       ))}
                     </ul>
+                    {stats.upcomingMedicalExams.length > 5 && (
+                      <p className="mt-2 text-xs text-gray-500">+ {stats.upcomingMedicalExams.length - 5} weitere</p>
+                    )}
                   </div>
                 )}
               </div>

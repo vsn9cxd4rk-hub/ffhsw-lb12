@@ -28,7 +28,6 @@ services:
       DATABASE_URL: mysql://${DB_USER:-feuerwehr}:${DB_PASSWORD:?DB_PASSWORD muss in .env gesetzt sein}@db:3306/${DB_NAME:-feuerwehrmanagementsystem}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost}
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?JWT_ACCESS_SECRET muss in .env gesetzt sein}
-      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?JWT_REFRESH_SECRET muss in .env gesetzt sein}
       JWT_ACCESS_EXPIRES: ${JWT_ACCESS_EXPIRES:-15m}
       JWT_REFRESH_EXPIRES: ${JWT_REFRESH_EXPIRES:-7d}
       LOG_LEVEL: ${LOG_LEVEL:-info}

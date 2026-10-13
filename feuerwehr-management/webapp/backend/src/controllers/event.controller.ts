@@ -4,7 +4,7 @@ import { sendSuccess, sendError, sendPaginated } from '../utils/response';
 import { getPagination } from '../utils/pagination';
 import { convertDates } from '../utils/dates';
 import { pickWritable } from '../utils/body';
-import { recordUploadDir, removeUpload, sendUpload } from '../utils/files';
+import { recordUploadDir, removeUpload, sendUpload, toStoredPath } from '../utils/files';
 import { createUpload, discardUpload } from '../utils/upload';
 
 const EVENT_DATE_FIELDS = ['date'];
@@ -251,7 +251,7 @@ export async function uploadEventDocument(req: Request, res: Response): Promise<
       data: {
         eventId,
         fileName: req.file.originalname,
-        filePath: req.file.path,
+        filePath: toStoredPath(req.file.path),
         fileSize: req.file.size,
         mimeType: req.file.mimetype,
         uploadedBy: req.user?.username || 'System',

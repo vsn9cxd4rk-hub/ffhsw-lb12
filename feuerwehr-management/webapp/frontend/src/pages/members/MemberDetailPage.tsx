@@ -250,7 +250,7 @@ function StammdatenTab({ member, groups, onSave, saving, prevMemberId, nextMembe
         </div>
         <div className="col-span-full flex items-center gap-2">
           <input type="checkbox" id="isInactive" checked={form.isInactive}
-            onChange={(e) => update('isInactive', e.target.checked)} className="rounded" />
+            onChange={(e) => update('isInactive', e.target.checked)} className="rounded-sm" />
           <label htmlFor="isInactive" className="text-sm text-gray-700">Außer Dienst</label>
         </div>
 
@@ -276,7 +276,7 @@ function StammdatenTab({ member, groups, onSave, saving, prevMemberId, nextMembe
             ] as const).map(([key, label]) => (
               <div key={key} className="flex items-center gap-2">
                 <input type="checkbox" id={key} checked={(form as Record<string, unknown>)[key] as boolean}
-                  onChange={(e) => update(key, e.target.checked)} className="rounded" />
+                  onChange={(e) => update(key, e.target.checked)} className="rounded-sm" />
                 <label htmlFor={key} className="text-sm text-gray-700">{label}</label>
               </div>
             ))}
@@ -568,7 +568,7 @@ function LaufbahnTab({ courses, memberId }: { courses: Array<{ id: number; categ
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Lehrgang</label>
             <select value={form.categoryId} onChange={(e) => u('categoryId', e.target.value)}
-              className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none bg-white">
+              className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-hidden bg-white">
               <option value="">-- Bitte wählen --</option>
               {(categories || []).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
@@ -693,7 +693,7 @@ function AbsenceFormModal({ isOpen, onClose, memberId, entry, reasons }: {
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">Grund</label>
           <select value={form.reason} onChange={(e) => u('reason', e.target.value)}
-            className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none bg-white">
+            className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-hidden bg-white">
             <option value="">-- Bitte wählen --</option>
             {reasons.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
           </select>

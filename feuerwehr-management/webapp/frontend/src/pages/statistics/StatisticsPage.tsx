@@ -7,7 +7,6 @@ import {
   Line,
   PieChart,
   Pie,
-  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -60,7 +59,7 @@ function StatCard({
   color: string;
 }) {
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <div className="bg-white rounded-lg shadow-xs border border-gray-200 p-6">
       <div className="flex items-center gap-4">
         <div className={`p-3 rounded-lg ${color}`}>
           <Icon className="h-6 w-6 text-white" />
@@ -130,7 +129,7 @@ export function StatisticsPage() {
         <select
           value={year}
           onChange={(e) => setYear(Number(e.target.value))}
-          className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+          className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-hidden focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
         >
           {Array.from({ length: 6 }, (_, i) => currentYear - i).map((y) => (
             <option key={y} value={y}>
@@ -188,7 +187,7 @@ export function StatisticsPage() {
                 <XAxis type="number" allowDecimals={false} />
                 <YAxis dataKey="district" type="category" width={100} tick={{ fontSize: 12 }} />
                 <Tooltip
-                  formatter={(value: number, _name: string, props: any) => [
+                  formatter={(value, _name, props) => [
                     `${value} (${props.payload.percent}%)`,
                     'Einsätze',
                   ]}
@@ -221,20 +220,17 @@ export function StatisticsPage() {
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={data.byResult}
+                  // Pie takes each slice's color from its `fill` field
+                  data={data.byResult.map((entry, index) => ({ ...entry, fill: PIE_COLORS[index % PIE_COLORS.length] }))}
                   dataKey="count"
                   nameKey="result"
                   cx="50%"
                   cy="50%"
                   outerRadius={100}
                   label={({ result, percent }) => `${result} (${percent}%)`}
-                >
-                  {data.byResult.map((_entry, index) => (
-                    <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                  ))}
-                </Pie>
+                />
                 <Tooltip
-                  formatter={(value: number, _name: string, props: any) => [
+                  formatter={(value, _name, props) => [
                     `${value} (${props.payload.percent}%)`,
                     props.payload.result,
                   ]}

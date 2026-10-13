@@ -57,6 +57,12 @@ else
 fi
 
 info "Quellverzeichnis: $SOURCE_DIR"
+
+# Ab 1.4.0 (nodemailer 10, Tailwind CSS 4) wird Node.js 20 oder neuer benötigt
+NODE_MAJOR="$(node -v 2>/dev/null | sed -E 's/^v([0-9]+).*/\1/')"
+[[ -z "$NODE_MAJOR" || "$NODE_MAJOR" -lt 20 ]] && \
+  error "Node.js 20 oder neuer erforderlich (installiert: $(node -v 2>/dev/null || echo keins)). Manjaro: sudo pacman -S nodejs npm"
+info "Node.js: $(node -v)"
 echo ""
 read -p "Update durchführen? Vorher wird ein Backup erstellt. [j/N]: " CONFIRM
 [[ "${CONFIRM,,}" != "j" && "${CONFIRM,,}" != "y" ]] && { info "Abgebrochen."; exit 0; }
@@ -86,8 +92,9 @@ rsync -a --delete \
 
 cd "${APP_DIR}/backend"
 
+# Build braucht die devDependencies (TypeScript, Prisma-CLI); danach werden sie entfernt
 info "  npm-Abhängigkeiten werden installiert..."
-npm ci --omit=dev 2>/dev/null || npm install --production
+npm ci
 
 info "  Prisma Client wird generiert..."
 npx prisma generate
@@ -95,8 +102,18 @@ npx prisma generate
 info "  TypeScript wird kompiliert..."
 npm run build
 
+# Schemaänderungen kommen als idempotente SQL-Skripte (deploy/migrate-<von>-to-<nach>.sql).
+# prisma db push ist hier ungeeignet: Es würde die über init-db.sql angelegten
+# Bestandstabellen umbauen und scheitert an FK-Indizes bzw. events.bswData.
 info "  Datenbankmigrationen werden ausgeführt..."
-npx prisma migrate deploy 2>/dev/null || npx prisma db push
+shopt -s nullglob
+for migration in "${SOURCE_DIR}"/deploy/migrate-1.3.x-to-*.sql; do
+  info "    $(basename "$migration")"
+  npx prisma db execute --file "$migration" --schema prisma/schema.prisma
+done
+shopt -u nullglob
+
+npm prune --omit=dev
 
 success "Backend aktualisiert"
 

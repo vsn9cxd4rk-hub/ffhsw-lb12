@@ -16,7 +16,7 @@ Läuft als drei Container (nginx+Frontend, Backend, MySQL) über Docker Compose.
 cd deploy/docker
 cp .env.example .env
 # .env öffnen und mindestens DB_PASSWORD, DB_ROOT_PASSWORD,
-# JWT_ACCESS_SECRET, JWT_REFRESH_SECRET setzen (min. 32 Zeichen für die JWT-Secrets)
+# JWT_ACCESS_SECRET setzen (zufällig, min. 32 Zeichen)
 
 ./build.sh
 docker compose up -d

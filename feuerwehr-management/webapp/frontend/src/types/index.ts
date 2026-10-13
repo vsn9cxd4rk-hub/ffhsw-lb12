@@ -377,10 +377,11 @@ export interface Operation {
   deceasedFirefighters: number;
   createdByName: string | null;
   authorRole: string | null;
+  /** Actual commander when the author was only Einheitenführer (free text) */
+  commanderName: string | null;
   operationResult: string | null;
   wasActivelyInvolved: boolean;
   times?: OperationTime[];
-  reports?: OperationReport[];
   personnel?: OperationPersonnel[];
 }
 
@@ -424,14 +425,6 @@ export interface OperationDocument {
   fileSize: number;
   mimeType: string;
   uploadedBy: string;
-  createdAt: string;
-}
-
-export interface OperationReport {
-  id: number;
-  operationId: number;
-  content: string;
-  createdBy: string;
   createdAt: string;
 }
 
@@ -567,7 +560,7 @@ export interface DashboardStats {
   operationsThisYear: number;
   recentOperations: Array<{ id: number; date: string; location: string; keyword: string | null; leaderCount: number; memberCount: number }>;
   upcomingInspections: Array<{ type: string; entityName: string; dueDate: string; status: 'green' | 'yellow' | 'red'; articleId?: number }>;
-  upcomingMedicalExams: Array<{ memberName: string; examType: string; dueDate: string }>;
+  upcomingMedicalExams: Array<{ memberName: string; examType: string; dueDate: string; status: 'yellow' | 'red' }>;
 }
 
 export interface PaginatedResponse<T> {

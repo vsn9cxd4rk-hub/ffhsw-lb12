@@ -34,7 +34,7 @@ export function Pagination({ page, pages, total, limit, onPageChange }: Paginati
         <button
           onClick={() => onPageChange(page - 1)}
           disabled={page === 1}
-          className="p-1.5 rounded text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+          className="p-1.5 rounded-sm text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
         >
           <ChevronLeftIcon className="h-4 w-4" />
         </button>
@@ -46,7 +46,7 @@ export function Pagination({ page, pages, total, limit, onPageChange }: Paginati
               key={num}
               onClick={() => onPageChange(num as number)}
               className={cn(
-                'px-3 py-1.5 rounded text-sm font-medium transition-colors',
+                'px-3 py-1.5 rounded-sm text-sm font-medium transition-colors',
                 num === page
                   ? 'bg-primary-600 text-white'
                   : 'text-gray-700 hover:bg-gray-100'
@@ -59,7 +59,7 @@ export function Pagination({ page, pages, total, limit, onPageChange }: Paginati
         <button
           onClick={() => onPageChange(page + 1)}
           disabled={page === pages}
-          className="p-1.5 rounded text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+          className="p-1.5 rounded-sm text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
         >
           <ChevronRightIcon className="h-4 w-4" />
         </button>

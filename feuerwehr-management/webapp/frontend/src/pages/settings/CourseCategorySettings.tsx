@@ -93,7 +93,7 @@ export function CourseCategorySettings() {
               <select
                 value={form.qualificationField}
                 onChange={(e) => setForm(p => ({ ...p, qualificationField: e.target.value }))}
-                className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none bg-white"
+                className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-hidden bg-white"
               >
                 {QUALIFICATION_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>

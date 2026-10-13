@@ -678,6 +678,10 @@ model Operation {
   deceasedFirefighters Int      @default(0)
   createdByName       String?   @db.VarChar(100)
   authorRole          String?   @db.VarChar(50)
+  // Tatsächlicher Einsatzleiter, wenn der Ersteller nur Einheitenführer war (Freitext,
+  // auch für Einsatzleiter anderer Löschbezirke). Bei authorRole "Einsatzleiter" ist es
+  // der Ersteller selbst; das Feld bleibt dann leer.
+  commanderName       String?   @db.VarChar(100)
   operationResult     String?   @db.VarChar(30)
   wasActivelyInvolved Boolean   @default(true)
   createdAt       DateTime  @default(now())
@@ -708,6 +712,8 @@ model OperationTime {
   @@map("operation_times")
 }
 
+// Freitext aus dem früheren Tab "Bericht" (bis 1.3.x). Seit 1.4.0 ohne Oberfläche und API;
+// die Tabelle bleibt für Altdaten und ein Rollback auf 1.3.x erhalten.
 model OperationReport {
   id          Int      @id @default(autoincrement())
   operationId Int

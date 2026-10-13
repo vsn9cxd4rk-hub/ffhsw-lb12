@@ -5,7 +5,7 @@ import { sendSuccess, sendError, sendPaginated } from '../utils/response';
 import { getPagination } from '../utils/pagination';
 import { convertDates } from '../utils/dates';
 import { pickWritable } from '../utils/body';
-import { categoryUploadDir, removeUpload, sendUpload } from '../utils/files';
+import { categoryUploadDir, removeUpload, sendUpload, toStoredPath } from '../utils/files';
 import { createUpload, discardUpload } from '../utils/upload';
 
 const COURSE_DATE_FIELDS = ['startDate', 'endDate'];
@@ -113,7 +113,7 @@ export async function uploadCertificate(req: Request, res: Response): Promise<vo
 
     const updated = await prisma.course.update({
       where: { id },
-      data: { certificatePath: req.file.path },
+      data: { certificatePath: toStoredPath(req.file.path) },
       include: { category: true, member: { select: { id: true, firstName: true, lastName: true, rank: true } } },
     });
 

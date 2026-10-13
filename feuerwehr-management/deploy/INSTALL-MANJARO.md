@@ -19,7 +19,7 @@ sudo pacman -Syu
 # Benoetigte Pakete installieren
 sudo pacman -S nodejs npm mysql nginx git base-devel
 
-# Node.js Version pruefen (mindestens v18, empfohlen v20+)
+# Node.js Version pruefen (mindestens v20)
 node --version
 npm --version
 ```
@@ -134,7 +134,6 @@ DATABASE_URL="mysql://FFWVSLB12:Ffw%23VSLB12!25@localhost:3306/FFWVSLB12"
 # JWT Secrets - mindestens 32 Zeichen, fuer Produktion zufaellig generieren!
 # Generieren mit: openssl rand -hex 32
 JWT_ACCESS_SECRET=<hier-zufaelligen-hex-string-einfuegen>
-JWT_REFRESH_SECRET=<hier-anderen-zufaelligen-hex-string-einfuegen>
 JWT_ACCESS_EXPIRES=15m
 JWT_REFRESH_EXPIRES=7d
 

@@ -154,7 +154,7 @@ function ArticleFormModal({ isOpen, onClose, warehouses, article, deviceClasses 
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Geräteklasse</label>
             <select value={form.deviceClassId}
               onChange={(e) => { u('deviceClassId', e.target.value); u('deviceSubclassId', ''); }}
-              className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none bg-white">
+              className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-hidden bg-white">
               <option value="">-- Keine --</option>
               {deviceClasses.map(dc => <option key={dc.id} value={dc.id}>{dc.name}</option>)}
             </select>
@@ -164,7 +164,7 @@ function ArticleFormModal({ isOpen, onClose, warehouses, article, deviceClasses 
             <select value={form.deviceSubclassId}
               onChange={(e) => u('deviceSubclassId', e.target.value)}
               disabled={!form.deviceClassId}
-              className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none bg-white disabled:bg-gray-100">
+              className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-hidden bg-white disabled:bg-gray-100">
               <option value="">-- Keine --</option>
               {subclasses.map(sc => <option key={sc.id} value={sc.id}>{sc.name}</option>)}
             </select>
@@ -175,7 +175,7 @@ function ArticleFormModal({ isOpen, onClose, warehouses, article, deviceClasses 
           <select
             value={form.warehouseId}
             onChange={(e) => u('warehouseId', e.target.value)}
-            className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none bg-white"
+            className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-hidden bg-white"
           >
             <option value="">-- Kein Lagerort --</option>
             {fixedWarehouses.length > 0 && (
@@ -276,11 +276,11 @@ export function InventoryPage() {
     { key: 'actions', header: '', render: (a: Article) => (
       <div className="flex items-center gap-1">
         <button onClick={(e) => { e.stopPropagation(); setInspectArticle(a); setShowInspection(true); }}
-          className="p-1.5 text-gray-400 hover:text-green-600 rounded hover:bg-gray-100" title="Prüfung durchführen">
+          className="p-1.5 text-gray-400 hover:text-green-600 rounded-sm hover:bg-gray-100" title="Prüfung durchführen">
           <ClipboardDocumentCheckIcon className="h-4 w-4" />
         </button>
         <button onClick={(e) => { e.stopPropagation(); openEdit(a); }}
-          className="p-1.5 text-gray-400 hover:text-primary-600 rounded hover:bg-gray-100" title="Artikel bearbeiten">
+          className="p-1.5 text-gray-400 hover:text-primary-600 rounded-sm hover:bg-gray-100" title="Artikel bearbeiten">
           <PencilIcon className="h-4 w-4" />
         </button>
       </div>
@@ -291,20 +291,20 @@ export function InventoryPage() {
     <div className="space-y-4">
       <div className="flex gap-4">
         {/* Filter sidebar */}
-        <div className="w-48 flex-shrink-0 space-y-4">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3">
+        <div className="w-48 shrink-0 space-y-4">
+          <div className="bg-white rounded-lg shadow-xs border border-gray-200 p-3">
             <h3 className="text-xs font-semibold text-gray-500 uppercase mb-2">Lager</h3>
             <ul className="space-y-1">
               <li>
                 <button onClick={() => { setSelectedWarehouse(null); setPage(1); }}
-                  className={`w-full text-left px-2 py-1.5 rounded text-sm ${!selectedWarehouse ? 'bg-primary-50 text-primary-700 font-medium' : 'text-gray-700 hover:bg-gray-50'}`}>
+                  className={`w-full text-left px-2 py-1.5 rounded-sm text-sm ${!selectedWarehouse ? 'bg-primary-50 text-primary-700 font-medium' : 'text-gray-700 hover:bg-gray-50'}`}>
                   Alle
                 </button>
               </li>
               {(warehouses || []).map((w: Warehouse) => (
                 <li key={w.id}>
                   <button onClick={() => { setSelectedWarehouse(w.id); setPage(1); }}
-                    className={`w-full text-left px-2 py-1.5 rounded text-sm ${selectedWarehouse === w.id ? 'bg-primary-50 text-primary-700 font-medium' : 'text-gray-700 hover:bg-gray-50'}`}>
+                    className={`w-full text-left px-2 py-1.5 rounded-sm text-sm ${selectedWarehouse === w.id ? 'bg-primary-50 text-primary-700 font-medium' : 'text-gray-700 hover:bg-gray-50'}`}>
                     {w.name}
                   </button>
                 </li>
@@ -312,19 +312,19 @@ export function InventoryPage() {
             </ul>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3">
+          <div className="bg-white rounded-lg shadow-xs border border-gray-200 p-3">
             <h3 className="text-xs font-semibold text-gray-500 uppercase mb-2">Geräteklasse</h3>
             <ul className="space-y-1">
               <li>
                 <button onClick={() => { setSelectedDeviceClass(null); setPage(1); }}
-                  className={`w-full text-left px-2 py-1.5 rounded text-sm ${!selectedDeviceClass ? 'bg-primary-50 text-primary-700 font-medium' : 'text-gray-700 hover:bg-gray-50'}`}>
+                  className={`w-full text-left px-2 py-1.5 rounded-sm text-sm ${!selectedDeviceClass ? 'bg-primary-50 text-primary-700 font-medium' : 'text-gray-700 hover:bg-gray-50'}`}>
                   Alle
                 </button>
               </li>
               {deviceClasses.map(dc => (
                 <li key={dc.id}>
                   <button onClick={() => { setSelectedDeviceClass(dc.id); setPage(1); }}
-                    className={`w-full text-left px-2 py-1.5 rounded text-sm truncate ${selectedDeviceClass === dc.id ? 'bg-primary-50 text-primary-700 font-medium' : 'text-gray-700 hover:bg-gray-50'}`}>
+                    className={`w-full text-left px-2 py-1.5 rounded-sm text-sm truncate ${selectedDeviceClass === dc.id ? 'bg-primary-50 text-primary-700 font-medium' : 'text-gray-700 hover:bg-gray-50'}`}>
                     {dc.name}
                   </button>
                 </li>
@@ -354,7 +354,7 @@ export function InventoryPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="bg-white rounded-lg shadow-xs border border-gray-200">
             <Table
               columns={columns}
               data={data?.data || []}

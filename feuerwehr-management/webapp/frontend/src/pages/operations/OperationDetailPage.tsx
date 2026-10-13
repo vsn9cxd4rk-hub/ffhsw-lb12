@@ -20,7 +20,7 @@ export function OperationDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [tab, setTab] = useState<'details' | 'times' | 'personnel' | 'report' | 'documents'>('details');
+  const [tab, setTab] = useState<'details' | 'times' | 'personnel' | 'documents'>('details');
 
   const { data: op, isLoading } = useQuery({
     queryKey: ['operation', id],
@@ -47,7 +47,7 @@ export function OperationDetailPage() {
 
       <div className="border-b border-gray-200">
         <nav className="flex gap-4 -mb-px">
-          {[{ id: 'details', label: 'Details' }, { id: 'times', label: 'Fahrzeugzeiten' }, { id: 'personnel', label: 'Kräfte' }, { id: 'report', label: 'Bericht' }, { id: 'documents', label: 'Dokumente' }].map((t) => (
+          {[{ id: 'details', label: 'Details' }, { id: 'times', label: 'Fahrzeugzeiten' }, { id: 'personnel', label: 'Kräfte' }, { id: 'documents', label: 'Dokumente' }].map((t) => (
             <button key={t.id} onClick={() => setTab(t.id as typeof tab)}
               className={`pb-3 px-1 text-sm font-medium border-b-2 transition-colors ${tab === t.id ? 'border-primary-600 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
               {t.label}
@@ -61,10 +61,10 @@ export function OperationDetailPage() {
         <OperationTimesTab
           operationId={parseInt(id!)}
           times={op.times || []}
+          operationAlarmTime={op.alarmTime}
         />
       )}
       {tab === 'personnel' && <OperationPersonnelTab operationId={parseInt(id!)} times={op.times || []} />}
-      {tab === 'report' && <OperationReportTab operationId={parseInt(id!)} report={op.reports?.[0]} />}
       {tab === 'documents' && <OperationDocumentsTab operationId={parseInt(id!)} />}
     </div>
   );
@@ -92,13 +92,11 @@ const EINSATZSTICHWORTE = [
   'SONSTIGES nicht aufgefuhrt',
 ];
 
+const AUTHOR_ROLE_COMMANDER = 'Einsatzleiter';
+
 function OperationDetailsTab({ op, onSave, saving }: { op: Operation; onSave: (d: Partial<Operation>) => void; saving: boolean }) {
   const [form, setForm] = useState({
     date: op.date.substring(0, 10),
-    alarmTime: op.alarmTime || '',
-    departureTime: op.departureTime || '',
-    arrivalTime: op.arrivalTime || '',
-    returnTime: op.returnTime || '',
     location: op.location,
     district: op.district || '',
     keyword: op.keyword || '',
@@ -117,12 +115,24 @@ function OperationDetailsTab({ op, onSave, saving }: { op: Operation; onSave: (d
     deceasedPersons: String(op.deceasedPersons || 0),
     deceasedFirefighters: String(op.deceasedFirefighters || 0),
     createdByName: op.createdByName || '',
-    authorRole: op.authorRole || 'Einsatzleiter',
+    authorRole: op.authorRole || AUTHOR_ROLE_COMMANDER,
+    commanderName: op.commanderName || '',
     operationResult: op.operationResult || '',
     wasActivelyInvolved: op.wasActivelyInvolved !== false ? 'JA' : 'NEIN',
   });
 
   const u = (f: string, v: string) => setForm(p => ({ ...p, [f]: v }));
+
+  // Only an Einheitenführer reports to a separate Einsatzleiter
+  const needsCommander = form.authorRole !== AUTHOR_ROLE_COMMANDER;
+  const commanderMissing = needsCommander && !form.commanderName.trim();
+
+  // Suggestions for Ersteller/Einsatzleiter; free text stays possible for other Löschbezirke
+  const { data: members } = useQuery({
+    queryKey: ['members-list'],
+    queryFn: () => membersApi.getAll({ limit: 200 }).then(r => r.data.data?.items || r.data.data || []),
+  });
+  const memberNames: string[] = [...new Set<string>((members || []).map((m: { firstName: string; lastName: string }) => `${m.firstName} ${m.lastName}`))].sort();
 
   const selectedTypes = form.operationType ? form.operationType.split(',').map(t => t.trim()) : [];
   const toggleOpType = (type: string) => {
@@ -137,23 +147,20 @@ function OperationDetailsTab({ op, onSave, saving }: { op: Operation; onSave: (d
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Input label="Datum" value={form.date} onChange={(e) => u('date', e.target.value)} type="date" />
         <Input label="Einsatznummer" value={form.operationNumber} onChange={(e) => u('operationNumber', e.target.value)} />
-        <Input label="Alarmzeit" value={form.alarmTime} onChange={(e) => u('alarmTime', e.target.value)} type="time" />
-        <Input label="Ausgerückt" value={form.departureTime} onChange={(e) => u('departureTime', e.target.value)} type="time" />
-        <Input label="Eingetroffen" value={form.arrivalTime} onChange={(e) => u('arrivalTime', e.target.value)} type="time" />
-        <Input label="Eingerückt" value={form.returnTime} onChange={(e) => u('returnTime', e.target.value)} type="time" />
         <Input label="Einsatzort" value={form.location} onChange={(e) => u('location', e.target.value)} required />
         <Input label="Stadtteil" value={form.district} onChange={(e) => u('district', e.target.value)} />
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Einsatzstichwort</label>
-          <select value={form.keyword} onChange={(e) => u('keyword', e.target.value)} className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
+          <select value={form.keyword} onChange={(e) => u('keyword', e.target.value)} className="w-full rounded-md border-gray-300 shadow-xs focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
             <option value="">-- Stichwort auswählen --</option>
             {EINSATZSTICHWORTE.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
         </div>
         <div className="md:col-span-2">
           <p className="text-sm text-gray-500">
-            Fahrzeuge und Stärke werden pro Fahrzeug im Tab „Fahrzeugzeiten" gepflegt
-            (aktuell: {(op.vehicles || '-')}, Gesamtstärke {op.leaderCount}/{op.memberCount}).
+            Fahrzeuge, Stärke und Zeiten (Alarm, Ausgerückt, Eingetroffen, Eingerückt) werden pro
+            Fahrzeug im Tab „Fahrzeugzeiten" gepflegt (aktuell: {(op.vehicles || '-')}, Gesamtstärke{' '}
+            {op.leaderCount}/{op.memberCount}, Alarmzeit {op.alarmTime || '-'}).
           </p>
         </div>
 
@@ -163,23 +170,42 @@ function OperationDetailsTab({ op, onSave, saving }: { op: Operation; onSave: (d
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Berichtsart</label>
-          <select value={form.reportType} onChange={(e) => u('reportType', e.target.value)} className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
+          <select value={form.reportType} onChange={(e) => u('reportType', e.target.value)} className="w-full rounded-md border-gray-300 shadow-xs focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
             <option value="Einsatzbericht">Einsatzbericht</option>
             <option value="Tätigkeitsbericht">Tätigkeitsbericht</option>
           </select>
         </div>
         <Input label="ILS Auftragsnummer" value={form.ilsOrderNumber} onChange={(e) => u('ilsOrderNumber', e.target.value)} />
-        <Input label="Ersteller" value={form.createdByName} onChange={(e) => u('createdByName', e.target.value)} />
+        <Input label="Ersteller" value={form.createdByName} onChange={(e) => u('createdByName', e.target.value)} list="operation-member-names" />
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Rolle des Erstellers</label>
-          <select value={form.authorRole} onChange={(e) => u('authorRole', e.target.value)} className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
-            <option value="Einsatzleiter">Einsatzleiter</option>
+          <label htmlFor="operation-author-role" className="block text-sm font-medium text-gray-700 mb-1">Rolle des Erstellers</label>
+          <select id="operation-author-role" value={form.authorRole} onChange={(e) => u('authorRole', e.target.value)} className="w-full rounded-md border-gray-300 shadow-xs focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
+            <option value={AUTHOR_ROLE_COMMANDER}>Einsatzleiter</option>
             <option value="Einheitenführer LB Wahlschied">Einheitenführer LB Wahlschied</option>
           </select>
+          {!needsCommander && (
+            <p className="mt-1 text-xs text-gray-500">Der Ersteller wird im Bericht auch als Einsatzleiter eingetragen.</p>
+          )}
         </div>
+        {needsCommander && (
+          <div className="md:col-span-2">
+            <Input
+              label="Einsatzleiter"
+              value={form.commanderName}
+              onChange={(e) => u('commanderName', e.target.value)}
+              list="operation-member-names"
+              placeholder="Vorname Nachname (auch aus anderem Löschbezirk)"
+              required
+              error={commanderMissing ? 'Bitte den tatsächlichen Einsatzleiter eintragen.' : undefined}
+            />
+          </div>
+        )}
+        <datalist id="operation-member-names">
+          {memberNames.map((name) => <option key={name} value={name} />)}
+        </datalist>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Einsatzresultat</label>
-          <select value={form.operationResult} onChange={(e) => u('operationResult', e.target.value)} className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
+          <select value={form.operationResult} onChange={(e) => u('operationResult', e.target.value)} className="w-full rounded-md border-gray-300 shadow-xs focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
             <option value="">-- Auswählen --</option>
             <option value="Brand Real">Brand Real</option>
             <option value="THL Real">THL Real</option>
@@ -190,7 +216,7 @@ function OperationDetailsTab({ op, onSave, saving }: { op: Operation; onSave: (d
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">LB aktiv tätig gewesen?</label>
-          <select value={form.wasActivelyInvolved} onChange={(e) => u('wasActivelyInvolved', e.target.value)} className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
+          <select value={form.wasActivelyInvolved} onChange={(e) => u('wasActivelyInvolved', e.target.value)} className="w-full rounded-md border-gray-300 shadow-xs focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
             <option value="JA">Ja</option>
             <option value="NEIN">Nein</option>
           </select>
@@ -220,7 +246,7 @@ function OperationDetailsTab({ op, onSave, saving }: { op: Operation; onSave: (d
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
             {OPERATION_TYPES.map(type => (
               <label key={type} className="flex items-center gap-2 text-sm cursor-pointer">
-                <input type="checkbox" checked={selectedTypes.includes(type)} onChange={() => toggleOpType(type)} className="rounded border-gray-300 text-primary-600 focus:ring-primary-500" />
+                <input type="checkbox" checked={selectedTypes.includes(type)} onChange={() => toggleOpType(type)} className="rounded-sm border-gray-300 text-primary-600 focus:ring-primary-500" />
                 {type}
               </label>
             ))}
@@ -236,8 +262,9 @@ function OperationDetailsTab({ op, onSave, saving }: { op: Operation; onSave: (d
         <Input label="FW tot" value={form.deceasedFirefighters} onChange={(e) => u('deceasedFirefighters', e.target.value)} type="number" />
       </div>
       <div className="mt-6 flex justify-end">
-        <Button variant="primary" onClick={() => onSave({
+        <Button variant="primary" disabled={commanderMissing} onClick={() => onSave({
           ...form,
+          commanderName: needsCommander ? form.commanderName.trim() : null,
           rescuedPersons: parseInt(form.rescuedPersons) || 0,
           injuredFirefighters: parseInt(form.injuredFirefighters) || 0,
           deceasedPersons: parseInt(form.deceasedPersons) || 0,
@@ -251,7 +278,7 @@ function OperationDetailsTab({ op, onSave, saving }: { op: Operation; onSave: (d
   );
 }
 
-function OperationTimesTab({ operationId, times }: { operationId: number; times: OperationTime[] }) {
+function OperationTimesTab({ operationId, times, operationAlarmTime }: { operationId: number; times: OperationTime[]; operationAlarmTime: string | null }) {
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -259,7 +286,9 @@ function OperationTimesTab({ operationId, times }: { operationId: number; times:
   const [form, setForm] = useState(emptyForm);
 
   const closeForm = () => { setShowForm(false); setEditingId(null); setForm(emptyForm); };
-  const openAdd = () => { setEditingId(null); setForm(emptyForm); setShowForm(true); };
+  // Vehicles are usually alarmed together: suggest the operation's alarm time (from "Neuer
+  // Einsatz" or the vehicles entered so far)
+  const openAdd = () => { setEditingId(null); setForm({ ...emptyForm, alarmTime: operationAlarmTime || '' }); setShowForm(true); };
   const openEdit = (t: OperationTime) => {
     setEditingId(t.id);
     setForm({
@@ -344,25 +373,6 @@ function OperationTimesTab({ operationId, times }: { operationId: number; times:
         data={times}
         emptyMessage="Keine Fahrzeugzeiten eingetragen."
       />
-    </Card>
-  );
-}
-
-function OperationReportTab({ operationId, report }: { operationId: number; report?: { content: string } }) {
-  const queryClient = useQueryClient();
-  const [content, setContent] = useState(report?.content || '');
-
-  const saveMutation = useMutation({
-    mutationFn: () => operationsApi.updateReport(operationId, content),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['operation', String(operationId)] }),
-  });
-
-  return (
-    <Card title="Einsatzbericht">
-      <Textarea value={content} onChange={(e) => setContent(e.target.value)} rows={12} placeholder="Einsatzbericht eingeben..." />
-      <div className="mt-4 flex justify-end">
-        <Button variant="primary" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending}>Speichern</Button>
-      </div>
     </Card>
   );
 }
@@ -636,7 +646,7 @@ function OperationPersonnelTab({ operationId, times }: { operationId: number; ti
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Mitglied</label>
-            <select value={newEntry.memberId} onChange={(e) => setNewEntry(p => ({ ...p, memberId: parseInt(e.target.value) }))} className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
+            <select value={newEntry.memberId} onChange={(e) => setNewEntry(p => ({ ...p, memberId: parseInt(e.target.value) }))} className="w-full rounded-md border-gray-300 shadow-xs focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
               <option value={0}>-- Mitglied auswählen --</option>
               {(members || []).map((m: { id: number; firstName: string; lastName: string }) => (
                 <option key={m.id} value={m.id}>{m.lastName}, {m.firstName}</option>
@@ -645,14 +655,14 @@ function OperationPersonnelTab({ operationId, times }: { operationId: number; ti
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Funktion</label>
-            <select value={newEntry.function} onChange={(e) => setNewEntry(p => ({ ...p, function: e.target.value }))} className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
+            <select value={newEntry.function} onChange={(e) => setNewEntry(p => ({ ...p, function: e.target.value }))} className="w-full rounded-md border-gray-300 shadow-xs focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
               {FUNCTIONS.map(f => <option key={f} value={f}>{f}</option>)}
             </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Fahrzeug</label>
             {vehicleOrder.length > 0 ? (
-              <select value={newEntry.vehicleName || NO_VEHICLE} onChange={(e) => setNewEntry(p => ({ ...p, vehicleName: e.target.value }))} className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
+              <select value={newEntry.vehicleName || NO_VEHICLE} onChange={(e) => setNewEntry(p => ({ ...p, vehicleName: e.target.value }))} className="w-full rounded-md border-gray-300 shadow-xs focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
                 <option value={NO_VEHICLE}>-- ohne Fahrzeug --</option>
                 {vehicleOrder.map(v => <option key={v} value={v}>{v}</option>)}
               </select>

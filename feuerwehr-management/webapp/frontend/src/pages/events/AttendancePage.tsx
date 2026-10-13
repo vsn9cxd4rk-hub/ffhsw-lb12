@@ -103,7 +103,7 @@ export function AttendancePage() {
       </div>
 
       {/* Summary */}
-      <div className="flex gap-6 p-4 bg-white rounded-lg shadow-sm border border-gray-200">
+      <div className="flex gap-6 p-4 bg-white rounded-lg shadow-xs border border-gray-200">
         <div className="text-center"><p className="text-2xl font-bold text-green-600">{presentCount}</p><p className="text-xs text-gray-500">Anwesend</p></div>
         <div className="text-center"><p className="text-2xl font-bold text-red-600">{absentCount}</p><p className="text-xs text-gray-500">Abwesend</p></div>
         <div className="text-center"><p className="text-2xl font-bold text-yellow-600">{excusedCount}</p><p className="text-xs text-gray-500">Entschuldigt</p></div>
@@ -121,7 +121,7 @@ export function AttendancePage() {
       )}
 
       {/* Attendance table */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-lg shadow-xs border border-gray-200 overflow-hidden">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>

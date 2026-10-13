@@ -79,7 +79,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         {/* Header */}
         <div className="flex items-center justify-between h-16 px-4 bg-primary-700">
           <div className="flex items-center gap-3">
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
               <img src="/LB12.png" alt="Logo" className="h-9 w-9 rounded-full object-contain bg-white p-0.5" />
             </div>
             <div>
@@ -112,7 +112,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                     )
                   }
                 >
-                  <item.icon className="h-5 w-5 flex-shrink-0" />
+                  <item.icon className="h-5 w-5 shrink-0" />
                   {item.name}
                 </NavLink>
               </li>
@@ -138,7 +138,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                       )
                     }
                   >
-                    <ShieldCheckIcon className="h-5 w-5 flex-shrink-0" />
+                    <ShieldCheckIcon className="h-5 w-5 shrink-0" />
                     Benutzerverwaltung
                   </NavLink>
                 </li>

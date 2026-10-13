@@ -89,6 +89,8 @@ export class AuthService {
   // The refresh token is not rotated: all tabs of a browser share the cookie and may refresh
   // concurrently, which stays harmless this way. Sessions end via logout, password change,
   // admin password reset, deactivation or expiry.
+  // Expiry is sliding: each refresh extends the session, so it only ends after
+  // JWT_REFRESH_EXPIRES without any use – never in the middle of work (e.g. a long inspection).
   async refreshToken(token: string) {
     const stored = await prisma.refreshToken.findUnique({
       where: { token: hashRefreshToken(token) },
@@ -108,6 +110,9 @@ export class AuthService {
       await prisma.refreshToken.deleteMany({ where: { userId: stored.userId } });
       throw new Error('Benutzer deaktiviert');
     }
+
+    // updateMany: a parallel logout may have deleted the row in the meantime
+    await prisma.refreshToken.updateMany({ where: { id: stored.id }, data: { expiresAt: getRefreshTokenExpiry() } });
 
     return buildSession(user);
   }

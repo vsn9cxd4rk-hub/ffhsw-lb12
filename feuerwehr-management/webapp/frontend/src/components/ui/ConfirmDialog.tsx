@@ -43,7 +43,7 @@ export function ConfirmDialog({
       }
     >
       <div className="flex items-start gap-4">
-        <div className={`flex-shrink-0 rounded-full p-2 ${variant === 'danger' ? 'bg-red-100' : 'bg-yellow-100'}`}>
+        <div className={`shrink-0 rounded-full p-2 ${variant === 'danger' ? 'bg-red-100' : 'bg-yellow-100'}`}>
           <ExclamationTriangleIcon className={`h-6 w-6 ${variant === 'danger' ? 'text-red-600' : 'text-yellow-600'}`} />
         </div>
         <div>

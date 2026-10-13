@@ -133,7 +133,7 @@ function CourseFormModal({ isOpen, onClose, editCourse, canEdit }: { isOpen: boo
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">Mitglied <span className="text-red-500">*</span></label>
           <select value={form.memberId} onChange={(e) => u('memberId', e.target.value)} disabled={!!editCourse}
-            className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none bg-white disabled:bg-gray-100">
+            className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-hidden bg-white disabled:bg-gray-100">
             <option value="">-- Bitte wählen --</option>
             {editCourse?.member && !membersData && (
               <option value={editCourse.memberId}>{editCourse.member.lastName}, {editCourse.member.firstName}</option>
@@ -145,7 +145,7 @@ function CourseFormModal({ isOpen, onClose, editCourse, canEdit }: { isOpen: boo
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">Lehrgang <span className="text-red-500">*</span></label>
           <select value={form.categoryId} onChange={(e) => u('categoryId', e.target.value)}
-            className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none bg-white">
+            className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-hidden bg-white">
             <option value="">-- Bitte wählen --</option>
             {(categories || []).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
@@ -169,9 +169,9 @@ function CourseFormModal({ isOpen, onClose, editCourse, canEdit }: { isOpen: boo
               <div className="p-3 bg-green-50 border border-green-200 rounded-md space-y-3">
                 <div className="flex items-center gap-3">
                   {previewUrl ? (
-                    <img src={previewUrl} alt="Urkunde" className="h-16 w-16 object-cover rounded border border-green-300" />
+                    <img src={previewUrl} alt="Urkunde" className="h-16 w-16 object-cover rounded-sm border border-green-300" />
                   ) : (
-                    <DocumentIcon className="h-5 w-5 text-green-600 flex-shrink-0" />
+                    <DocumentIcon className="h-5 w-5 text-green-600 shrink-0" />
                   )}
                   <span className="text-sm text-green-700 flex-1">Urkunde vorhanden</span>
                   <Button variant="secondary" size="sm" icon={<ArrowDownTrayIcon />} onClick={handleCertificateDownload}>
@@ -257,7 +257,7 @@ export function TrainingPage() {
         {canEdit && <Button variant="primary" icon={<PlusIcon />} onClick={openCreate}>Neuer Lehrgang</Button>}
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+      <div className="bg-white rounded-lg shadow-xs border border-gray-200">
         <Table columns={columns} data={data?.data || []} loading={isLoading} emptyMessage="Keine Lehrgänge gefunden."
           keyExtractor={(c) => c.id} onRowClick={(c) => openEdit(c as Course)} />
         {data?.pagination && <Pagination {...data.pagination} onPageChange={setPage} />}

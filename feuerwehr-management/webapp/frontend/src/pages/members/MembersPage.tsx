@@ -98,7 +98,7 @@ export function MembersPage() {
               type="checkbox"
               checked={showInactive}
               onChange={(e) => { setShowInactive(e.target.checked); setPage(1); }}
-              className="rounded"
+              className="rounded-sm"
             />
             Inaktive zeigen
           </label>
@@ -139,7 +139,7 @@ export function MembersPage() {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+      <div className="bg-white rounded-lg shadow-xs border border-gray-200">
         <Table
           columns={columns}
           data={members}

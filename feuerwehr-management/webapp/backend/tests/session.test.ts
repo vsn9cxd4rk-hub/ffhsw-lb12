@@ -69,6 +69,33 @@ describe('Session-Handling', () => {
     expect(results.map((r) => r.status)).toEqual([200, 200, 200]);
   });
 
+  it('Refresh verlängert die Sitzung (gleitender Ablauf) und erneuert das Cookie', async () => {
+    const { cookie } = await login();
+    const tokenHash = hashRefreshToken(cookie.substring('refreshToken='.length));
+    // Session started long ago and is about to expire
+    const soon = new Date(Date.now() + 60_000);
+    await prisma.refreshToken.update({ where: { token: tokenHash }, data: { expiresAt: soon } });
+
+    const res = await request(app).post('/api/auth/refresh').set('Cookie', cookie);
+    expect(res.status).toBe(200);
+
+    const stored = await prisma.refreshToken.findUnique({ where: { token: tokenHash } });
+    expect(stored!.expiresAt.getTime()).toBeGreaterThan(Date.now() + 24 * 3600_000);
+    // Same token value, only the expiry moves
+    expect(refreshCookieOf(res)).toBe(cookie);
+    expect(([] as string[]).concat(res.headers['set-cookie']).join(';')).toMatch(/Expires=/i);
+  });
+
+  it('Abgelaufene Sitzung wird nicht mehr verlängert', async () => {
+    const { cookie } = await login();
+    const tokenHash = hashRefreshToken(cookie.substring('refreshToken='.length));
+    await prisma.refreshToken.update({ where: { token: tokenHash }, data: { expiresAt: new Date(Date.now() - 1000) } });
+
+    const res = await request(app).post('/api/auth/refresh').set('Cookie', cookie);
+    expect(res.status).toBe(401);
+    expect(await prisma.refreshToken.findUnique({ where: { token: tokenHash } })).toBeNull();
+  });
+
   it('Mehrere Logins (Geräte) desselben Benutzers sind unabhängige Sitzungen', async () => {
     const a = await login();
     const b = await login();

@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import { prisma } from '../config/database';
 import { logger } from '../utils/logger';
 import { BIT_EVENTS, BIT_OPERATIONS, BIT_TRAINING } from '../config/permissionBits';
+import { isAbsoluteAnyOs, legacyRelativePath } from '../utils/files';
 
 /**
  * One-off data migrations that must run once per installation. Each is recorded in the
@@ -44,6 +45,37 @@ const MIGRATIONS: DataMigration[] = [
         await tx.user.updateMany({ where: { id: { in: affected } }, data: { mustChangePassword: true } });
       }
       return `${affected.length} Konto/Konten mit Standardpasswort markiert`;
+    },
+  },
+  {
+    // Up to 1.4.0 absolute paths (e.g. /var/www/feuerwehrmanagement/uploads/...) were stored,
+    // which broke on every machine with a different UPLOAD_PATH (backup server, Docker, local
+    // copy of the DB). They become relative to UPLOAD_PATH. Paths that do not match the upload
+    // layout stay untouched (resolveUploadPath never serves them).
+    key: 'migration.uploadPaths.relative',
+    description: 'Dateipfade der Uploads relativ zu UPLOAD_PATH speichern',
+    run: async (tx) => {
+      const tables: Array<{ name: string; rows: () => Promise<Array<{ id: number; path: string | null }>>; update: (id: number, p: string) => Promise<unknown> }> = [
+        { name: 'templates', rows: async () => (await tx.template.findMany({ select: { id: true, filePath: true } })).map(r => ({ id: r.id, path: r.filePath })), update: (id, p) => tx.template.update({ where: { id }, data: { filePath: p } }) },
+        { name: 'operation_documents', rows: async () => (await tx.operationDocument.findMany({ select: { id: true, filePath: true } })).map(r => ({ id: r.id, path: r.filePath })), update: (id, p) => tx.operationDocument.update({ where: { id }, data: { filePath: p } }) },
+        { name: 'event_documents', rows: async () => (await tx.eventDocument.findMany({ select: { id: true, filePath: true } })).map(r => ({ id: r.id, path: r.filePath })), update: (id, p) => tx.eventDocument.update({ where: { id }, data: { filePath: p } }) },
+        { name: 'article_documents', rows: async () => (await tx.articleDocument.findMany({ select: { id: true, filePath: true } })).map(r => ({ id: r.id, path: r.filePath })), update: (id, p) => tx.articleDocument.update({ where: { id }, data: { filePath: p } }) },
+        { name: 'inspection_documents', rows: async () => (await tx.inspectionDocument.findMany({ select: { id: true, filePath: true } })).map(r => ({ id: r.id, path: r.filePath })), update: (id, p) => tx.inspectionDocument.update({ where: { id }, data: { filePath: p } }) },
+        { name: 'courses', rows: async () => (await tx.course.findMany({ where: { certificatePath: { not: null } }, select: { id: true, certificatePath: true } })).map(r => ({ id: r.id, path: r.certificatePath })), update: (id, p) => tx.course.update({ where: { id }, data: { certificatePath: p } }) },
+      ];
+      const counts: string[] = [];
+      for (const t of tables) {
+        let converted = 0;
+        for (const row of await t.rows()) {
+          if (!row.path || !isAbsoluteAnyOs(row.path)) continue;
+          const rel = legacyRelativePath(row.path);
+          if (!rel) continue;
+          await t.update(row.id, rel);
+          converted++;
+        }
+        if (converted > 0) counts.push(`${t.name}: ${converted}`);
+      }
+      return counts.length > 0 ? `umgestellt (${counts.join(', ')})` : 'keine absoluten Pfade vorhanden';
     },
   },
 ];

@@ -121,7 +121,7 @@ function FahrzeugdatenTab({ vehicle, onSave, saving }: { vehicle: Vehicle; onSav
         <Input label="Min. Besatzung" value={form.minCrew} onChange={(e) => u('minCrew', e.target.value)} type="number" />
         <Input label="Max. Besatzung" value={form.maxCrew} onChange={(e) => u('maxCrew', e.target.value)} type="number" />
         <div className="flex items-center gap-2">
-          <input type="checkbox" id="isRetired" checked={form.isRetired} onChange={(e) => u('isRetired', e.target.checked)} className="rounded" />
+          <input type="checkbox" id="isRetired" checked={form.isRetired} onChange={(e) => u('isRetired', e.target.checked)} className="rounded-sm" />
           <label htmlFor="isRetired" className="text-sm text-gray-700">Außer Dienst</label>
         </div>
       </div>

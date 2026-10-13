@@ -57,7 +57,7 @@ function UserFormModal({ isOpen, onClose, editUser }: { isOpen: boolean; onClose
           <select
             value={form.groupId}
             onChange={(e) => u('groupId', e.target.value)}
-            className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none bg-white"
+            className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-hidden bg-white"
             required
           >
             <option value="">-- Bitte wählen --</option>
@@ -69,7 +69,7 @@ function UserFormModal({ isOpen, onClose, editUser }: { isOpen: boolean; onClose
           <select
             value={form.memberId}
             onChange={(e) => u('memberId', e.target.value)}
-            className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none bg-white"
+            className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-hidden bg-white"
           >
             <option value="">-- Kein Mitglied verknüpft --</option>
             {(membersData || []).map((m: Member) => <option key={m.id} value={m.id}>{m.lastName}, {m.firstName}</option>)}
@@ -77,11 +77,11 @@ function UserFormModal({ isOpen, onClose, editUser }: { isOpen: boolean; onClose
         </div>
         <div className="flex gap-4">
           <label className="flex items-center gap-2 text-sm cursor-pointer">
-            <input type="checkbox" checked={form.isAdmin} onChange={(e) => u('isAdmin', e.target.checked)} className="rounded" />
+            <input type="checkbox" checked={form.isAdmin} onChange={(e) => u('isAdmin', e.target.checked)} className="rounded-sm" />
             Administrator
           </label>
           <label className="flex items-center gap-2 text-sm cursor-pointer">
-            <input type="checkbox" checked={form.isActive} onChange={(e) => u('isActive', e.target.checked)} className="rounded" />
+            <input type="checkbox" checked={form.isActive} onChange={(e) => u('isActive', e.target.checked)} className="rounded-sm" />
             Aktiv
           </label>
         </div>
@@ -142,7 +142,7 @@ export function UsersPage() {
         <Button variant="primary" icon={<PlusIcon />} onClick={openCreate}>Neuer Benutzer</Button>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+      <div className="bg-white rounded-lg shadow-xs border border-gray-200">
         <Table columns={columns} data={data || []} loading={isLoading} emptyMessage="Keine Benutzer gefunden." keyExtractor={(u) => u.id} />
       </div>
 

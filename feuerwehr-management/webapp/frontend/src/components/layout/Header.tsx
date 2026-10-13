@@ -71,7 +71,7 @@ export function Header({ onMenuClick, pageTitle }: HeaderProps) {
 
         {/* Notifications */}
         <Popover as="div" className="relative">
-          <Popover.Button className="p-2 rounded-md text-gray-500 hover:bg-gray-100 relative focus:outline-none">
+          <Popover.Button className="p-2 rounded-md text-gray-500 hover:bg-gray-100 relative focus:outline-hidden">
             <BellIcon className="h-5 w-5" />
             {notifCount > 0 && (
               <span className={`absolute -top-0.5 -right-0.5 h-4.5 w-4.5 flex items-center justify-center rounded-full text-[10px] font-bold text-white ${hasRed ? 'bg-red-500' : 'bg-yellow-500'}`}
@@ -90,7 +90,7 @@ export function Header({ onMenuClick, pageTitle }: HeaderProps) {
             leaveFrom="opacity-100 translate-y-0"
             leaveTo="opacity-0 translate-y-1"
           >
-            <Popover.Panel className="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-xl border border-gray-200 focus:outline-none z-50">
+            <Popover.Panel className="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-xl border border-gray-200 focus:outline-hidden z-50">
               <div className="px-4 py-3 border-b border-gray-100">
                 <p className="text-sm font-semibold text-gray-900">Benachrichtigungen</p>
               </div>
@@ -108,7 +108,7 @@ export function Header({ onMenuClick, pageTitle }: HeaderProps) {
                           onClick={() => n.link && navigate(n.link)}
                           className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors flex gap-3"
                         >
-                          <div className="flex-shrink-0 mt-0.5">
+                          <div className="shrink-0 mt-0.5">
                             {n.severity === 'red' && <ExclamationCircleIcon className="h-5 w-5 text-red-500" />}
                             {n.severity === 'yellow' && <ExclamationTriangleIcon className="h-5 w-5 text-yellow-500" />}
                             {n.severity === 'info' && <InformationCircleIcon className="h-5 w-5 text-blue-500" />}
@@ -147,7 +147,7 @@ export function Header({ onMenuClick, pageTitle }: HeaderProps) {
             leaveFrom="opacity-100 scale-100"
             leaveTo="opacity-0 scale-95"
           >
-            <Menu.Items className="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg border border-gray-200 focus:outline-none">
+            <Menu.Items className="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg border border-gray-200 focus:outline-hidden">
               <div className="px-4 py-3 border-b border-gray-100">
                 <p className="text-sm font-medium text-gray-900">{user?.name || user?.username}</p>
                 <p className="text-xs text-gray-500">{user?.email || user?.username}</p>

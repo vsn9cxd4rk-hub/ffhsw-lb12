@@ -3,7 +3,7 @@ import { prisma } from '../config/database';
 import { sendSuccess, sendError, sendPaginated } from '../utils/response';
 import { getPagination } from '../utils/pagination';
 import { pickWritable } from '../utils/body';
-import { categoryUploadDir, removeUpload, sendUpload } from '../utils/files';
+import { categoryUploadDir, removeUpload, sendUpload, toStoredPath } from '../utils/files';
 import { createUpload, discardUpload } from '../utils/upload';
 
 export const articleDocUpload = createUpload({
@@ -304,7 +304,7 @@ export async function uploadArticleDocument(req: Request, res: Response): Promis
       data: {
         articleId,
         fileName: req.file.originalname,
-        filePath: req.file.path,
+        filePath: toStoredPath(req.file.path),
         fileSize: req.file.size,
         mimeType: req.file.mimetype,
         uploadedBy: req.user?.username || 'System',

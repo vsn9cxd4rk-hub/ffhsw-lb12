@@ -96,7 +96,7 @@ export function WarehouseSettings() {
       {fixedWarehouses.length > 0 && (
         <div>
           <h4 className="text-sm font-semibold text-gray-500 uppercase mb-2">Feste Lagerorte</h4>
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="bg-white rounded-lg shadow-xs border border-gray-200">
             <Table columns={columns} data={fixedWarehouses} loading={isLoading} emptyMessage="Keine festen Lagerorte." keyExtractor={(w) => w.id} />
           </div>
         </div>
@@ -105,7 +105,7 @@ export function WarehouseSettings() {
       {vehicleWarehouses.length > 0 && (
         <div>
           <h4 className="text-sm font-semibold text-gray-500 uppercase mb-2">Fahrzeug-Lagerorte (automatisch)</h4>
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="bg-white rounded-lg shadow-xs border border-gray-200">
             <Table columns={columns} data={vehicleWarehouses} loading={isLoading} emptyMessage="Keine Fahrzeug-Lagerorte." keyExtractor={(w) => w.id} />
           </div>
         </div>
@@ -113,7 +113,7 @@ export function WarehouseSettings() {
 
       <Modal isOpen={showModal} onClose={closeModal} title={editItem ? 'Lagerort bearbeiten' : 'Neuer Lagerort'} size="sm">
         <form onSubmit={(e) => { e.preventDefault(); saveMut.mutate(); }} className="space-y-4">
-          {error && <div className="bg-red-50 text-red-700 text-sm p-3 rounded">{error}</div>}
+          {error && <div className="bg-red-50 text-red-700 text-sm p-3 rounded-sm">{error}</div>}
           <Input label="Bezeichnung" value={name} onChange={(e) => setName(e.target.value)} required />
           <Input label="Beschreibung" value={description} onChange={(e) => setDescription(e.target.value)} />
           <div className="flex justify-end gap-2">

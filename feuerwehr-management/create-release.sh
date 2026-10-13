@@ -20,7 +20,9 @@ cd "$PROJECT_DIR"
 command -v git >/dev/null 2>&1 || error "git nicht gefunden"
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
-TREE_PATH="$(realpath --relative-to="$REPO_ROOT" "$PROJECT_DIR")"
+# git statt "realpath --relative-to": das kennt das realpath von macOS nicht
+TREE_PATH="$(git rev-parse --show-prefix)"
+TREE_PATH="${TREE_PATH%/}"
 
 VERSION=$(grep -m1 '"version"' webapp/backend/package.json | sed -E 's/.*"version": *"([^"]+)".*/\1/')
 [[ -z "$VERSION" ]] && error "Version konnte nicht aus webapp/backend/package.json gelesen werden"

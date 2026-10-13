@@ -109,7 +109,7 @@ export function EventsPage() {
         {canEdit && <Button variant="primary" icon={<PlusIcon />} onClick={() => setShowCreate(true)}>Neue Veranstaltung</Button>}
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+      <div className="bg-white rounded-lg shadow-xs border border-gray-200">
         <Table columns={columns} data={data?.data || []} loading={isLoading} emptyMessage="Keine Veranstaltungen gefunden."
           onRowClick={(ev) => navigate(`/events/${ev.id}`)} keyExtractor={(ev) => ev.id} />
         {data?.pagination && <Pagination {...data.pagination} onPageChange={setPage} />}

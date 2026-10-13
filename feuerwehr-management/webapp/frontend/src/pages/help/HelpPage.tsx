@@ -42,13 +42,13 @@ export function HelpPage() {
   return (
     <div className="flex gap-6 max-w-7xl mx-auto">
       {/* Sidebar TOC */}
-      <nav className="w-56 flex-shrink-0 sticky top-20 self-start hidden lg:block">
+      <nav className="w-56 shrink-0 sticky top-20 self-start hidden lg:block">
         <h3 className="text-xs font-bold text-gray-400 uppercase mb-3">Inhaltsverzeichnis</h3>
         <ul className="space-y-1">
           {chapters.map(ch => (
             <li key={ch.id}>
               <button onClick={() => scrollTo(ch.id)}
-                className={`w-full text-left px-3 py-1.5 rounded text-sm transition-colors ${active === ch.id ? 'bg-primary-50 text-primary-700 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}>
+                className={`w-full text-left px-3 py-1.5 rounded-sm text-sm transition-colors ${active === ch.id ? 'bg-primary-50 text-primary-700 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}>
                 {ch.title}
               </button>
             </li>
@@ -251,7 +251,7 @@ npm run dev`}</Code>
         <Code>{`sudo pacman -Syu
 sudo pacman -S nodejs npm mysql nginx git base-devel
 
-# Node.js Version prüfen (mind. v18, empfohlen v20+)
+# Node.js Version prüfen (mind. v20)
 node --version`}</Code>
 
         <H3>MySQL / MariaDB einrichten</H3>
@@ -283,7 +283,6 @@ npx prisma db seed`}</Code>
 PORT=3001
 DATABASE_URL="mysql://FFWVSLB12:<DB-Passwort>@localhost:3306/FFWVSLB12"
 JWT_ACCESS_SECRET=<openssl rand -hex 32>
-JWT_REFRESH_SECRET=<openssl rand -hex 32>
 CORS_ORIGIN=http://localhost:3000
 UPLOAD_PATH=/var/www/feuerwehrmanagement/uploads`}</Code>
 
@@ -356,7 +355,7 @@ tail -f /var/log/feuerwehrmanagement/pm2-error.log`}</Code>
 
         <H3>Ports</H3>
         <div className="overflow-x-auto mb-4">
-          <table className="text-sm border border-gray-200 rounded">
+          <table className="text-sm border border-gray-200 rounded-sm">
             <thead className="bg-gray-50"><tr><th className="px-4 py-2 text-left">Dienst</th><th className="px-4 py-2 text-left">Port</th></tr></thead>
             <tbody>
               <tr className="border-t"><td className="px-4 py-2">Nginx (HTTP)</td><td className="px-4 py-2">80</td></tr>

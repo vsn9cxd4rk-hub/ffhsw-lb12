@@ -97,7 +97,7 @@ export function VehiclesPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-            <input type="checkbox" checked={showRetired} onChange={(e) => setShowRetired(e.target.checked)} className="rounded" />
+            <input type="checkbox" checked={showRetired} onChange={(e) => setShowRetired(e.target.checked)} className="rounded-sm" />
             Außer Dienst zeigen
           </label>
         </div>
@@ -106,7 +106,7 @@ export function VehiclesPage() {
         </Button>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+      <div className="bg-white rounded-lg shadow-xs border border-gray-200">
         <Table
           columns={columns}
           data={data || []}

@@ -3,6 +3,7 @@ import request from 'supertest';
 import app from '../src/app';
 import { authHeader } from './setup';
 import { prisma } from '../src/config/database';
+import { templateState } from './templates';
 
 describe('Brandsicherheitswache (Veranstaltung Kategorie BSW)', () => {
   let eventId: number;
@@ -51,8 +52,7 @@ describe('Brandsicherheitswache (Veranstaltung Kategorie BSW)', () => {
   });
 
   it('POST /api/events/:id/bsw/checkliste ohne Template gibt Fehlermeldung', async () => {
-    const hasTemplate = await prisma.template.findFirst({ where: { name: { contains: 'Checkliste Brandsicherheitswache' } } });
-    if (hasTemplate) return; // Skip wenn Template vorhanden
+    if ((await templateState('Checkliste Brandsicherheitswache')) !== 'missing') return; // Skip wenn Template vorhanden
 
     const res = await request(app)
       .post(`/api/events/${eventId}/bsw/checkliste`)
@@ -63,8 +63,8 @@ describe('Brandsicherheitswache (Veranstaltung Kategorie BSW)', () => {
   });
 
   it('POST /api/events/:id/bsw/checkliste mit Template erzeugt Dokument', async () => {
-    const hasTemplate = await prisma.template.findFirst({ where: { name: { contains: 'Checkliste Brandsicherheitswache' } } });
-    if (!hasTemplate) return; // Skip wenn kein Template vorhanden
+    // Skip ohne nutzbares Template; fehlende Dateien meldet backup-integrity.test.ts
+    if ((await templateState('Checkliste Brandsicherheitswache')) !== 'present') return;
 
     const res = await request(app)
       .post(`/api/events/${eventId}/bsw/checkliste`)
@@ -76,8 +76,7 @@ describe('Brandsicherheitswache (Veranstaltung Kategorie BSW)', () => {
   });
 
   it('POST /api/events/:id/bsw/bericht ohne Template gibt Fehlermeldung', async () => {
-    const hasTemplate = await prisma.template.findFirst({ where: { name: { contains: 'Bericht Brandsicherheitswache' } } });
-    if (hasTemplate) return;
+    if ((await templateState('Bericht Brandsicherheitswache')) !== 'missing') return; // Skip wenn Template vorhanden
 
     const res = await request(app)
       .post(`/api/events/${eventId}/bsw/bericht`)
@@ -88,8 +87,8 @@ describe('Brandsicherheitswache (Veranstaltung Kategorie BSW)', () => {
   });
 
   it('POST /api/events/:id/bsw/bericht mit Template erzeugt Dokument', async () => {
-    const hasTemplate = await prisma.template.findFirst({ where: { name: { contains: 'Bericht Brandsicherheitswache' } } });
-    if (!hasTemplate) return;
+    // Skip ohne nutzbares Template; fehlende Dateien meldet backup-integrity.test.ts
+    if ((await templateState('Bericht Brandsicherheitswache')) !== 'present') return;
 
     const res = await request(app)
       .post(`/api/events/${eventId}/bsw/bericht`)

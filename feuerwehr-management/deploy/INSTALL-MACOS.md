@@ -137,7 +137,6 @@ DATABASE_URL="mysql://FFWVSLB12:Ffw%23VSLB12!25@localhost:3306/FFWVSLB12"
 # Lokal sind beliebige 32+ Zeichen okay – fuer Produktion echte Zufallswerte!
 # Erzeugen mit:  openssl rand -hex 32
 JWT_ACCESS_SECRET=dev-access-secret-bitte-mindestens-32-zeichen-lang
-JWT_REFRESH_SECRET=dev-refresh-secret-bitte-mindestens-32-zeichen-lang
 JWT_ACCESS_EXPIRES=15m
 JWT_REFRESH_EXPIRES=7d
 

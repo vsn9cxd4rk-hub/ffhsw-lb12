@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AxiosResponse } from 'axios';
+import { addMonths } from 'date-fns';
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/solid';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { Article, ArticleInspection, InspectionCriterion, InspectionType } from '../../types';
@@ -94,9 +95,7 @@ export function CriteriaInspectionModal({ isOpen, onClose, articles, preselected
 
   let nextDueDateStr = '';
   if (selectedArticle?.inspectionInterval && inspectedAt) {
-    const d = new Date(inspectedAt);
-    d.setMonth(d.getMonth() + selectedArticle.inspectionInterval);
-    nextDueDateStr = d.toLocaleDateString('de-DE');
+    nextDueDateStr = addMonths(new Date(inspectedAt), selectedArticle.inspectionInterval).toLocaleDateString('de-DE');
   }
 
   const mutation = useMutation({
@@ -177,7 +176,7 @@ export function CriteriaInspectionModal({ isOpen, onClose, articles, preselected
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Artikel <span className="text-red-500">*</span></label>
             <select value={articleId} onChange={(e) => setArticleId(e.target.value ? parseInt(e.target.value) : '')}
               disabled={!!preselectedArticle || isEditMode}
-              className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none bg-white disabled:bg-gray-100">
+              className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-hidden bg-white disabled:bg-gray-100">
               <option value="">-- Artikel wählen --</option>
               {articles.map(a => (
                 <option key={a.id} value={a.id}>{a.name}{a.inventoryNumber ? ` (${a.inventoryNumber})` : ''}</option>
@@ -190,7 +189,7 @@ export function CriteriaInspectionModal({ isOpen, onClose, articles, preselected
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">Prüfer <span className="text-red-500">*</span></label>
           <select value={inspectedBy} onChange={(e) => setInspectedBy(e.target.value)}
-            className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none bg-white">
+            className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-hidden bg-white">
             <option value="">-- Prüfer wählen --</option>
             {inspectors.map(m => <option key={m.id} value={m.name}>{m.name}</option>)}
             {/* Bestehenden (ggf. frei eingetippten) Prüfer erhalten, falls er nicht in der Liste ist */}
@@ -203,7 +202,7 @@ export function CriteriaInspectionModal({ isOpen, onClose, articles, preselected
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">Prüfart</label>
           <select value={inspectionTypeId} onChange={(e) => setInspectionTypeId(e.target.value ? parseInt(e.target.value) : '')}
-            className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none bg-white">
+            className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-hidden bg-white">
             <option value="">-- Keine spezifische Prüfart --</option>
             {inspectionTypes.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
           </select>
@@ -379,7 +378,7 @@ function DefectFromInspectionModal({ isOpen, onClose, article, defaultReportedBy
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Schweregrad</label>
             <select value={severity} onChange={(e) => setSeverity(e.target.value)}
-              className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none bg-white">
+              className="block w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-hidden bg-white">
               <option value="low">Gering</option><option value="medium">Mittel</option><option value="high">Hoch</option><option value="critical">Kritisch</option>
             </select>
           </div>

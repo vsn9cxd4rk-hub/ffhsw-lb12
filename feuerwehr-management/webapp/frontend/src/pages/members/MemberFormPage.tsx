@@ -71,7 +71,7 @@ export function MemberFormPage() {
           <Input label="Mitglied seit" value={form.memberSince} onChange={(e) => update('memberSince', e.target.value)} type="date" />
         </div>
         {mutation.isError && (
-          <div className="mt-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded">
+          <div className="mt-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-sm">
             Fehler beim Anlegen: {(mutation.error as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Unbekannter Fehler'}
           </div>
         )}

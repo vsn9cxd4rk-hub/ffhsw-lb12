@@ -22,7 +22,7 @@ APP_NAME="feuerwehrmanagement"
 APP_USER="lb12admin"
 APP_DIR="/var/www/feuerwehrmanagement"
 LOG_DIR="/var/log/feuerwehrmanagement"
-NODE_VERSION_MIN="18"
+NODE_VERSION_MIN="20"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
@@ -61,9 +61,7 @@ read -p "Datenbankpasswort für '$DB_USER' [$DB_PASS_DEFAULT]: " DB_PASS
 DB_PASS="${DB_PASS:-$DB_PASS_DEFAULT}"
 
 read -p "JWT Access Secret (Enter für Zufallsschlüssel): " JWT_ACCESS
-read -p "JWT Refresh Secret (Enter für Zufallsschlüssel): " JWT_REFRESH
 [[ -z "$JWT_ACCESS" ]]  && JWT_ACCESS=$(openssl rand -base64 64 | tr -d '\n')
-[[ -z "$JWT_REFRESH" ]] && JWT_REFRESH=$(openssl rand -base64 64 | tr -d '\n')
 
 read -p "SMTP-Host (Enter = E-Mail deaktiviert): " SMTP_HOST
 if [[ -n "$SMTP_HOST" ]]; then
@@ -199,7 +197,6 @@ PORT=3001
 DATABASE_URL="mysql://${DB_USER}:${DB_PASS_ENCODED}@localhost:3306/${DB_NAME}"
 
 JWT_ACCESS_SECRET=${JWT_ACCESS}
-JWT_REFRESH_SECRET=${JWT_REFRESH}
 JWT_ACCESS_EXPIRES=15m
 JWT_REFRESH_EXPIRES=7d
 
@@ -225,10 +222,9 @@ success ".env Datei erstellt"
 info "Backend wird installiert..."
 cp -r "$PROJECT_DIR/webapp/backend/." "$APP_DIR/backend/"
 cd "$APP_DIR/backend"
-npm install 2>/dev/null || npm install --legacy-peer-deps
+npm ci
 npx prisma generate
 npm run build
-npm prune --production
 success "Backend installiert und kompiliert"
 
 info "Prisma-Client wird mit bestehender Datenbank synchronisiert..."
@@ -239,11 +235,13 @@ info "Prisma-Client wird mit bestehender Datenbank synchronisiert..."
 success "Schema bereits via init-db.sql synchronisiert – db push wird übersprungen"
 
 info "Initialdaten werden eingerichtet (Admin-Benutzer, bcrypt-Hash)..."
-if npx ts-node --transpile-only prisma/seed.ts 2>/dev/null; then
-  success "Initialdaten eingerichtet"
+# Ausgabe nicht unterdrücken: der Seed zeigt das einmalige Startpasswort für "admin"
+if npm run prisma:seed; then
+  success "Initialdaten eingerichtet (Startpasswort für admin siehe oben)"
 else
-  warning "Seed fehlgeschlagen - bitte manuell ausführen: cd ${APP_DIR}/backend && npx ts-node --transpile-only prisma/seed.ts"
+  warning "Seed fehlgeschlagen - bitte manuell ausführen: cd ${APP_DIR}/backend && npm run prisma:seed"
 fi
+npm prune --omit=dev
 
 info "Frontend wird gebaut..."
 if [[ -d "$PROJECT_DIR/webapp/frontend" ]]; then

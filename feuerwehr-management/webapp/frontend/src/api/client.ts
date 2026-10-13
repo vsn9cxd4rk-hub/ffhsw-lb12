@@ -89,6 +89,15 @@ function refreshAccessToken(): Promise<string> {
   return refreshPromise;
 }
 
+/**
+ * Only a 401 from /auth/refresh means the session is gone (expired, logged out, revoked).
+ * Network errors, a 502 while the backend restarts or a 429 are temporary: ending the session
+ * then would unmount the page and throw away unsaved input, e.g. a long inspection dialog.
+ */
+function sessionRejected(error: unknown): boolean {
+  return axios.isAxiosError(error) && error.response?.status === 401;
+}
+
 /** Restores the session from the refresh cookie on page load; resolves to true if logged in. */
 export async function restoreSession(): Promise<boolean> {
   try {
@@ -121,8 +130,13 @@ client.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${token}`;
         return client(originalRequest);
       } catch (refreshError) {
-        endSessionLocally();
-        return Promise.reject(refreshError);
+        if (sessionRejected(refreshError)) {
+          endSessionLocally();
+          return Promise.reject(refreshError);
+        }
+        // Session may still be valid: keep the page and its input, let the caller show the
+        // error and the user save again.
+        return Promise.reject(error);
       }
     }
 

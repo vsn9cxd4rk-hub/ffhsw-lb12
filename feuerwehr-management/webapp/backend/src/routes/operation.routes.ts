@@ -5,7 +5,6 @@ import { BIT_OPERATIONS } from '../config/permissionBits';
 import {
   getOperations, createOperation, getOperation, updateOperation, deleteOperation,
   createOperationTime, updateOperationTime, deleteOperationTime,
-  getOperationReport, upsertOperationReport,
   getDocuments, uploadDocument, uploadMiddleware, downloadDocument, deleteDocument,
   getPersonnel, addPersonnel, updatePersonnel, deletePersonnel,
 } from '../controllers/operation.controller';
@@ -24,8 +23,6 @@ router.delete('/:id', deleteOperation);
 router.post('/:id/times', createOperationTime);
 router.put('/:id/times/:timeId', updateOperationTime);
 router.delete('/:id/times/:timeId', deleteOperationTime);
-router.get('/:id/report', getOperationReport);
-router.put('/:id/report', upsertOperationReport);
 router.get('/:id/documents', getDocuments);
 router.post('/:id/documents', uploadMiddleware, uploadDocument);
 router.get('/:id/documents/:docId/download', downloadDocument);
@@ -51,7 +48,7 @@ router.post('/:id/generate-personnel-sheet', async (req: Request, res: Response)
   try {
     const { vehicleFilter } = req.body;
     const result = vehicleFilter
-      ? [await generatePersonnelSheet(parseInt(req.params.id), vehicleFilter)]
+      ? await generatePersonnelSheet(parseInt(req.params.id), vehicleFilter)
       : await generatePersonnelSheets(parseInt(req.params.id));
     sendSuccess(res, result, 201);
   } catch (err) {

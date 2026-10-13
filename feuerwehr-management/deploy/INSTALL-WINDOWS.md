@@ -117,7 +117,6 @@ DATABASE_URL="mysql://FFWVSLB12:Ffw%23VSLB12!25@localhost:3306/FFWVSLB12"
 # Lokal beliebige 32+ Zeichen – für Produktion echte Zufallswerte verwenden
 # Erzeugen mit: node -e "console.log(require('crypto').randomBytes(48).toString('base64'))"
 JWT_ACCESS_SECRET=dev-access-secret-bitte-mindestens-32-zeichen-lang
-JWT_REFRESH_SECRET=dev-refresh-secret-bitte-mindestens-32-zeichen-lang
 JWT_ACCESS_EXPIRES=15m
 JWT_REFRESH_EXPIRES=7d
 

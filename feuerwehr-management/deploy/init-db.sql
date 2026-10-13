@@ -1,8 +1,20 @@
 -- =============================================================================
--- Feuerwehr Management System - Datenbankinitialisierung
+-- Feuerwehr Management System - Datenbankinitialisierung (Schema-Stand 1.4.0)
 -- Datenbank:  FFWVSLB12
 -- Benutzer:   FFWVSLB12
--- Passwort:   Ffw#VSLB12!25
+-- Passwort:   Ffw#VSLB12!25  (install-*.sh ersetzen Name, Benutzer und Passwort)
+--
+-- Nur für NEUINSTALLATIONEN. Bestehende Installationen werden über die
+-- idempotenten Skripte deploy/migrate-<von>-to-<nach>.sql aktualisiert.
+-- Bei Schemaänderungen immer beides pflegen: schema.prisma, diese Datei und
+-- das passende Migrationsskript.
+--
+-- Der Admin-Benutzer wird nicht hier, sondern von prisma/seed.ts angelegt
+-- (zufälliges Startpasswort, Passwortwechsel beim ersten Login).
+--
+-- "prisma migrate diff" gegen schema.prisma zeigt danach nur Index-Namen und
+-- DATETIME- statt DATETIME(3)-Spalten, wie bei bestehenden Installationen auch;
+-- Tabellen und Spalten stimmen überein. Nicht mit "prisma db push" angleichen.
 --
 -- Ausführen als MySQL-root:
 --   sudo mysql < /pfad/zum/deploy/init-db.sql
@@ -89,6 +101,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `name`      VARCHAR(255) NULL,
   `isAdmin`   TINYINT(1)   NOT NULL DEFAULT 0,
   `isActive`  TINYINT(1)   NOT NULL DEFAULT 1,
+  `mustChangePassword` TINYINT(1) NOT NULL DEFAULT 0,
   `groupId`   INT          NULL,
   `memberId`  INT          NULL,
   `createdAt` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -707,6 +720,26 @@ CREATE TABLE IF NOT EXISTS `operations` (
   `commanderBfId`   INT          NULL,
   `categoryId`      INT          NULL,
   `tenantId`        INT          NULL,
+  -- Einsatzbericht
+  `reportType`           VARCHAR(30)  NULL,
+  `ilsOrderNumber`       VARCHAR(50)  NULL,
+  `callerInfo`           TEXT         NULL,
+  `policeInfo`           TEXT         NULL,
+  `situationOnArrival`   TEXT         NULL,
+  `actionsTaken`         TEXT         NULL,
+  `resourcesUsed`        TEXT         NULL,
+  `operationType`        VARCHAR(100) NULL,
+  `rescuedPersons`       INT          NOT NULL DEFAULT 0,
+  `injuredFirefighters`  INT          NOT NULL DEFAULT 0,
+  `deceasedPersons`      INT          NOT NULL DEFAULT 0,
+  `deceasedFirefighters` INT          NOT NULL DEFAULT 0,
+  `createdByName`        VARCHAR(100) NULL,
+  `authorRole`           VARCHAR(50)  NULL,
+  -- tatsächlicher Einsatzleiter, wenn der Ersteller nur Einheitenführer war
+  `commanderName`        VARCHAR(100) NULL,
+  -- Einsatzstatistik
+  `operationResult`      VARCHAR(30)  NULL,
+  `wasActivelyInvolved`  TINYINT(1)   NOT NULL DEFAULT 1,
   `createdAt`       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updatedAt`       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
@@ -720,6 +753,8 @@ CREATE TABLE IF NOT EXISTS `operation_times` (
   `operationId`   INT          NOT NULL,
   `vehicleId`     INT          NULL,
   `vehicleName`   VARCHAR(100) NOT NULL,
+  `leaderCount`   INT          NOT NULL DEFAULT 0,
+  `memberCount`   INT          NOT NULL DEFAULT 0,
   `alarmTime`     VARCHAR(10)  NULL,
   `departureTime` VARCHAR(10)  NULL,
   `arrivalTime`   VARCHAR(10)  NULL,
@@ -727,6 +762,27 @@ CREATE TABLE IF NOT EXISTS `operation_times` (
   PRIMARY KEY (`id`),
   CONSTRAINT `operation_times_operationId_fkey`
     FOREIGN KEY (`operationId`) REFERENCES `operations` (`id`)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------------------------
+-- Einsätze - Kräftenachweis (eingesetzte und nachgerückte Kräfte)
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `operation_personnel` (
+  `id`          INT          NOT NULL AUTO_INCREMENT,
+  `operationId` INT          NOT NULL,
+  `memberId`    INT          NOT NULL,
+  `vehicleName` VARCHAR(100) NOT NULL,
+  `function`    VARCHAR(50)  NOT NULL,
+  `section`     VARCHAR(20)  NOT NULL DEFAULT 'deployed',
+  PRIMARY KEY (`id`),
+  INDEX `idx_op_personnel_operation` (`operationId`),
+  INDEX `idx_op_personnel_member` (`memberId`),
+  CONSTRAINT `fk_op_personnel_operation`
+    FOREIGN KEY (`operationId`) REFERENCES `operations` (`id`)
+    ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_op_personnel_member`
+    FOREIGN KEY (`memberId`) REFERENCES `members` (`id`)
     ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -1000,8 +1056,8 @@ VALUES
    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0),
-  -- Benutzer: Personal (eigene), Veranstaltungen, Ausbildung (kein Fahrzeuge/Bestandsliste/Prüfbuch/Einsätze)
-  (3, 'Benutzer', 'Zugriff auf eigene Daten, Veranstaltungen und Ausbildung',
+  -- Benutzer: Veranstaltungen und Ausbildung nur ansehen (kein Fahrzeuge/Bestandsliste/Prüfbuch/Einsätze)
+  (3, 'Benutzer', 'Veranstaltungen und Ausbildung ansehen',
    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
@@ -1012,31 +1068,24 @@ VALUES
    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0),
-  -- Gruppenführer: wie Benutzer + Einsätze/Statistik/Veranstaltungen (br2)
+  -- Gruppenführer: wie Benutzer + Einsätze/Statistik (br2), Veranstaltungen pflegen (br4), Ausbildung pflegen (br5)
   (5, 'Gruppenführer', 'Wie Benutzer, zusätzlich Berichte bei Einsätzen und Veranstaltungen',
-   0,0,1,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
+   0,0,1,0,1,1,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0),
-  -- Gerätewart + Gruppenführer: Beispiel-Kombigruppe (br1+br2+br3 frei kombiniert)
+  -- Gerätewart + Gruppenführer: Beispiel-Kombigruppe (br1-br5 frei kombiniert)
   (6, 'Gerätewart + Gruppenführer', 'Fahrzeuge, Gerätewart-Bereich und Einsätze kombiniert',
-   0,1,1,1,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
+   0,1,1,1,1,1,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0);
 
 -- -----------------------------------------------------------------------------
--- Admin-Benutzer
--- HINWEIS: Der Passwort-Hash wird von "npm run seed" (bcrypt) korrekt gesetzt.
--- Dieser Eintrag ist ein Platzhalter. Nach dem Seed-Schritt ist das
--- Passwort "Admin123!" (muss nach erster Anmeldung geändert werden).
+-- Admin-Benutzer: legt prisma/seed.ts an ("npm run prisma:seed", von den
+-- install-*.sh-Skripten ausgeführt). Das zufällige Startpasswort wird dabei
+-- einmalig ausgegeben und muss beim ersten Login geändert werden.
 -- -----------------------------------------------------------------------------
--- INSERT IGNORE INTO `users`
---  (`id`, `username`, `email`, `password`, `name`, `isAdmin`, `isActive`, `groupId`)
--- VALUES
---  (1, 'admin', 'admin@feuerwehr.local',
---   'PENDING_BCRYPT_HASH_SET_BY_SEED',
---   'Administrator', 1, 1, 1);
 
 -- -----------------------------------------------------------------------------
 -- Dienstgrade
@@ -1284,9 +1333,10 @@ SET FOREIGN_KEY_CHECKS = 1;
 --
 --  Einsätze:
 --    operations          - Einsätze
---    operation_times     - Fahrzeugzeiten je Einsatz
---    operation_reports   - Einsatzberichte
---    operation_documents - Dokumente (PDF-Uploads)
+--    operation_times     - Fahrzeugzeiten und -stärke je Einsatz
+--    operation_personnel - Kräftenachweis (eingesetzte/nachgerückte Kräfte)
+--    operation_reports   - Freitext-Berichte bis 1.3.x (seit 1.4.0 ohne Oberfläche)
+--    operation_documents - Dokumente (PDF-Uploads, generierte Berichte)
 --
 --  Veranstaltungen:
 --    events              - Dienstabende, BSW, Sonstiges

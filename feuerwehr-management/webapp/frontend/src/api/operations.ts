@@ -15,10 +15,6 @@ export const operationsApi = {
   deleteTime: (operationId: number, timeId: number) =>
     client.delete(`/operations/${operationId}/times/${timeId}`),
 
-  getReport: (id: number) => client.get(`/operations/${id}/report`),
-  updateReport: (id: number, content: string) =>
-    client.put(`/operations/${id}/report`, { content }),
-
   getDocuments: (id: number) => client.get(`/operations/${id}/documents`),
   uploadDocument: (id: number, file: File) => {
     const formData = new FormData();

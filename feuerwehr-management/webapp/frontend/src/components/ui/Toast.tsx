@@ -40,9 +40,9 @@ export function ToastContainer() {
               ? 'bg-red-50 border-red-200 text-red-800'
               : 'bg-green-50 border-green-200 text-green-800'
           }`}>
-          <ExclamationCircleIcon className={`h-5 w-5 flex-shrink-0 mt-0.5 ${toast.type === 'error' ? 'text-red-500' : 'text-green-500'}`} />
+          <ExclamationCircleIcon className={`h-5 w-5 shrink-0 mt-0.5 ${toast.type === 'error' ? 'text-red-500' : 'text-green-500'}`} />
           <p className="flex-1">{toast.message}</p>
-          <button onClick={() => removeToast(toast.id)} className="flex-shrink-0 text-gray-400 hover:text-gray-600">
+          <button onClick={() => removeToast(toast.id)} className="shrink-0 text-gray-400 hover:text-gray-600">
             <XMarkIcon className="h-4 w-4" />
           </button>
         </div>

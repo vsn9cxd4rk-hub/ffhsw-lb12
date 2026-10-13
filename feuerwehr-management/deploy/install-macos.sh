@@ -54,9 +54,7 @@ read -p "Datenbankpasswort für '$DB_USER' [$DB_PASS_DEFAULT]: " DB_PASS
 DB_PASS="${DB_PASS:-$DB_PASS_DEFAULT}"
 
 read -p "JWT Access Secret (Enter für Zufallsschlüssel): " JWT_ACCESS
-read -p "JWT Refresh Secret (Enter für Zufallsschlüssel): " JWT_REFRESH
 [[ -z "$JWT_ACCESS" ]]  && JWT_ACCESS=$(openssl rand -base64 64 | tr -d '\n')
-[[ -z "$JWT_REFRESH" ]] && JWT_REFRESH=$(openssl rand -base64 64 | tr -d '\n')
 
 echo ""
 info "Starte Setup mit:"
@@ -204,7 +202,6 @@ PORT=3001
 DATABASE_URL="mysql://${DB_USER}:${DB_PASS_ENCODED}@localhost:3306/${DB_NAME}"
 
 JWT_ACCESS_SECRET=${JWT_ACCESS}
-JWT_REFRESH_SECRET=${JWT_REFRESH}
 JWT_ACCESS_EXPIRES=15m
 JWT_REFRESH_EXPIRES=7d
 

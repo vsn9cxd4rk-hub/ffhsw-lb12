@@ -1,5 +1,16 @@
 import { describe, it, expect } from 'vitest';
+import fs from 'fs';
 import { prisma } from '../src/config/database';
+import { resolveUploadPath } from '../src/utils/files';
+
+// Checks the real data of this installation (run after a restore on the backup system).
+// Stored paths are resolved like the app does it, i.e. against the local UPLOAD_PATH.
+function missingFiles(paths: string[]): string[] {
+  return paths.filter((p) => {
+    const file = resolveUploadPath(p);
+    return !file || !fs.existsSync(file);
+  });
+}
 
 describe('Backup-Integrität (Post-Restore Checks)', () => {
   it('Admin-User existiert', async () => {
@@ -40,23 +51,15 @@ describe('Backup-Integrität (Post-Restore Checks)', () => {
   });
 
   it('Keine verwaisten Einsatz-Dokumente (Dateipfade existieren)', async () => {
-    const docs = await prisma.operationDocument.findMany({ take: 10 });
-    const fs = await import('fs');
-    let missing = 0;
-    for (const doc of docs) {
-      if (!fs.existsSync(doc.filePath)) missing++;
-    }
-    expect(missing, `${missing} von ${docs.length} Dokument-Dateien fehlen auf dem Filesystem`).toBe(0);
+    const docs = await prisma.operationDocument.findMany({ take: 10, select: { filePath: true } });
+    const missing = missingFiles(docs.map((d) => d.filePath));
+    expect(missing, `${missing.length} von ${docs.length} Dokument-Dateien fehlen unter UPLOAD_PATH (${process.env.UPLOAD_PATH})`).toEqual([]);
   });
 
   it('Keine verwaisten Template-Dateien', async () => {
-    const templates = await prisma.template.findMany();
-    const fs = await import('fs');
-    let missing = 0;
-    for (const t of templates) {
-      if (!fs.existsSync(t.filePath)) missing++;
-    }
-    expect(missing, `${missing} von ${templates.length} Template-Dateien fehlen auf dem Filesystem`).toBe(0);
+    const templates = await prisma.template.findMany({ select: { filePath: true } });
+    const missing = missingFiles(templates.map((t) => t.filePath));
+    expect(missing, `${missing.length} von ${templates.length} Template-Dateien fehlen unter UPLOAD_PATH (${process.env.UPLOAD_PATH})`).toEqual([]);
   });
 
   it('Prisma-Client-Version stimmt mit Schema überein', async () => {
