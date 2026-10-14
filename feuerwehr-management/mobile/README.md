@@ -3,7 +3,17 @@
 Mobile-App (iOS/Android) für FENIX, gebaut mit [Expo](https://expo.dev) (SDK 57, React Native,
 Expo Router). Sie spricht dieselbe REST-API wie das Web-Frontend (`webapp/backend`).
 
-Stand: Grundgerüst mit Anmeldung und Dashboard (Kennzahlen, letzte Einsätze, anstehende Prüfungen).
+Stand: Phase 0 bis 2 aus [PLAN.md](PLAN.md):
+
+- Anmeldung, erzwungener Passwortwechsel, Tabs „Start“ (Hinweise, Kennzahlen) und „Mehr“
+- Gerätewart (nur mit Recht br3): Etikett scannen (QR/Barcode, Kamera oder Eingabe), Artikeldetail,
+  fällige Prüfungen, Prüfdialog mit Kriterien, Mangel melden, Mängelliste mit Statuswechsel
+- Deep Link `fenix://scan/<Inventarnummer>`
+- Termine: Veranstaltungen und Anwesenheitsliste (Erfassen mit br4)
+- Einsätze (br2): anlegen, Fahrzeuge mit Stärke und Zeiten, Kräftenachweis
+- Fahrzeuge (br1): Prüftermine, Fahrtenbuch-Eintrag
+
+Die Kamera braucht ein echtes Gerät (Expo Go). Im Browser (`w`) funktioniert nur die manuelle Eingabe zuverlässig.
 
 ## Starten
 
@@ -42,8 +52,6 @@ Offene Punkte, bevor die App an Kameraden geht:
 
 - **HTTPS:** Release-Builds von iOS (ATS) und Android 9+ blockieren unverschlüsseltes HTTP. Für
   den Betrieb braucht das Backend HTTPS (nginx mit Zertifikat). Expo Go erlaubt HTTP für Tests.
-- **Erzwungener Passwortwechsel** (`mustChangePassword`) ist noch nicht umgesetzt – solche Konten
-  erhalten derzeit nur „Bitte zuerst das Passwort ändern“ als Fehler.
 - Optional: Refresh-Token im Body statt Cookie zurückgeben und in SecureStore ablegen (robuster als
   der native Cookie-Speicher); erfordert eine kleine Backend-Erweiterung.
 
@@ -53,15 +61,25 @@ Offene Punkte, bevor die App an Kameraden geht:
 |------|--------|
 | `src/app/` | Screens (Expo Router: jede Datei ist ein Screen) |
 | `src/app/sign-in.tsx` | Anmeldung (Server, Benutzer, Passwort) |
-| `src/app/(app)/` | Bereich nach der Anmeldung, geschützt über `Stack.Protected` |
+| `src/app/change-password.tsx` | Erzwungener Passwortwechsel (`mustChangePassword`) |
+| `src/app/(app)/` | Bereich nach der Anmeldung, geschützt über `Stack.Protected`; Detailseiten als Stack |
+| `src/app/(app)/(tabs)/` | Tab-Leiste; Tabs mit Rechtebedarf kommen in `Tabs.Protected` |
 | `src/api/` | API-Client und Typen (Teilmenge von `webapp/frontend/src/types`) |
-| `src/auth/session.tsx` | Session-Kontext: Anmelden, Abmelden, Wiederherstellen |
+| `src/auth/session.tsx` | Session-Kontext: Anmelden, Abmelden, Wiederherstellen, Passwort ändern |
+| `src/auth/permissions.ts` | Rechte-Bits (wie Backend) und `hasPermission` |
+| `src/lib/query-client.ts` | react-query: Retry-Regeln, Refetch beim Zurückkehren in die App |
+| `src/components/ui/` | Gemeinsame Bausteine: Button, TextField, DateField, TimeField, Stepper, ChoiceChips, Section/ListRow, QueryState |
+| `src/app/(app)/(tabs)/` | `index`, `events`, `scan` und `equipment` (Gerätewart), `more` |
+| `src/app/(app)/` | Gerätewart: `scan/[code]`, `article/[id]`, `inspect/[articleId]`, `defect/…`; `event/[id]/…`, `vehicles`, `vehicle/[id]/…`, `operations`, `operation/…` |
+| `src/components/equipment/` | Listen „Fällige Prüfungen“ und „Mängel“ für den Tab Geräte |
+| `src/lib/scan.ts` | Etikett-Inhalt (URL oder Nummer) auslesen, Artikel zur Nummer finden |
 | `src/constants/theme.ts` | Farben (FENIX-Rot), Abstände |
 
 ## Prüfen
 
 ```powershell
 npm run typecheck
+npm run lint
 npx expo-doctor
 ```
 

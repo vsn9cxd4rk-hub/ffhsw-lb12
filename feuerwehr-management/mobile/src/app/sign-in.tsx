@@ -1,33 +1,24 @@
 import { Image } from 'expo-image';
-import { useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  TextInput,
-} from 'react-native';
+import { useState } from 'react';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useSession } from '@/auth/session';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { Button } from '@/components/ui/button';
+import { TextField } from '@/components/ui/text-field';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
 
 export default function SignInScreen() {
   const { signIn, serverUrl: storedServerUrl } = useSession();
-  const theme = useTheme();
 
+  // The root layout renders this screen only after the session check, so the stored server is known
   const [serverUrl, setServerUrl] = useState(storedServerUrl);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-
-  useEffect(() => setServerUrl(storedServerUrl), [storedServerUrl]);
 
   async function handleSubmit() {
     setError(null);
@@ -44,10 +35,6 @@ export default function SignInScreen() {
   }
 
   const canSubmit = !busy && serverUrl.trim() !== '' && username.trim() !== '' && password !== '';
-  const inputStyle = [
-    styles.input,
-    { color: theme.text, backgroundColor: theme.backgroundElement, borderColor: theme.backgroundSelected },
-  ];
 
   return (
     <ThemedView style={styles.container}>
@@ -66,38 +53,30 @@ export default function SignInScreen() {
               </ThemedText>
             </ThemedView>
 
-            <ThemedText type="smallBold">Server</ThemedText>
-            <TextInput
-              style={inputStyle}
+            <TextField
+              label="Server"
               value={serverUrl}
               onChangeText={setServerUrl}
               placeholder="z. B. 192.168.1.20:3001"
-              placeholderTextColor={theme.textSecondary}
               autoCapitalize="none"
               autoCorrect={false}
               keyboardType="url"
             />
-
-            <ThemedText type="smallBold">Benutzername</ThemedText>
-            <TextInput
-              style={inputStyle}
+            <TextField
+              label="Benutzername"
               value={username}
               onChangeText={setUsername}
               placeholder="Benutzername eingeben"
-              placeholderTextColor={theme.textSecondary}
               autoCapitalize="none"
               autoCorrect={false}
               autoComplete="username"
               textContentType="username"
             />
-
-            <ThemedText type="smallBold">Passwort</ThemedText>
-            <TextInput
-              style={inputStyle}
+            <TextField
+              label="Passwort"
               value={password}
               onChangeText={setPassword}
               placeholder="Passwort eingeben"
-              placeholderTextColor={theme.textSecondary}
               secureTextEntry
               autoComplete="current-password"
               textContentType="password"
@@ -110,22 +89,7 @@ export default function SignInScreen() {
               </ThemedText>
             )}
 
-            <Pressable
-              onPress={handleSubmit}
-              disabled={!canSubmit}
-              style={({ pressed }) => [
-                styles.button,
-                { backgroundColor: pressed ? theme.primaryPressed : theme.primary },
-                !canSubmit && styles.disabled,
-              ]}>
-              {busy ? (
-                <ActivityIndicator color="#ffffff" />
-              ) : (
-                <ThemedText type="smallBold" style={styles.buttonText}>
-                  Anmelden
-                </ThemedText>
-              )}
-            </Pressable>
+            <Button title="Anmelden" onPress={handleSubmit} disabled={!canSubmit} busy={busy} />
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -149,20 +113,4 @@ const styles = StyleSheet.create({
   logo: { width: 96, height: 96, borderRadius: 48, marginBottom: Spacing.two },
   brand: { letterSpacing: 6, fontWeight: 900 },
   center: { textAlign: 'center' },
-  input: {
-    borderWidth: 1,
-    borderRadius: Spacing.two,
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.two + Spacing.one,
-    fontSize: 16,
-    marginBottom: Spacing.two,
-  },
-  button: {
-    borderRadius: Spacing.two,
-    paddingVertical: Spacing.three,
-    alignItems: 'center',
-    marginTop: Spacing.two,
-  },
-  buttonText: { color: '#ffffff' },
-  disabled: { opacity: 0.5 },
 });

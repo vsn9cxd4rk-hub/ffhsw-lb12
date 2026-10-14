@@ -2,6 +2,7 @@ import { createContext, use, useEffect, useState, type PropsWithChildren } from 
 
 import { authApi, normalizeServerUrl, setServerUrl, setSessionEndedHandler } from '@/api/client';
 import type { User } from '@/api/types';
+import { queryClient } from '@/lib/query-client';
 import { getItem, setItem } from '@/lib/storage';
 
 const SERVER_URL_KEY = 'serverUrl';
@@ -13,6 +14,8 @@ interface SessionContextValue {
   serverUrl: string;
   signIn: (serverUrl: string, username: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+  /** Changes the password and signs in again with the new one (the backend ends the session). */
+  changePassword: (oldPassword: string, newPassword: string) => Promise<void>;
 }
 
 const SessionContext = createContext<SessionContextValue | null>(null);
@@ -29,7 +32,10 @@ export function SessionProvider({ children }: PropsWithChildren) {
   const [serverUrl, setServerUrlState] = useState('');
 
   useEffect(() => {
-    setSessionEndedHandler(() => setUser(null));
+    setSessionEndedHandler(() => {
+      queryClient.clear();
+      setUser(null);
+    });
 
     (async () => {
       try {
@@ -59,12 +65,25 @@ export function SessionProvider({ children }: PropsWithChildren) {
     try {
       await authApi.logout();
     } finally {
+      // Cached data belongs to this user and must not be shown to the next one
+      queryClient.clear();
       setUser(null);
     }
   }
 
+  async function changePassword(oldPassword: string, newPassword: string) {
+    if (!user) return;
+    await authApi.changePassword(oldPassword, newPassword);
+    try {
+      // Also refreshes mustChangePassword, which releases the app area
+      setUser(await authApi.login(user.username, newPassword));
+    } catch {
+      await signOut();
+    }
+  }
+
   return (
-    <SessionContext value={{ isLoading, user, serverUrl, signIn, signOut }}>
+    <SessionContext value={{ isLoading, user, serverUrl, signIn, signOut, changePassword }}>
       {children}
     </SessionContext>
   );
