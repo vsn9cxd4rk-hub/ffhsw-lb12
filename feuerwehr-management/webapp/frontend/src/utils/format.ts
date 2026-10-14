@@ -11,6 +11,17 @@ export function formatDate(dateStr: string | null | undefined): string {
   }
 }
 
+// Value for <input type="date"> in local time. split('T') takes the UTC day, which is the
+// day before for older due dates stored at 22:00/23:00Z
+export function toDateInputValue(dateStr: string | null | undefined): string {
+  if (!dateStr) return '';
+  try {
+    return format(parseISO(dateStr), 'yyyy-MM-dd');
+  } catch {
+    return '';
+  }
+}
+
 export function formatDateTime(dateStr: string | null | undefined): string {
   if (!dateStr) return '-';
   try {

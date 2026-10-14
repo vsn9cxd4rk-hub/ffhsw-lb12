@@ -210,7 +210,10 @@ function LogbookFormModal({ isOpen, onClose, vehicleId, entry }: { isOpen: boole
   });
 
   const update = (f: string, v: string) => setForm(prev => ({ ...prev, [f]: v }));
-  const isValid = form.date && form.driver && form.purpose && form.startMileage && form.endMileage;
+  const mileageError = form.startMileage && form.endMileage && parseInt(form.endMileage) < parseInt(form.startMileage)
+    ? 'km-Stand Ende darf nicht kleiner als km-Stand Start sein'
+    : undefined;
+  const isValid = form.date && form.driver && form.purpose && form.startMileage && form.endMileage && !mileageError;
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={entry ? 'Eintrag bearbeiten' : 'Neuer Fahrtenbucheintrag'} size="md"
@@ -233,7 +236,7 @@ function LogbookFormModal({ isOpen, onClose, vehicleId, entry }: { isOpen: boole
         <Input label="Ziel der Fahrt" value={form.destination} onChange={(e) => update('destination', e.target.value)} />
         <div className="grid grid-cols-2 gap-3">
           <Input label="km-Stand Start" value={form.startMileage} onChange={(e) => update('startMileage', e.target.value)} type="number" required />
-          <Input label="km-Stand Ende" value={form.endMileage} onChange={(e) => update('endMileage', e.target.value)} type="number" required />
+          <Input label="km-Stand Ende" value={form.endMileage} onChange={(e) => update('endMileage', e.target.value)} type="number" required error={mileageError} />
         </div>
         <Input label="Bemerkungen" value={form.notes} onChange={(e) => update('notes', e.target.value)} />
       </div>

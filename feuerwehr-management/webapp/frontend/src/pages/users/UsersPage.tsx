@@ -10,6 +10,8 @@ import { Badge } from '../../components/ui/Badge';
 import { SearchInput } from '../../components/ui/SearchInput';
 import { Modal } from '../../components/ui/Modal';
 import { Input } from '../../components/ui/Input';
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
+import { useAuthStore } from '../../store/auth.store';
 
 function UserFormModal({ isOpen, onClose, editUser }: { isOpen: boolean; onClose: () => void; editUser?: User | null }) {
   const queryClient = useQueryClient();
@@ -98,6 +100,8 @@ export function UsersPage() {
   const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editUser, setEditUser] = useState<User | null>(null);
+  const [deleteUser, setDeleteUser] = useState<User | null>(null);
+  const currentUserId = useAuthStore((s) => s.user?.id);
 
   const { data, isLoading } = useQuery({
     queryKey: ['users', search],
@@ -106,7 +110,7 @@ export function UsersPage() {
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => usersApi.delete(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['users'] }),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['users'] }); setDeleteUser(null); },
   });
 
   const openCreate = () => { setEditUser(null); setShowForm(true); };
@@ -130,7 +134,10 @@ export function UsersPage() {
     { key: 'actions', header: '', render: (u: User) => (
       <div className="flex gap-2">
         <Button size="sm" variant="secondary" onClick={(e: React.MouseEvent) => { e.stopPropagation(); openEdit(u); }}>Bearbeiten</Button>
-        <Button size="sm" variant="danger" onClick={(e: React.MouseEvent) => { e.stopPropagation(); deleteMutation.mutate(u.id); }} loading={deleteMutation.isPending}>Löschen</Button>
+        {/* Deleting oneself is refused by the backend anyway */}
+        {u.id !== currentUserId && (
+          <Button size="sm" variant="danger" onClick={(e: React.MouseEvent) => { e.stopPropagation(); setDeleteUser(u); }}>Löschen</Button>
+        )}
       </div>
     )},
   ];
@@ -145,6 +152,16 @@ export function UsersPage() {
       <div className="bg-white rounded-lg shadow-xs border border-gray-200">
         <Table columns={columns} data={data || []} loading={isLoading} emptyMessage="Keine Benutzer gefunden." keyExtractor={(u) => u.id} />
       </div>
+
+      <ConfirmDialog
+        isOpen={!!deleteUser}
+        onClose={() => setDeleteUser(null)}
+        onConfirm={() => deleteUser && deleteMutation.mutate(deleteUser.id)}
+        title="Benutzer löschen"
+        message={`Soll der Benutzer „${deleteUser?.username}“ wirklich gelöscht werden? Das lässt sich nicht rückgängig machen.`}
+        confirmLabel="Löschen"
+        loading={deleteMutation.isPending}
+      />
 
       {showForm && (
         <UserFormModal key={editUser?.id || 'new'} isOpen={showForm} onClose={closeForm} editUser={editUser} />

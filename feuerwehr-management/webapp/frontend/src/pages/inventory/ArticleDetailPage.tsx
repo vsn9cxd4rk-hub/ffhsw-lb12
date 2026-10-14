@@ -10,7 +10,7 @@ import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
 import { Input } from '../../components/ui/Input';
 import { Textarea } from '../../components/ui/Textarea';
-import { formatDate, formatCurrency } from '../../utils/format';
+import { formatDate, formatCurrency, toDateInputValue } from '../../utils/format';
 import { inspectionsApi } from '../../api/inspections';
 import { defectsApi } from '../../api/defects';
 import { repairsApi } from '../../api/repairs';
@@ -545,7 +545,7 @@ function HistorieTab({ articleId }: { articleId: number }) {
                 <button onClick={() => setEditId(null)} className="text-gray-400 text-xs">X</button>
               </div>
             ) : (
-              <button onClick={() => { setEditId(i.id); setNextDate(i.nextDueDate ? i.nextDueDate.split('T')[0] : ''); }}
+              <button onClick={() => { setEditId(i.id); setNextDate(toDateInputValue(i.nextDueDate)); }}
                 className="text-sm text-gray-700 hover:text-primary-600 hover:underline" title="Klicken zum Ändern">
                 {i.nextDueDate ? formatDate(i.nextDueDate) : '-'}
               </button>

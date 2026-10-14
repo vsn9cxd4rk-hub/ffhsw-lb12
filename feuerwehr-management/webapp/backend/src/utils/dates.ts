@@ -14,13 +14,15 @@ export function convertDates(data: Record<string, unknown>, fields: string[]): R
 /**
  * Adds calendar months and stays in the target month: 31.08. + 6 months is 28./29.02.,
  * whereas Date#setMonth rolls over to 02./03.03. (inspection due dates were 1-3 days late).
+ * Works in UTC: date-only values ("YYYY-MM-DD") are parsed as UTC midnight, and local
+ * arithmetic moved them across DST changes (01.03. + 6 months was stored as 31.08. 23:00Z).
  */
 export function addMonths(date: Date, months: number): Date {
   const result = new Date(date);
-  const day = result.getDate();
-  result.setDate(1);
-  result.setMonth(result.getMonth() + months);
-  const lastDayOfMonth = new Date(result.getFullYear(), result.getMonth() + 1, 0).getDate();
-  result.setDate(Math.min(day, lastDayOfMonth));
+  const day = result.getUTCDate();
+  result.setUTCDate(1);
+  result.setUTCMonth(result.getUTCMonth() + months);
+  const lastDayOfMonth = new Date(Date.UTC(result.getUTCFullYear(), result.getUTCMonth() + 1, 0)).getUTCDate();
+  result.setUTCDate(Math.min(day, lastDayOfMonth));
   return result;
 }

@@ -5,6 +5,7 @@ import { getPagination } from '../utils/pagination';
 import { pickWritable } from '../utils/body';
 import { categoryUploadDir, removeUpload, sendUpload, toStoredPath } from '../utils/files';
 import { createUpload, discardUpload } from '../utils/upload';
+import { nextInventoryNumber } from '../utils/inventory-number';
 
 export const articleDocUpload = createUpload({
   destination: () => categoryUploadDir('article-documents'),
@@ -78,15 +79,7 @@ export async function getNextInventoryNumber(_req: Request, res: Response): Prom
       where: { inventoryNumber: { not: null } },
       select: { inventoryNumber: true },
     });
-    let maxNum = 0;
-    for (const a of articles) {
-      const match = a.inventoryNumber?.match(/(\d+)/);
-      if (match) {
-        const num = parseInt(match[match.length - 1]);
-        if (num > maxNum) maxNum = num;
-      }
-    }
-    sendSuccess(res, { next: String(maxNum + 1) });
+    sendSuccess(res, { next: nextInventoryNumber(articles.map(a => a.inventoryNumber)) });
   } catch (err) {
     sendError(res, (err as Error).message);
   }

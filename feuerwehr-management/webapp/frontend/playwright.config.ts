@@ -8,6 +8,7 @@ export default defineConfig({
   workers: 1,
   reporter: 'html',
   timeout: 30000,
+  globalTeardown: './tests/global-teardown.ts',
 
   use: {
     baseURL: 'http://localhost:3000',

@@ -35,7 +35,7 @@ test.describe('Einstellungen', () => {
   test('Lagerorte Tab zeigt Lager', async ({ page }) => {
     await page.goto('/settings');
     await page.getByRole('button', { name: 'Lagerorte' }).click();
-    await expect(page.getByRole('heading', { name: 'Lagerorte' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Lagerorte', exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Neuer Lagerort' })).toBeVisible();
   });
 

@@ -10,7 +10,7 @@ import { passwordRules } from '../utils/password';
 export const createUserValidation = [
   body('username').trim().isLength({ min: 3 }).withMessage('Benutzername min. 3 Zeichen'),
   passwordRules(body('password')),
-  body('email').optional().isEmail().withMessage('Ungültige E-Mail-Adresse'),
+  body('email').optional({ values: 'falsy' }).isEmail().withMessage('Ungültige E-Mail-Adresse'),
 ];
 
 export const updateUserValidation = [

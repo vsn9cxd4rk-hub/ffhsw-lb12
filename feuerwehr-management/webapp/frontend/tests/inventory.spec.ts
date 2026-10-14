@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Bestandsliste', () => {
   test('zeigt Bestandsliste mit Filtern', async ({ page }) => {
     await page.goto('/inventory');
-    await expect(page.getByRole('heading', { name: 'Lager' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Lager', exact: true })).toBeVisible();
     await expect(page.getByText('Geräteklasse').first()).toBeVisible();
     await expect(page.getByRole('button', { name: 'Neuer Artikel' })).toBeVisible();
   });

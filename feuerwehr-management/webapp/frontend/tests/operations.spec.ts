@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 
 test.describe('Einsätze', () => {
   test('zeigt Einsatz-Übersicht', async ({ page }) => {
@@ -44,7 +44,7 @@ test.describe('Einsätze', () => {
       await expect(page.locator('label:has-text("Berichtsart") + select')).toBeVisible();
       await expect(page.locator('label:has-text("Einsatzstichwort") + select')).toBeVisible();
       await expect(page.getByLabel('ILS Auftragsnummer')).toBeVisible();
-      await expect(page.getByLabel('Ersteller')).toBeVisible();
+      await expect(page.getByLabel('Ersteller', { exact: true })).toBeVisible();
       await expect(page.getByLabel('Rolle des Erstellers')).toBeVisible();
       await expect(page.getByText('Einsatzart')).toBeVisible();
       await expect(page.getByText('Statistische Angaben')).toBeVisible();
@@ -144,27 +144,32 @@ test.describe('Einsatz - Kräfte-Tab', () => {
   });
 });
 
+// Generating attaches a PDF to the operation, so it works on its own test operation
+// (removed again by the globalTeardown) instead of the first one in the list.
+async function openTestOperation(page: Page) {
+  await page.goto('/operations');
+  await page.getByRole('button', { name: /Neuer Einsatz/i }).click();
+  await page.getByLabel('Datum').fill('2026-07-21');
+  await page.getByLabel('Einsatzort').fill(`Testort - Dokumente ${Date.now()}`);
+  const [resp] = await Promise.all([
+    page.waitForResponse((r) => r.url().includes('/api/operations') && r.request().method() === 'POST'),
+    page.getByRole('button', { name: /Anlegen/i }).click(),
+  ]);
+  await page.goto(`/operations/${(await resp.json()).data.id}`);
+  await page.getByRole('button', { name: 'Dokumente' }).click();
+}
+
 test.describe('Einsatz - Dokumente & Generierung', () => {
   test('zeigt Generierungs-Buttons', async ({ page }) => {
-    await page.goto('/operations');
-    const firstRow = page.locator('table tbody tr').first();
-    if (await firstRow.isVisible()) {
-      await firstRow.click();
-      await page.getByRole('button', { name: 'Dokumente' }).click();
-      await expect(page.getByRole('button', { name: /Einsatzbericht generieren/i })).toBeVisible();
-      await expect(page.getByRole('button', { name: /Kräftenachweis generieren/i })).toBeVisible();
-    }
+    await openTestOperation(page);
+    await expect(page.getByRole('button', { name: /Einsatzbericht generieren/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Kräftenachweis generieren/i })).toBeVisible();
   });
 
   test('Einsatzbericht-Generierung startet', async ({ page }) => {
-    await page.goto('/operations');
-    const firstRow = page.locator('table tbody tr').first();
-    if (await firstRow.isVisible()) {
-      await firstRow.click();
-      await page.getByRole('button', { name: 'Dokumente' }).click();
-      await page.getByRole('button', { name: /Einsatzbericht generieren/i }).click();
-      // Should show success or error message (not just stay silent)
-      await expect(page.getByText(/generiert|fehlt|fehlgeschlagen/i).first()).toBeVisible({ timeout: 15000 });
-    }
+    await openTestOperation(page);
+    await page.getByRole('button', { name: /Einsatzbericht generieren/i }).click();
+    // Should show success or error message (not just stay silent)
+    await expect(page.getByText(/generiert|fehlt|fehlgeschlagen/i).first()).toBeVisible({ timeout: 15000 });
   });
 });

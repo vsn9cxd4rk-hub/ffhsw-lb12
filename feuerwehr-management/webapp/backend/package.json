@@ -13,7 +13,8 @@
     "prisma:seed": "tsx prisma/seed.ts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:junit": "vitest run --reporter=junit --outputFile=test-results.xml"
+    "test:junit": "vitest run --reporter=junit --outputFile=test-results.xml",
+    "e2e:cleanup": "tsx scripts/cleanup-e2e-data.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.6.0",

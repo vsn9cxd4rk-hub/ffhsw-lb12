@@ -126,9 +126,19 @@ export async function getLogbook(req: Request, res: Response): Promise<void> {
   }
 }
 
+const MILEAGE_ERROR = 'km-Stand Ende darf nicht kleiner als km-Stand Start sein';
+
+function mileageInvalid(start: unknown, end: unknown): boolean {
+  return start != null && end != null && Number(end) < Number(start);
+}
+
 export async function createLogbookEntry(req: Request, res: Response): Promise<void> {
   try {
     const vehicleId = parseInt(req.params.id);
+    if (mileageInvalid(req.body.startMileage, req.body.endMileage)) {
+      sendError(res, MILEAGE_ERROR, 400);
+      return;
+    }
     const entry = await prisma.logbookEntry.create({
       data: { ...convertDates(pickWritable('LogbookEntry', req.body, ['vehicleId']), LOGBOOK_DATE_FIELDS), vehicleId } as any,
     });
@@ -141,6 +151,14 @@ export async function createLogbookEntry(req: Request, res: Response): Promise<v
 export async function updateLogbookEntry(req: Request, res: Response): Promise<void> {
   try {
     const id = parseInt(req.params.entryId);
+    // A partial update is checked against the stored value of the other field
+    if (req.body.startMileage != null || req.body.endMileage != null) {
+      const existing = await prisma.logbookEntry.findUnique({ where: { id }, select: { startMileage: true, endMileage: true } });
+      if (existing && mileageInvalid(req.body.startMileage ?? existing.startMileage, req.body.endMileage ?? existing.endMileage)) {
+        sendError(res, MILEAGE_ERROR, 400);
+        return;
+      }
+    }
     const entry = await prisma.logbookEntry.update({
       where: { id },
       data: convertDates(pickWritable('LogbookEntry', req.body, ['vehicleId']), LOGBOOK_DATE_FIELDS) as any,

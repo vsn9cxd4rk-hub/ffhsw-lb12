@@ -5,7 +5,7 @@ Neueste Version zuerst. Die Einträge für Anwender stehen zusätzlich in
 Versionsnummer); beide Stellen gemeinsam pflegen. Update-Schritte für Produktiv- und
 Backup-System: `deploy/UPDATE-MANJARO.md`.
 
-## 1.4.0 – 2026-10-12 (gegenüber 1.3.2)
+## 1.4.0 – 2026-10-14 (gegenüber 1.3.2)
 
 Sicherheits-Update: Berechtigungen für Veranstaltungen und Ausbildung, Schutz von
 Gesundheitsdaten, erzwungener Passwortwechsel, robustere Sitzungen, aktualisierte
@@ -17,6 +17,7 @@ Bibliotheken. Befunde und Nacharbeit: `REVIEW-2026-10-11.md`.
 - Erzwungener Passwortwechsel (`users.mustChangePassword`) für vom Administrator vergebene/zurückgesetzte Passwörter und das frühere Standardpasswort.
 - Zufälliges Startpasswort für „admin“ bei der Erstinstallation.
 - Änderungsübersicht im Dialog „Über diese Anwendung“.
+- Prüfdialog: Button „Alle offenen auf io setzen“ unter den Prüfkriterien. Er setzt nur noch nicht bewertete Kriterien auf io, ein bereits gesetztes nio bleibt stehen; bei teilweise bewerteten Kriterien zeigt er die Zahl der offenen an.
 
 ### Geändert
 
@@ -35,6 +36,12 @@ Bibliotheken. Befunde und Nacharbeit: `REVIEW-2026-10-11.md`.
 - **Bugfix Dashboard, überfällige Termine:** Fahrzeugtermine (TÜV, SP, Service), Geräteprüfungen am Fahrzeug und Untersuchungen (G25/G26/G30, LKW-Führerschein) verschwanden vom Dashboard, sobald sie überfällig waren (untere Grenze `gte: now` in den Abfragen). Sie bleiben jetzt als „Überfällig“ stehen, bis der Termin erneuert ist. Ausgemusterte Fahrzeuge sowie inaktive und gelöschte Mitglieder werden nicht aufgeführt. Die Untersuchungsliste liefert einen Status (`red`/`yellow`) und ist nicht mehr auf 10 Einträge gekappt; das Dashboard zeigt je Liste 5 Einträge und die Zahl der weiteren.
 - **Bugfix Kräftenachweis mit mehr als 9 Kräften:** Das Formular hat je Abschnitt 9 Zeilen, alle weiteren Kräfte entfielen ohne Hinweis. Sie kommen jetzt auf Folgeblätter (eigene Dateien mit `_Blatt2`, `_Blatt3`, …). Die Vorlage bleibt unverändert.
 - **Bugfix Fälligkeit am Monatsende:** Die nächste Geräteprüfung wurde mit `Date#setMonth` berechnet; eine Prüfung am 31.08. mit 6 Monaten Intervall war dadurch erst am 02./03.03. fällig. Jetzt gilt der letzte Tag des Zielmonats (`addMonths` in `utils/dates.ts`, im Frontend `date-fns`). Bereits gespeicherte Fälligkeiten werden nicht umgerechnet.
+- **Bugfix Fälligkeit über die Sommerzeitumstellung:** `addMonths` rechnete in lokaler Zeit auf UTC-Mitternacht; 01.03. + 6 Monate wurde als `2026-08-31T23:00Z` gespeichert. Die Anzeige stimmte, das Bearbeiten-Feld der nächsten Prüfung (Artikel → Historie) war aber einen Tag zu früh vorbelegt. `addMonths` rechnet jetzt in UTC; das Feld liest das Datum lokal aus (`toDateInputValue`), damit stimmen auch bereits gespeicherte Werte.
+- **Bugfix Benutzer ohne E-Mail:** Neue Benutzer ließen sich in der Oberfläche nur mit E-Mail-Adresse anlegen (das leere Feld wurde als „Ungültige E-Mail-Adresse“ abgelehnt).
+- **Vorschlag „nächste Inventarnummer“:** Folgt der eigenen Nummernfolge (häufigste Länge rein numerischer Nummern, z.B. 121007) statt der höchsten Zahl im Feld; Hersteller- und Seriennummern wie `23642003365` hatten den Vorschlag verschoben, bei `LB12-0045` zählte die 12.
+- CSV-Artikelimport: Steht eine Inventarnummer mehrfach in derselben Datei, wird die zweite Zeile übersprungen statt als Fehler gemeldet (wie beim Mitgliederimport).
+- Fahrtenbuch: Ein km-Stand Ende unter dem km-Stand Start wird abgelehnt (Formular und API, auch bei Teil-Updates).
+- Benutzerverwaltung: Löschen nur nach Rückfrage; beim eigenen Konto gibt es keinen Löschen-Button.
 - **Bugfix Dienstgrad:** Der Dienstgrad wurde über Vor- *oder* Nachname gesucht und konnte von einem Namensvetter stammen; jetzt nur bei exakt passendem Vor- und Nachnamen (Ersteller und Einsatzleiter).
 
 ### Sicherheit
@@ -54,8 +61,9 @@ Bibliotheken. Befunde und Nacharbeit: `REVIEW-2026-10-11.md`.
 - nginx: `location /uploads/` entfernen, Security-Header-Snippet einbinden.
 - Neuinstallation: `deploy/init-db.sql` war auf dem Stand vor 1.1.0 (es fehlten u.a. `operation_personnel`, die Einsatzbericht-Felder und die Fahrzeugstärke) und ist jetzt auf Schema-Stand 1.4.0; Gruppenführer bekommen br4/br5 wie im Seed. `install-manjaro.sh`/`install-debian.sh` installieren per `npm ci`, führen den Seed mit `tsx` aus (vorher `ts-node`, nicht installiert und durch `npm prune` entfernt, der Seed scheiterte still) und zeigen das Startpasswort an; `npm prune` erst danach.
 - Ein Rollback auf 1.3.x braucht den Datenbank-Restore (1.3.x versteht die relativen Pfade nicht).
-- E2E-Tests brauchen `E2E_ADMIN_PASSWORD`.
+- E2E-Tests brauchen `E2E_ADMIN_PASSWORD`. Nach jedem Lauf entfernt ein Playwright-`globalTeardown` die angelegten Testdaten (`npm run e2e:cleanup` im Backend, nur exakte Testnamen; `E2E_KEEP_DATA=1` behält sie). Das braucht DB-Zugriff, also einen lokalen Lauf.
 
 ### Tests
 
-- Backend: 22 Testdateien, u.a. überfällige Termine im Dashboard, Folgeblätter im Kräftenachweis, Monatsende-Berechnung, Sitzungen (inkl. gleitendem Ablauf), Mass Assignment, Upload-Härtung, Upload-Pfade, Berechtigungen, Gesundheitsdaten. Die Generator-Tests laufen nur, wenn die Vorlagen-Datei vorhanden ist; fehlende Dateien listet `backup-integrity.test.ts`.
+- Backend: 27 Testdateien (157 Tests), neu: Prüfbuch (Kriterien, Ergebnis, Fälligkeit, Prüfplan, fällige Prüfungen), CSV-Import (Artikel, Prüfungen, Mitglieder), Benutzerverwaltung (letzter Admin, Sitzungsende bei Deaktivierung, Anlegen ohne E-Mail), Inventarnummer-Vorschlag, Fahrtenbuch-km; außerdem u.a. überfällige Termine im Dashboard, Folgeblätter im Kräftenachweis, Monatsende-Berechnung, Sitzungen (inkl. gleitendem Ablauf), Mass Assignment, Upload-Härtung, Upload-Pfade, Berechtigungen, Gesundheitsdaten. Die Generator-Tests laufen nur, wenn die Vorlagen-Datei vorhanden ist; fehlende Dateien listet `backup-integrity.test.ts`.
+- E2E: neu Fahrzeuge (inkl. Fahrtenbuch), Benutzerverwaltung, Ausbildung, Statistik und „Alle offenen auf io setzen“. Die Generierungs-Tests im Einsatz arbeiten auf einem eigenen Testeinsatz statt auf dem ersten der Liste (hingen bisher bei jedem Lauf einen Einsatzbericht an einen echten Einsatz). Mehrdeutige Locators korrigiert.

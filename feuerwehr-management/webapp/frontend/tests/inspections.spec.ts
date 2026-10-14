@@ -22,7 +22,7 @@ test.describe('Prüfbuch', () => {
   test('öffnet Prüfungsdialog', async ({ page }) => {
     await page.goto('/inspections');
     await page.getByRole('button', { name: 'Prüfung dokumentieren' }).click();
-    await expect(page.getByText('Prüfung dokumentieren')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Prüfung dokumentieren' })).toBeVisible();
     await expect(page.getByLabel(/Prüfdatum/)).toBeVisible();
     await expect(page.locator('label:has-text("Prüfer") + select')).toBeVisible();
     await expect(page.getByText('Prüfart', { exact: true })).toBeVisible();
@@ -58,14 +58,14 @@ test.describe('Mangel aus Prüfung erfassen', () => {
     await page.goto('/inventory');
     // Prüfung für die erste Artikelzeile starten -> Dialog mit vorausgewähltem Artikel
     await page.getByTitle('Prüfung durchführen').first().click();
-    await expect(page.getByText('Prüfung dokumentieren')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Prüfung dokumentieren' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Mangel erfassen' })).toBeVisible();
   });
 
   test('ist ohne ausgewählten Artikel nicht sichtbar', async ({ page }) => {
     await page.goto('/inspections');
     await page.getByRole('button', { name: 'Prüfung dokumentieren' }).click();
-    await expect(page.getByText('Prüfung dokumentieren')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Prüfung dokumentieren' })).toBeVisible();
     // Kein Artikel gewählt -> Button darf nicht erscheinen
     await expect(page.getByRole('button', { name: 'Mangel erfassen' })).toHaveCount(0);
   });
@@ -73,7 +73,7 @@ test.describe('Mangel aus Prüfung erfassen', () => {
   test('öffnet Mangel-Formular vorbelegt aus der Prüfung', async ({ page }) => {
     await page.goto('/inventory');
     await page.getByTitle('Prüfung durchführen').first().click();
-    await expect(page.getByText('Prüfung dokumentieren')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Prüfung dokumentieren' })).toBeVisible();
 
     // Prüfer aus der Auswahlliste wählen -> soll ins Mangel-Formular übernommen werden
     const prueferSelect = page.locator('label:has-text("Prüfer") + select');

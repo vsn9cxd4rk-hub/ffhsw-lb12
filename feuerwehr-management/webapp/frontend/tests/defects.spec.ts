@@ -31,7 +31,7 @@ test.describe('Mängel & Reparaturen', () => {
     await page.goto('/defects');
     await page.getByRole('button', { name: 'Reparaturen' }).click();
     await page.getByRole('button', { name: 'Neue Reparatur' }).click();
-    await expect(page.getByText('Neue Reparatur')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Neue Reparatur' })).toBeVisible();
     await expect(page.getByLabel(/Durchgeführt von/)).toBeVisible();
   });
 });

@@ -92,6 +92,14 @@ export function CriteriaInspectionModal({ isOpen, onClose, articles, preselected
   const allCriteriaEvaluated = criteria.length === 0 || criteria.every(c => criterionResults[c.id] !== undefined);
   const allIo = criteria.length > 0 && criteria.every(c => criterionResults[c.id] === 'io');
   const hasAnyResult = Object.keys(criterionResults).length > 0;
+  const openCount = criteria.filter(c => criterionResults[c.id] === undefined).length;
+
+  // Sets only the criteria not rated yet: a "nio" found at the device must not be overwritten
+  const setOpenCriteriaIo = () => setCriterionResults(prev => {
+    const next = { ...prev };
+    for (const c of criteria) if (next[c.id] === undefined) next[c.id] = 'io';
+    return next;
+  });
 
   let nextDueDateStr = '';
   if (selectedArticle?.inspectionInterval && inspectedAt) {
@@ -234,6 +242,11 @@ export function CriteriaInspectionModal({ isOpen, onClose, articles, preselected
                   </div>
                 );
               })}
+            </div>
+            <div className="mt-2 flex justify-end">
+              <Button variant="secondary" size="sm" icon={<CheckCircleIcon />} onClick={setOpenCriteriaIo} disabled={openCount === 0}>
+                Alle offenen auf io setzen{openCount > 0 && openCount < criteria.length ? ` (${openCount})` : ''}
+              </Button>
             </div>
             {hasAnyResult && (
               <div className="mt-3 flex items-center gap-2">

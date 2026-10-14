@@ -502,6 +502,8 @@ export async function importArticles(req: Request, res: Response): Promise<void>
               isDecommissioned: !!decommissionedDate,
             },
           });
+          // Same number twice in one file: the second row counts as skipped like an existing one
+          if (row.inventoryNumber?.trim()) existingInvNumbers.add(row.inventoryNumber.trim().toLowerCase());
           imported++;
         } catch (err: unknown) {
           const msg = (err as { code?: string; meta?: { target?: string[] } }).code === 'P2002'

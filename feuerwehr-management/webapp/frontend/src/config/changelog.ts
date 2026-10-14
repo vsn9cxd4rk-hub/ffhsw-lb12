@@ -22,7 +22,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '1.4.0',
     previousVersion: '1.3.2',
-    date: '2026-10-12',
+    date: '2026-10-14',
     summary: 'Sicherheits-Update: Berechtigungen für Veranstaltungen und Ausbildung, Schutz von Gesundheitsdaten, erzwungener Passwortwechsel.',
     sections: [
       {
@@ -33,6 +33,7 @@ export const CHANGELOG: ChangelogEntry[] = [
           'Vom Administrator vergebene oder zurückgesetzte Passwörter müssen beim nächsten Login durch ein eigenes ersetzt werden. Die Benutzerverwaltung zeigt „Passwortwechsel offen“ an.',
           'Bei der Erstinstallation erhält der Benutzer „admin“ ein zufälliges Startpasswort statt eines festen Standardpassworts.',
           'Diese Übersicht der Änderungen: Klick auf die Versionsnummer im Dialog „Über diese Anwendung“.',
+          'Geräteprüfung: Der Button „Alle offenen auf io setzen“ bewertet alle noch offenen Prüfkriterien mit einem Klick. Bereits als nio markierte Kriterien bleiben unverändert – also erst Mängel markieren, dann den Rest bestätigen.',
         ],
       },
       {
@@ -55,6 +56,12 @@ export const CHANGELOG: ChangelogEntry[] = [
           'Einsatzbericht: Ist der Ersteller Einsatzleiter, steht er jetzt auch im Feld „Einsatzleiter“ (blieb bisher leer). Ist er Einheitenführer, wird der tatsächliche Einsatzleiter in einem eigenen Feld erfasst (mit Vorschlägen aus der Mitgliederliste, auch für Einsatzleiter anderer Löschbezirke).',
           'Der Dienstgrad im Einsatzbericht wird nur noch bei exakt passendem Vor- und Nachnamen ergänzt (vorher konnte der Dienstgrad eines Namensvetters erscheinen).',
           'Der Tab „Bericht“ beim Einsatz entfällt. Der Einsatzbericht wird aus den Angaben unter „Details“ erzeugt (Tab „Dokumente“).',
+          'Geräteprüfung: Beim Ändern der nächsten Fälligkeit war das Datum teilweise einen Tag zu früh vorbelegt.',
+          'Neue Benutzer können wieder ohne E-Mail-Adresse angelegt werden.',
+          'Benutzer werden erst nach einer Rückfrage gelöscht; das eigene Konto kann man nicht mehr löschen.',
+          'Fahrtenbuch: Ein km-Stand am Ende, der unter dem km-Stand am Start liegt, wird abgelehnt.',
+          'Die vorgeschlagene nächste Inventarnummer folgt der eigenen Nummernfolge und nicht mehr Hersteller- oder Seriennummern.',
+          'CSV-Import von Artikeln: Steht eine Inventarnummer mehrfach in der Datei, wird sie nur einmal übernommen und die Wiederholung als übersprungen gezählt.',
         ],
       },
       {
