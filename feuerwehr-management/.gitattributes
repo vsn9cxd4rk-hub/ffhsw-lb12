@@ -19,3 +19,9 @@
 
 # PowerShell erwartet CRLF
 *.ps1        text eol=crlf
+
+# Claude-Skills (skills/): Python-Skripte mit LF, Vorlagen/Bilder binär
+*.py         text eol=lf
+*.xltx       binary
+*.potx       binary
+*.png        binary

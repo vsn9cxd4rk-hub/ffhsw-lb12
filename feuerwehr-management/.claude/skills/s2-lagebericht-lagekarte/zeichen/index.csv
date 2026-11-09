@@ -1,0 +1,98 @@
+ID;Datei;Erläuterung
+EA_01;EA_01.png;Einsatzabschnitt 1
+EA_02;EA_02.png;Einsatzabschnitt 2
+EA_03;EA_03.png;Einsatzabschnitt 3
+EA_04;EA_04.png;Einsatzabschnitt 4
+EA_05;EA_05.png;Einsatzabschnitt 5
+EA_06;EA_06.png;Einsatzabschnitt 6
+EA_07;EA_07.png;Einsatzabschnitt 7
+EA_08;EA_08.png;Einsatzabschnitt 8
+EA_09;EA_09.png;Einsatzabschnitt 9
+EA_10;EA_10.png;Einsatzabschnitt 10
+MARKIERUNG_01;MARKIERUNG_01.png;Markante Stelle, Markierung 1
+MARKIERUNG_02;MARKIERUNG_02.png;Markante Stelle, Markierung 2
+MARKIERUNG_03;MARKIERUNG_03.png;Markante Stelle, Markierung 3
+MARKIERUNG_04;MARKIERUNG_04.png;Markante Stelle, Markierung 4
+MARKIERUNG_05;MARKIERUNG_05.png;Markante Stelle, Markierung 5
+MARKIERUNG_06;MARKIERUNG_06.png;Markante Stelle, Markierung 6
+MARKIERUNG_07;MARKIERUNG_07.png;Markante Stelle, Markierung 7
+MARKIERUNG_08;MARKIERUNG_08.png;Markante Stelle, Markierung 8
+MARKIERUNG_09;MARKIERUNG_09.png;Markante Stelle, Markierung 9
+MARKIERUNG_10;MARKIERUNG_10.png;Markante Stelle, Markierung 10
+STELLE_01;STELLE_01.png;Führungsstelle
+STELLE_02;STELLE_02.png;Bereitstellungsraum
+STELLE_03;STELLE_03.png;Bereitstellungsraum mit Meldekopf
+STELLE_04;STELLE_04.png;Lotsenstelle, Abholpunkt
+STELLE_05;STELLE_05.png;Hubschrauberlandezone
+STELLE_06;STELLE_06.png;Anlegestelle für Boote
+STELLE_07;STELLE_07.png;Stelle mit IuK-Verbindung
+STELLE_08;STELLE_08.png;Mobile TETRA-Basisstation
+STELLE_09;STELLE_09.png;Sammelstelle für Spontanhelfer
+STELLE_10;STELLE_10.png;Verpflegungsstelle
+STELLE_11;STELLE_11.png;Verpflegungszubereitungsstelle
+STELLE_12;STELLE_12.png;Versorgungsstelle Betriebsstoffe und Verbrauchsgüter
+STELLE_13;STELLE_13.png;Instandhaltung und Instandsetzung
+STELLE_14;STELLE_14.png;Wasserentnahmestelle
+STELLE_15;STELLE_15.png;Sandsackbefüllung
+STELLE_16;STELLE_16.png;Trinkwasserausgabestelle
+STELLE_17;STELLE_17.png;Sanitäre Einrichtung mit Dusch- und Waschmöglichkeit
+STELLE_18;STELLE_18.png;Toiletten
+STELLE_19;STELLE_19.png;Entsorgungsstelle
+STELLE_20;STELLE_20.png;Patientenablage
+STELLE_21;STELLE_21.png;Behandlungsplatz
+STELLE_22;STELLE_22.png;Ladezone
+STELLE_23;STELLE_23.png;Rettungsmittelhalteplatz
+STELLE_24;STELLE_24.png;Anlaufstelle für Betroffene
+STELLE_25;STELLE_25.png;Betreuungsstelle
+STELLE_26;STELLE_26.png;Notunterkunft
+STELLE_27;STELLE_27.png;Notfallinformationspunkt
+STELLE_28;STELLE_28.png;Krankenhaus
+STELLE_29;STELLE_29.png;Pflegeeinrichtung
+STELLE_30;STELLE_30.png;Bildungseinrichtung
+GEFAHR_01;GEFAHR_01.png;A-Gefahren
+GEFAHR_02;GEFAHR_02.png;B-Gefahren
+GEFAHR_03;GEFAHR_03.png;C-Gefahren
+GEFAHR_03;GEFAHR_03_b.png;Gefahr durch Elektrizität
+BRAND_01;BRAND_01.png;Entstehungsbrand
+BRAND_02;BRAND_02.png;Fortentwickelter Brand
+BRAND_03;BRAND_03.png;Vollbrand
+BRAND_04;BRAND_04.png;Spotfeuer
+BRAND_05;BRAND_05.png;Ankerpunkt
+BRAND_06;BRAND_06.png;Saftyzone/Sicherheitszone
+ZERSTÖRUNG_01;ZERSTÖRUNG_01.png;angeschlagen, beschädigt
+ZERSTÖRUNG_02;ZERSTÖRUNG_02.png;teilzerstört, teilweise zusammengebrochen
+ZERSTÖRUNG_03;ZERSTÖRUNG_03.png;total zerstört, zusammengebrochen
+BEFAHRBARKEIT_01;BEFAHRBARKEIT_01.png;gesperrt
+BEFAHRBARKEIT_02;BEFAHRBARKEIT_02.png;Einbahnstraßenregelung
+BEFAHRBARKEIT_03;BEFAHRBARKEIT_03.png;schwierig befahrbar / teilblockiert
+BEFAHRBARKEIT_04;BEFAHRBARKEIT_04.png;nicht befahrbar / blockiert
+SITUATION_01;SITUATION_01.png;Hinweis auf akute Situation oder bestätigte Information
+SITUATION_02;SITUATION_02.png;Hinweis auf Vermutung oder unbestätigte Information
+TENDENZ_01;TENDENZ_01.png;Tendenz steigend / zunehmend / ausdehnend
+TENDENZ_02;TENDENZ_02.png;Tendenz unverändert / gleichbleibend
+TENDENZ_03;TENDENZ_03.png;Tendenz fallend / abnehmend / verkleinernd
+MASSNAHME_01;MASSNAHME_01.png;Erkunden
+MASSNAHME_02;MASSNAHME_02.png;Einsatz von Drehflüglern
+MASSNAHME_03;MASSNAHME_03.png;Warnen mit Sirene
+MASSNAHME_04;MASSNAHME_04.png;Warnen mit Lautsprecherdurchsagen
+MASSNAHME_05;MASSNAHME_05.png;Räumen
+MASSNAHME_06;MASSNAHME_06.png;Evakuieren
+MASSNAHME_07;MASSNAHME_07.png;Brandbekämpfung
+MASSNAHME_08;MASSNAHME_08.png;Luftgestützte Brandbekämpfung mit Drehflüglern
+MASSNAHME_09;MASSNAHME_09.png;Löschwasserförderung
+MASSNAHME_10;MASSNAHME_10.png;Löschwasserförderung mit Fahrzeugen
+MASSNAHME_11;MASSNAHME_11.png;Technische Hilfe
+MASSNAHME_12;MASSNAHME_12.png;Räumen mit Maschine
+MASSNAHME_13;MASSNAHME_13.png;Baggerarbeiten
+MASSNAHME_14;MASSNAHME_14.png;Motorsägenarbeiten
+MASSNAHME_15;MASSNAHME_15.png;Einsatz von Handwerkzeugen
+MASSNAHME_16;MASSNAHME_16.png;Stromversorgung
+MASSNAHME_17;MASSNAHME_17.png;Pumpen, Lenzen
+MASSNAHME_18;MASSNAHME_18.png;Sandsackverbau
+MASSNAHME_19;MASSNAHME_19.png;Abwehr von Wassergefahren, Deichverteidigung
+MASSNAHME_20;MASSNAHME_20.png;Wasserrettung
+MASSNAHME_21;MASSNAHME_21.png;CBRN-Abwehr
+MASSNAHME_22;MASSNAHME_22.png;Messen, Spüren, Detektieren
+MASSNAHME_23;MASSNAHME_23.png;Dekontaminieren
+MASSNAHME_24;MASSNAHME_24.png;Beseitigen von Umweltschäden auf Gewässern
+MASSNAHME_25;MASSNAHME_25.png;Entschärfen, Kampfmittelräumung

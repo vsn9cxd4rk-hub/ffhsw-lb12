@@ -1,0 +1,126 @@
+{
+ "kommune": "Gemeinde Heusweiler",
+ "zeit": "081300nov26",
+ "lfd_nr": 2,
+ "kraefte": {
+  "alarmiert": "THW OV Saarbrücken FGr WP",
+  "bereitschaft": "LB 113, LB 118 (BR Sportplatz Heusweiler)",
+  "grundschutz": "LB 118",
+  "einsatz": "LB 111, LB 112, LB 115\nFZ Hochwasserschutz",
+  "ruhe": "–"
+ },
+ "schaden": {
+  "verletzt": [
+   1,
+   2
+  ],
+  "vermisst": [
+   1,
+   0
+  ],
+  "betreuung": [
+   0,
+   35
+  ],
+  "gebaeude_beschaedigt": [
+   10,
+   24
+  ]
+ },
+ "umwelt": "Heizöl im Köllerbach, Ölsperre gesetzt",
+ "kritis_bedroht": [
+  {
+   "sektor": "Energie",
+   "text": "Umspannstation Dilsburg"
+  }
+ ],
+ "kritis_ausgefallen": [
+  {
+   "sektor": "Transport & Verkehr",
+   "text": "L 141 überflutet"
+  }
+ ],
+ "staerke": {
+  "gesamt": 148,
+  "fw": 122,
+  "kats_hiorg": 16,
+  "sonstige": 10
+ },
+ "verpflegung": {
+  "portionen": 160,
+  "zeitpunkt": "081800nov26"
+ },
+ "beurteilung": {
+  "schadenslage": {
+   "stufe": 2,
+   "prognose": "Verschärfung"
+  },
+  "fuehrung": {
+   "stufe": 1,
+   "prognose": "Stagnation"
+  },
+  "kraefte": {
+   "stufe": 2,
+   "prognose": "Verschärfung"
+  },
+  "logistik": {
+   "stufe": 1,
+   "prognose": "Stagnation"
+  },
+  "kommunikation": {
+   "stufe": 1,
+   "prognose": "Stagnation"
+  }
+ },
+ "aufgaben": {
+  "technische_hilfe": {
+   "text": "Wasserschaden / Pumpen",
+   "schwerpunkt": true
+  },
+  "evakuierung": {
+   "text": "Pflegeheim Dilsburg vorbereitet"
+  },
+  "betreuung": {
+   "text": "Betreuungsstelle Kulturhalle"
+  }
+ },
+ "raeume": [
+  {
+   "nr": 1,
+   "text": "EA 1 Ortsmitte/Köllerbach",
+   "schwerpunkt": true
+  },
+  {
+   "nr": 2,
+   "text": "EA 2 Dilsburg"
+  }
+ ],
+ "probleme": "1. Pumpenkapazität > 2000 l/min fehlt\n2. Sandsäcke (3.000 Stk.)\n3. –",
+ "kurzfassung": "Starkregen seit 10:30, Köllerbach über Ufer.",
+ "massnahmen": "Pumpen, Sandsackverbau, Warnung Lautsprecher.",
+ "sperrungen": "L 141 zw. Heusweiler und Dilsburg",
+ "presse": "SR vor Ort",
+ "bemerkungen": "Test",
+ "einheiten": [
+  {
+   "org": "FW",
+   "formation": "Löschbezirk",
+   "bezeichnung": "LB 111"
+  },
+  {
+   "org": "FW",
+   "formation": "FZ Hochwasserschutz",
+   "bezeichnung": "RV SB"
+  },
+  {
+   "org": "DRK",
+   "formation": "FZ BP 250 (Betreuungsplatz)",
+   "bezeichnung": "DRK RV SB"
+  },
+  {
+   "org": "THW",
+   "formation": "FGr WP (Wasserschaden/Pumpen)",
+   "bezeichnung": "OV Saarbrücken"
+  }
+ ]
+}

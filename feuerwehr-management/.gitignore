@@ -37,3 +37,10 @@ webapp/backend/node_modules/.prisma/
 webapp/frontend/test-results/
 webapp/frontend/playwright-report/
 webapp/frontend/tests/.auth/
+
+# Python
+__pycache__/
+*.pyc
+
+# Lokale Claude-Einstellungen
+.claude/settings.local.json
