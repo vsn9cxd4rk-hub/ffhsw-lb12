@@ -77,6 +77,21 @@
     5466300
    ],
    "text": "Ankerpunkt (Test)"
+  },
+  {
+   "id": "EA_02",
+   "utm": [
+    348800,
+    5466000
+   ]
+  },
+  {
+   "id": "GEFAHR_03",
+   "utm": [
+    351800,
+    5467800
+   ],
+   "text": "Chlor Freibad"
   }
  ],
  "flaechen": [
@@ -149,6 +164,28 @@
      5466700
     ]
    ]
+  }
+ ],
+ "kaestchen": [
+  {
+   "id": "EA_01",
+   "text": "EA 1 Dilsburg/Köllerbach: Überflutung, 12 Keller, Pumpen im Einsatz (Schwerpunkt)"
+  },
+  {
+   "id": "EA_02",
+   "text": "EA 2 Niedersalbach: Sturmschäden, L141 gesperrt"
+  },
+  {
+   "id": "GEFAHR_03",
+   "text": "C-Gefahr: Chloraustritt Freibad, Messung läuft"
+  },
+  {
+   "id": "BRAND_02",
+   "text": "Brand Lagerhalle Dilsburg"
+  },
+  {
+   "id": "SITUATION_02",
+   "text": "unbestätigt: Erdrutsch Berschweiler"
   }
  ]
 }

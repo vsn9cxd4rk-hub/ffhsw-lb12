@@ -7,6 +7,16 @@ description: "S2 im Führungsstab FF Heusweiler – Lagebericht (Excel-Vorlage R
 
 Nutzer: S2 im Führungsstab der FF Heusweiler. Aufgabe bei Großschadenslagen: Lagebericht (xlsx) + Lagekarte (pptx/PDF) für die Führungseinrichtung der Gemeinde (TEL) an den Führungsstab RV Saarbrücken. Antworten auf Deutsch, knapp, im Stabsjargon (TEL, EA, BR, MK, KRITIS, Stärke).
 
+## 0. Festlegungen Gemeinde Heusweiler (Stand 13.11.2026) – haben Vorrang
+- **Priorität 1 ist der interne Überblick** der TEL: analoge Lagekarte an der Wand und Lagedarstellung mit Kräfteübersicht am Whiteboard. Der Skill unterstützt, ersetzt das nicht und darf es nicht aufhalten.
+- **Priorität 2:** Lagebericht + Lagekarte **stündlich** als E-Mail-Anhang an den Stab RV. Detailtiefe zweitrangig – der RV-Stab liest nicht im Detail. Lieber pünktlich und knapp als vollständig und zu spät.
+- **Fallback (laut RV-Vorgabe zulässig):** Reicht die Zeit für die PPT-Lagekarte nicht, wird ein **Foto der analog geführten Karte** versendet. Dann nur Lagebericht erzeugen und Mailentwurf mit Hinweis „Lagekarte als Foto“ vorbereiten.
+- **Stärke:** im Lagebericht **nur die Gesamtzahl** (E31). Teilstärken FW/KatS/THW/Sonstige bleiben leer.
+- **Alte Vorlage 02a** wird ignoriert; nur V1_02 verwenden.
+- **Randkästchen der Lagekarte:** Darstellung der **Einsatzabschnitte und Gefahren** mit Kurztext (Vorbild: RV-Beispiel „03a Lagekarte Übungsbeispiel“ – falls im Projekt vorhanden, vorher ansehen und Stil übernehmen).
+- **Fehler in den RV-Unterlagen** (fehlende/doppelte Zeichen, Tippfehler, Beispiel-Rechenfehler) werden **nicht jetzt** geklärt, sondern in die Nachbereitung aufgenommen (Projektdoc „S2-Lage – offene Punkte an RV“). Im Einsatz/in der Übung nicht darüber diskutieren, sondern umgehen (Text/MARKIERUNG statt fehlendem Zeichen).
+- **Datenschutz** (Übernahme von SecurCAD-Daten in KI) wird im Nachgang über die Wehrführung geklärt. Bis dahin nur Übungsdaten bzw. keine personenbezogenen Daten (keine Namen von Betroffenen) verarbeiten.
+
 ## 1. Rahmen (Schulung „Lageberichts- und Meldewesen FüSt D“, H. Neubert, StA 37, 27.08.2026)
 - Aktivierung durch die untere KatS-Behörde. Danach unverzüglich 1. Lagebericht + Lagekarte, dann **stündlich zur vollen Stunde** (sofern nichts anderes bestimmt) per E-Mail an **fuehrungsstab@saarbruecken.de**.
 - Lagekarte ist **jedem** Lagebericht als Anlage beizufügen (PPT-Vorlage als PDF, Foto der Handkarte oder FüUSoftware-Ausdruck).
@@ -18,13 +28,16 @@ Nutzer: S2 im Führungsstab der FF Heusweiler. Aufgabe bei Großschadenslagen: L
 
 ## 2. Arbeitsablauf pro Bericht
 1. **Material finden** (in dieser Reihenfolge): Ordner dieses Skills (`vorlagen/`, `tools/`, `zeichen/` neben dieser SKILL.md, im Repo unter `feuerwehr-management/.claude/skills/s2-lagebericht-lagekarte/`) → verbundener Ordner `…/feuerwehr-management/s2-lage/` → angehängte Dateien → Projektdateien. Vorlagen: `Lagebericht Kommune - DDhhmmMMMJJ V1_02.xltx` (Stand 31.08.2026, maßgeblich; „02a Lagebericht Vorlage.xltx“ ist der ältere Stand vom 25.08. – nicht verwenden) und `Lagekarte_Heusweiler_V1-2.potx`; beide liegen als Projektdateien (`project_read(original=true)`). Fehlen sie, danach fragen – nicht nachbauen.
-2. **Skripte**: liegen in `tools/` des Skill-Ordners (bzw. `s2-lage/tools/`). Fehlen sie, die drei Skripte aus Abschnitt 8 unverändert in ein eigenes Arbeitsverzeichnis schreiben. Abhängigkeiten: `pip install python-pptx pdfplumber pillow --break-system-packages`, `pdftoppm`, `soffice`. **Auf dem Mac** die Skripte mit dem venv-Interpreter starten, falls vorhanden: `~/.venvs/s2/bin/python tools/…` (angelegt laut README); sonst `python3`.
+2. **Skripte**: liegen in `tools/` des Skill-Ordners (bzw. `s2-lage/tools/`). Fehlen sie, die drei Skripte aus Abschnitt 8 unverändert in ein eigenes Arbeitsverzeichnis schreiben. Abhängigkeiten: `pip install python-pptx pdfplumber pillow --break-system-packages`, `pdftoppm`, `soffice`. **Auf dem Mac** die Skripte mit dem venv-Interpreter starten, falls vorhanden: `~/.venvs/s2/bin/python tools/…` (siehe README); sonst `python3`. LibreOffice liegt dort ggf. unter `/Applications/LibreOffice.app/Contents/MacOS/soffice`.
 3. **Zeichenbibliothek**: `zeichen/` des Skill-Ordners (bzw. `s2-lage/zeichen/`) (PNG je ID + `index.csv`). Fehlt sie: Projektdatei „03b Übersicht Taktische Zeichen für Lagekarte.pdf“ mit `project_read(original=true)` holen und `python3 tz_extract.py <pdf> zeichen/` ausführen (97 Zeichen, ~20 s). BRAND_05 (Ankerpunkt) ist im PDF leer: Projektdatei „BRAND_05 - Ankerpunkt.SVG“ lesen, weiße Hintergrund-`rect` entfernen, mit `rsvg-convert -w 1300` rendern, auf Inhalt beschneiden, als `zeichen/BRAND_05.png` ablegen. Alle Hilfstabellen-Zeichen liegen zusätzlich als Original-SVG im Projekt (`<ID> - <Erläuterung>.SVG`).
 4. **Lage aufnehmen**: Freitext/Meldungen/Funkprotokoll/Nachrichtenvordrucke des Nutzers in die JSON-Strukturen (Abschnitt 5/6) übersetzen. Je Meldung festhalten: Nachweisungs-Nr., takt. Zeit, Absender, Ort, Inhalt. Mehrere Meldungen zur selben Schadenstelle zusammenführen (nicht doppelt zählen); bestätigt (!) / unbestätigt (?) aus dem Wortlaut, im Zweifel ?. Was nur die Führung entscheidet (Lagebeurteilung, Prognose, EA-Gliederung, Schwerpunkte, Probleme/Bedarfe) **nicht** aus Meldungen ableiten, sondern beim Nutzer abfragen bzw. aus den Schadenskonten übernehmen. Vorherigen Bericht (falls vorhanden) als Basis nehmen: `lfd_nr` +1, Werte übernehmen, nur Änderungen einarbeiten, Änderungen dem Nutzer kurz auflisten.
-5. **Plausibilität prüfen (Abschnitt 7)**, Lücken als Rückfrage – fehlende Angaben **nie erfinden**, sondern leer lassen (Platzhalter bleiben grau stehen).
+5. **Plausibilität prüfen (Abschnitt 7)** – fehlende Angaben **nie erfinden**, sondern leer lassen (Platzhalter bleiben grau stehen).
+   **Schnellmodus (Standard im Einsatz/in der Übung):** höchstens **eine** gebündelte Rückfrage pro Bericht, dann erzeugen. Pflicht sind nur: Zeit, lfd. Nr., Kurzfassung, Lagebeurteilung + Prognose, Probleme/Bedarfe, Stärke gesamt. Alles andere aus dem Vorbericht übernehmen oder leer lassen. Fehlende Punkte nach der Ausgabe in einer Zeile nennen. Ziel: Dateien spätestens 5 Minuten vor der vollen Stunde fertig.
+   **Fotos als Eingang:** Fotos der analogen Lagekarte oder des Whiteboards (Kräfteübersicht) dürfen als Quelle dienen. Abgelesene Werte (Einheiten, Stärken, EA, Schäden) als Liste zurückgeben und bestätigen lassen, bevor sie in den Bericht gehen – Handschrift wird leicht falsch gelesen.
 6. Erzeugen: `python3 lagebericht_fill.py <xltx> bericht.json Lagebericht_Heusweiler_<Zeit>_Nr<lfd>.xlsx` und `python3 lagekarte_build.py <potx> zeichen/ lage.json Lagekarte_Heusweiler_<Zeit>.pptx`.
 7. **Prüfen**: beide mit `soffice --headless --convert-to pdf` rendern, `pdftoppm -r 50` ansehen (Lagebericht 2 Seiten, Lagekarte nur Folie 1). Kontrolle: Felder an richtiger Stelle, Zeichen auf richtigem Ort, nichts abgeschnitten.
-8. Ausgeben: xlsx + Lagekarte als **PDF nur Folie 1** (`pdfseparate -f 1 -l 1`; Folie 2 ist die Zeichenpalette der Vorlage) + pptx zum Weiterarbeiten. Dateinamen nach Muster der Vorlage: `Lagebericht_Heusweiler_DDhhmmMMMJJ_V<lfd>`. Mail-Entwurf an fuehrungsstab@saarbruecken.de anbieten (Betreff „Lagebericht Gemeinde Heusweiler Nr. X – DDhhmmMMMJJ“). Nicht selbst versenden.
+8. Ausgeben: xlsx + Lagekarte als **PDF nur Folie 1** (`pdfseparate -f 1 -l 1`; Folie 2 ist die Zeichenpalette der Vorlage) + pptx zum Weiterarbeiten. Dateinamen nach Muster der Vorlage: `Lagebericht_Heusweiler_DDhhmmMMMJJ_V<lfd>`. Mail-Entwurf an fuehrungsstab@saarbruecken.de anbieten (Betreff „Lagebericht Gemeinde Heusweiler Nr. X – DDhhmmMMMJJ“; in Übungen die von der Übungsleitung genannte Adresse verwenden, falls abweichend). Nicht selbst versenden. Bei Foto-Fallback im Mailtext vermerken: „Lagekarte als Foto der analog geführten Karte“.
+9. **Nachbereitung mitschreiben:** Auffälligkeiten an Vorlagen, Zeichen und Ablauf (z. B. fehlendes Zeichen, Feld passt nicht, Zeitdruck) knapp sammeln und nach der Lage als Liste ausgeben; im Projekt an „S2-Lage – offene Punkte an RV“ anhängen, wenn der Nutzer zustimmt.
 
 **Nie** die xltx mit openpyxl speichern: openpyxl verwirft die x14-Dropdowns, bedingten Formatierungen und WMF-Zeichen. `lagebericht_fill.py` patcht das XML direkt – nur dieses Skript verwenden.
 
@@ -62,9 +75,10 @@ Kartenausschnitt (ETRS89/UTM 32N): **E 345000–356000, N 5464000–5472000**. K
  "flaechen":[{"typ":"ueberschwemmt","utm":[[E,N],[E,N],[E,N]],"text":"Köllerbach"},
              {"typ":"ea_grenze","utm":[[E,N],...]}],
  "linien":[{"typ":"rettungsweg","utm":[[E,N],[E,N]]}],
- "legende":true}
+ "kaestchen":[{"id":"EA_01","text":"EA 1 Dilsburg: Überflutung, Pumpen im Einsatz"},
+              {"id":"GEFAHR_03","text":"C-Gefahr: Chloraustritt Freibad"}]}
 ```
-`legende:true` setzt jedes benutzte Zeichen mit Erläuterung in die Randfelder (max. 25). `hinterlegung` (Standard true) legt jedes Kartenzeichen auf ein weißes Feld, damit dünne Linienzeichen (Brand, Pumpen, gesperrt) auf der Karte lesbar bleiben. Flächentexte stehen über dem nördlichsten Punkt der Fläche. Im Render auf überlappende Texte prüfen und Texte kürzen bzw. Positionen leicht versetzen. Texte an Zeichen kurz halten (≤ 3 Wörter). EA-Zeichen in jede EA-Fläche setzen, Nummern identisch mit Bericht.
+**Randkästchen (`kaestchen`, max. 25):** Einsatzabschnitte (EA_xx) zuerst, dann Gefahren/Schäden, je mit Kurztext (EA-Name + Lage in einer Zeile, ≤ 12 Wörter; Schwerpunkt-EA mit „(Schwerpunkt)“). Fehlt `kaestchen`, nimmt das Skript automatisch alle verwendeten EA_-Zeichen und danach GEFAHR_/BRAND_/ZERSTÖRUNG_/BEFAHRBARKEIT_/SITUATION_-Zeichen mit ihrer Standarderläuterung. Stellen und Maßnahmen kommen nicht in die Kästchen. `hinterlegung` (Standard true) legt jedes Kartenzeichen auf ein weißes Feld, damit dünne Linienzeichen (Brand, Pumpen, gesperrt) auf der Karte lesbar bleiben. Flächentexte stehen über dem nördlichsten Punkt der Fläche. Im Render auf überlappende Texte prüfen und Texte kürzen bzw. Positionen leicht versetzen. Texte an Zeichen kurz halten (≤ 3 Wörter). EA-Zeichen in jede EA-Fläche setzen, Nummern identisch mit Bericht.
 
 ## 6. Lagebericht – `bericht.json` (Zellen der Vorlage „Lagebericht Gde > GdeVerb“)
 | Schlüssel | Zelle(n) | Regel |
@@ -75,7 +89,7 @@ Kartenausschnitt (ETRS89/UTM 32N): **E 345000–356000, N 5464000–5472000**. K
 | schaden.<art> = [?, !] | W/Y 5–14, Σ in AA | `verletzt, verschuettet, vermisst, verstorben, betreuung, tiere_betroffen, tiere_verstorben, gebaeude_beschaedigt, gebaeude_teilzerstoert, gebaeude_zerstoert`. ? = unbestätigt, ! = gesichert, **nie doppelt zählen**. Momentaufnahme (entlassene/gerettete/aufgefundene raus), außer verstorben = Gesamtzahl. Tiere nur Großvieh. Gebäude: beschädigt = wieder nutzbar, teilzerstört = vorerst nicht, zerstört = nicht mehr nutzbar |
 | umwelt | W15 | Schadstoffaustritt, Gewässer, Schutzgebiete |
 | kritis_bedroht / kritis_ausgefallen | W17–W26 / W27–W36 | je max. 5 `{"sektor","text"}`; Sektor exakt: Wasser, Energie, Ernährung, Finanz-& Versicherungswesen, Gesundheit, IT & Telekommunikation, Siedlungsabfallentsorgung, Medien & Kultur, Staat & Verwaltung, Transport & Verkehr |
-| staerke.gesamt / fw / kats_hiorg / thw / sonstige | E31 / E33–E36 | **Personenzahl als Ganzzahl** (z. B. 142 / 110 / 18 / 22 – keine Stärkemeldung VF/ZF/GF/M; von der Arbeitswand nur die Gesamtzahl übernehmen); gesamt = Summe aller nichtpolizeilichen Kräfte inkl. RD; Summe selbst nachrechnen; sonstige = Gemeindebedienstete, Spontanhelfer, BW |
+| staerke.gesamt | E31 | **Nur die Gesamtzahl** (Festlegung Gemeinde): Personen aller nichtpolizeilichen Kräfte inkl. RD als Ganzzahl. E33–E36 (FW, KatS/HiOrg, THW, Sonstige) bleiben leer; Teilstärken werden vom Skript ignoriert. Von der Arbeitswand (VF/ZF/GF/M//Ges) nur „Ges“ übernehmen |
 | verpflegung.portionen / zeitpunkt | L33 / L35 | nur extern (durch Führungsstab/S4) zu organisierende Portionen; Zeitpunkt als taktische Zeit (z. B. 262200aug26) |
 | beurteilung.<bereich> = {"stufe":1-3,"prognose"} | E/K/R 39–43, X39–43 | Bereiche schadenslage, fuehrung, kraefte, logistik, kommunikation. Stufe 1 geringfügig/keine Probleme · 2 erheblich/kompensierte Probleme · 3 kritisch/nicht kompensierbar. Prognose exakt: Entspannung, Stagnation, Verschärfung |
 | aufgaben.<art> = {"text","schwerpunkt"} | D/I 47–56 | menschenrettung, evakuierung, brandschutz, technische_hilfe, cbrn, sanitaet, betreuung, wasserrettung, psnv, sonstige(+bezeichnung). TH-Text nach Möglichkeit aus Liste: Bergen/Räumen, Wasserschaden / Pumpen, Notversorgung / -instandsetzung, Trinkwassernotversorgung, Infrastruktur. **Genau ein** Schwerpunkt → rot |
@@ -91,14 +105,14 @@ Heusweiler-Löschbezirke laufen im RV-Schema unter LB 111–122 (verdecktes Blat
 ## 7. Plausibilitätsprüfung vor Ausgabe (kritisch, nicht beschönigen)
 - Jede EA im Bericht (raeume) hat ein EA-Zeichen auf der Karte und umgekehrt; Nummern identisch.
 - Einheiten in kraefte.* stimmen mit Liste `einheiten` überein; keine Einheit in zwei Zuständen.
-- Stärke-Summen: gesamt = FW + KatS/HiOrg + THW + Sonstige (je Spalte nachrechnen).
+- Stärke gesamt passt grob zur Zahl der gemeldeten Einheiten (z. B. ein LB ≈ 9–20 Personen); große Sprünge zum Vorbericht hinterfragen.
 - ?/! nicht doppelt; Zahlen gegenüber Vorbericht: Rückgänge bei „verstorben“ unmöglich → Rückfrage.
 - Beurteilung „kritisch“/Prognose „Verschärfung“ ohne Eintrag unter Probleme/Bedarfe → Widerspruch melden.
 - Genau ein aufgabenbezogener und ein raumbezogener Schwerpunkt.
 - Karte nicht überladen: > ~15 Zeichen auf einem km² → zusammenfassen, Details in Kurzfassung.
 - Unbestätigte Lagen auf der Karte mit SITUATION_02 kennzeichnen.
 - Zeitstempel: Bericht ≤ volle Stunde; Bearbeiter gesetzt.
-`lagebericht_fill.py` gibt automatisch `PRÜFEN:`-Warnungen aus (Stärke-Summe, mehrere Schwerpunkte, kritisch/Verschärfung ohne Probleme) – jede Warnung dem Nutzer melden.
+`lagebericht_fill.py` gibt automatisch `PRÜFEN:`-Warnungen aus (Teilstärken ignoriert, mehrere Schwerpunkte, kritisch/Verschärfung ohne Probleme) – jede Warnung dem Nutzer melden.
 Gefundene Widersprüche zuerst nennen, dann die Dateien.
 
 ## 8. Skripte (nur verwenden, wenn `tools/` fehlt – unverändert übernehmen; identisch mit `tools/*.py`)
@@ -180,7 +194,7 @@ SCHADEN_ROWS = {'verletzt': 5, 'verschuettet': 6, 'vermisst': 7, 'verstorben': 8
                 'tiere_betroffen': 10, 'tiere_verstorben': 11, 'gebaeude_beschaedigt': 12,
                 'gebaeude_teilzerstoert': 13, 'gebaeude_zerstoert': 14}
 KRAEFTE = {'alarmiert': 'B5', 'bereitschaft': 'B8', 'grundschutz': 'B13', 'einsatz': 'B15', 'ruhe': 'B25'}
-STAERKE = {'gesamt': 'E31', 'fw': 'E33', 'kats_hiorg': 'E34', 'thw': 'E35', 'sonstige': 'E36'}
+STAERKE = {'gesamt': 'E31'}   # Festlegung Gemeinde 13.11.2026: nur Gesamtzahl; E33–E36 bleiben leer
 BEURT_ROWS = {'schadenslage': 39, 'fuehrung': 40, 'kraefte': 41, 'logistik': 42, 'kommunikation': 43}
 BEURT_COL = {1: 'E', 2: 'K', 3: 'R'}          # 1 = geringfügig/keine, 2 = erheblich/kompensiert, 3 = kritisch
 AUFGABEN = ['menschenrettung', 'evakuierung', 'brandschutz', 'technische_hilfe', 'cbrn', 'sanitaet',
@@ -210,11 +224,10 @@ def check_tz(v, feld):
 
 def plausi(b):
     st = b.get('staerke', {})
-    teile = [st.get(k) for k in ('fw', 'kats_hiorg', 'thw', 'sonstige')]
-    if isinstance(st.get('gesamt'), int) and all(isinstance(t, int) or t is None for t in teile):
-        s = sum(t or 0 for t in teile)
-        if s != st['gesamt']:
-            warn.append(f"Stärke: gesamt {st['gesamt']} ≠ Summe der Teile {s}")
+    if any(st.get(k) for k in ('fw', 'kats_hiorg', 'thw', 'sonstige')):
+        warn.append('Stärke: nur Gesamtzahl wird eingetragen, Teilstärken (fw/kats_hiorg/thw/sonstige) ignoriert')
+    if st.get('gesamt') is not None and not isinstance(st['gesamt'], int):
+        warn.append(f"Stärke gesamt ist keine Ganzzahl: {st['gesamt']!r}")
     for k, v in b.get('schaden', {}).items():
         if isinstance(v, list) and any(x < 0 for x in v):
             warn.append(f'Schaden {k}: negative Zahl')
@@ -384,6 +397,18 @@ if __name__ == '__main__':
 #!/usr/bin/env python3
 """Lagekarte Heusweiler (Vorlage Lagekarte_Heusweiler_V1-2.potx) aus JSON befüllen.
 Aufruf: python3 lagekarte_build.py <vorlage.potx> <zeichen_ordner> <lage.json> <ausgabe.pptx>
+
+lage.json (alle Schlüssel optional außer bearbeiter/takt_zeit):
+{
+  "bearbeiter": "S2 Pört",
+  "takt_zeit": "081300NOV26",
+  "symbol_mm": 22,                       # Kantenlänge Zeichen auf der Karte
+  "symbole": [ {"id":"STELLE_03","utm":[349600,5467200],"text":"BR Sportplatz"},
+               {"id":"BRAND_02","latlon":[49.3410,6.9310]} ],
+  "flaechen": [ {"typ":"brand","utm":[[E,N],[E,N],...],"text":"EA 1"} ],
+  "linien":   [ {"typ":"rettungsweg","utm":[[E,N],...]} ],
+  "kaestchen": [{"id":"EA_01","text":"Ortsmitte: Überflutung"}]  # Randfelder: EA + Gefahren mit Kurztext
+}
 Flächentypen: ea_grenze, brand, kontaminiert, ueberschwemmt, versorgung, duerre, sonstiges
 Linientypen: rettungsweg, riegelstellung, brandausbreitung
 Koordinaten: ETRS89/UTM Zone 32N (wie Kartengitter) oder WGS84 lat/lon.
@@ -493,7 +518,7 @@ def main(tpl, symdir, lage_json, out):
     mm = Emu(36000)
     box = int(lage.get('symbol_mm', 22) * 36000)
 
-    # Fußtabelle (Tabelle 128: Zeile 0 = Bearbeiter, Zeile 1 = Takt. Zeit, Spalte 1)
+    # Kopf-/Fußtabelle (Tabelle 128: Zeile 0 = Bearbeiter, Zeile 1 = Takt. Zeit, Spalte 1)
     for sh in s.shapes:
         if sh.has_table and sh.name == 'Tabelle 128':
             for r, key in ((0, 'bearbeiter'), (1, 'takt_zeit')):
@@ -543,25 +568,33 @@ def main(tpl, symdir, lage_json, out):
             add_text(s, sy['text'], x - 50*mm, y + box/2 + 1*mm, 100*mm, size=24)
         if sy['id'] not in used: used.append(sy['id'])
 
-    # Legende: benutzte Zeichen in die leeren Bildplatzhalter am Rand
-    if lage.get('legende', True):
-        import csv
-        expl = {}
-        idx_csv = os.path.join(symdir, 'index.csv')
-        if os.path.exists(idx_csv):
-            for row in csv.DictReader(open(idx_csv, encoding='utf-8'), delimiter=';'):
-                expl[os.path.splitext(row['Datei'])[0]] = row['Erläuterung']
-        phs = sorted([p for p in s.placeholders if p.placeholder_format.type is not None
-                      and 'Bild' in p.name], key=lambda p: (p.top, p.left))
-        for sid, ph in zip(used, phs):
-            cx, cy = ph.left + ph.width // 2, ph.top + int(ph.height * 0.42)
-            add_picture_fit(s, os.path.join(symdir, sid + '.png'), cx, cy, int(ph.width * 0.55))
-            add_text(s, expl.get(sid, sid), ph.left + 2*mm, ph.top + int(ph.height * 0.74),
-                     ph.width - 4*mm, size=20, bold=False)
-        for ph in phs[:len(used)]:
-            ph._element.getparent().remove(ph._element)
-        if len(used) > len(phs):
-            print(f'WARNUNG: {len(used)} Zeichen, aber nur {len(phs)} Legendenfelder')
+    # Kästchen am Rand (Festlegung Gemeinde): Einsatzabschnitte und Gefahren mit Kurztext.
+    # lage["kaestchen"] = [{"id": "EA_01", "text": "Ortsmitte: Überflutung Köllerbach"}, ...]
+    # Fehlt der Schlüssel: automatisch alle verwendeten EA_-Zeichen, danach Gefahren/Schäden.
+    import csv
+    expl = {}
+    idx_csv = os.path.join(symdir, 'index.csv')
+    if os.path.exists(idx_csv):
+        for row in csv.DictReader(open(idx_csv, encoding='utf-8'), delimiter=';'):
+            expl[os.path.splitext(row['Datei'])[0]] = row['Erläuterung']
+    kaest = lage.get('kaestchen')
+    if kaest is None:
+        gef = ('GEFAHR_', 'BRAND_', 'ZERSTÖRUNG_', 'BEFAHRBARKEIT_', 'SITUATION_')
+        kaest = [{'id': i} for i in used if i.startswith('EA_')] + \
+                [{'id': i} for i in used if i.startswith(gef)]
+    phs = sorted([p for p in s.placeholders if p.placeholder_format.type is not None
+                  and 'Bild' in p.name], key=lambda p: (p.top, p.left))
+    if len(kaest) > len(phs):
+        print(f'WARNUNG: {len(kaest)} Kästchen, aber nur {len(phs)} Felder – Rest weggelassen')
+    for k, ph in zip(kaest, phs):
+        p_ = os.path.join(symdir, k['id'] + '.png')
+        if not os.path.exists(p_):
+            raise FileNotFoundError(f"Zeichen {k['id']} fehlt in {symdir}")
+        add_picture_fit(s, p_, ph.left + ph.width // 2, ph.top + int(ph.height * 0.30), int(ph.width * 0.42))
+        add_text(s, k.get('text') or expl.get(k['id'], k['id']), ph.left + 2*mm,
+                 ph.top + int(ph.height * 0.56), ph.width - 4*mm, size=22, bold=False)
+    for ph in phs[:len(kaest)]:
+        ph._element.getparent().remove(ph._element)
 
     prs.save(out)
     print('gespeichert:', out)

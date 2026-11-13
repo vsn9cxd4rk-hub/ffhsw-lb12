@@ -11,7 +11,7 @@ lage.json (alle Schlüssel optional außer bearbeiter/takt_zeit):
                {"id":"BRAND_02","latlon":[49.3410,6.9310]} ],
   "flaechen": [ {"typ":"brand","utm":[[E,N],[E,N],...],"text":"EA 1"} ],
   "linien":   [ {"typ":"rettungsweg","utm":[[E,N],...]} ],
-  "legende": true                        # benutzte Zeichen in die Randfelder setzen
+  "kaestchen": [{"id":"EA_01","text":"Ortsmitte: Überflutung"}]  # Randfelder: EA + Gefahren mit Kurztext
 }
 Flächentypen: ea_grenze, brand, kontaminiert, ueberschwemmt, versorgung, duerre, sonstiges
 Linientypen: rettungsweg, riegelstellung, brandausbreitung
@@ -172,25 +172,33 @@ def main(tpl, symdir, lage_json, out):
             add_text(s, sy['text'], x - 50*mm, y + box/2 + 1*mm, 100*mm, size=24)
         if sy['id'] not in used: used.append(sy['id'])
 
-    # Legende: benutzte Zeichen in die leeren Bildplatzhalter am Rand (idx 23..33 oben, 11/17-22 links, 34-40 rechts)
-    if lage.get('legende', True):
-        import csv
-        expl = {}
-        idx_csv = os.path.join(symdir, 'index.csv')
-        if os.path.exists(idx_csv):
-            for row in csv.DictReader(open(idx_csv, encoding='utf-8'), delimiter=';'):
-                expl[os.path.splitext(row['Datei'])[0]] = row['Erläuterung']
-        phs = sorted([p for p in s.placeholders if p.placeholder_format.type is not None
-                      and 'Bild' in p.name], key=lambda p: (p.top, p.left))
-        for sid, ph in zip(used, phs):
-            cx, cy = ph.left + ph.width // 2, ph.top + int(ph.height * 0.42)
-            add_picture_fit(s, os.path.join(symdir, sid + '.png'), cx, cy, int(ph.width * 0.55))
-            add_text(s, expl.get(sid, sid), ph.left + 2*mm, ph.top + int(ph.height * 0.74),
-                     ph.width - 4*mm, size=20, bold=False)
-        for ph in phs[:len(used)]:
-            ph._element.getparent().remove(ph._element)
-        if len(used) > len(phs):
-            print(f'WARNUNG: {len(used)} Zeichen, aber nur {len(phs)} Legendenfelder')
+    # Kästchen am Rand (Festlegung Gemeinde): Einsatzabschnitte und Gefahren mit Kurztext.
+    # lage["kaestchen"] = [{"id": "EA_01", "text": "Ortsmitte: Überflutung Köllerbach"}, ...]
+    # Fehlt der Schlüssel: automatisch alle verwendeten EA_-Zeichen, danach Gefahren/Schäden.
+    import csv
+    expl = {}
+    idx_csv = os.path.join(symdir, 'index.csv')
+    if os.path.exists(idx_csv):
+        for row in csv.DictReader(open(idx_csv, encoding='utf-8'), delimiter=';'):
+            expl[os.path.splitext(row['Datei'])[0]] = row['Erläuterung']
+    kaest = lage.get('kaestchen')
+    if kaest is None:
+        gef = ('GEFAHR_', 'BRAND_', 'ZERSTÖRUNG_', 'BEFAHRBARKEIT_', 'SITUATION_')
+        kaest = [{'id': i} for i in used if i.startswith('EA_')] + \
+                [{'id': i} for i in used if i.startswith(gef)]
+    phs = sorted([p for p in s.placeholders if p.placeholder_format.type is not None
+                  and 'Bild' in p.name], key=lambda p: (p.top, p.left))
+    if len(kaest) > len(phs):
+        print(f'WARNUNG: {len(kaest)} Kästchen, aber nur {len(phs)} Felder – Rest weggelassen')
+    for k, ph in zip(kaest, phs):
+        p_ = os.path.join(symdir, k['id'] + '.png')
+        if not os.path.exists(p_):
+            raise FileNotFoundError(f"Zeichen {k['id']} fehlt in {symdir}")
+        add_picture_fit(s, p_, ph.left + ph.width // 2, ph.top + int(ph.height * 0.30), int(ph.width * 0.42))
+        add_text(s, k.get('text') or expl.get(k['id'], k['id']), ph.left + 2*mm,
+                 ph.top + int(ph.height * 0.56), ph.width - 4*mm, size=22, bold=False)
+    for ph in phs[:len(kaest)]:
+        ph._element.getparent().remove(ph._element)
 
     prs.save(out)
     print('gespeichert:', out)

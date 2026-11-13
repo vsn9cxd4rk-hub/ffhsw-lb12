@@ -11,7 +11,7 @@ SCHADEN_ROWS = {'verletzt': 5, 'verschuettet': 6, 'vermisst': 7, 'verstorben': 8
                 'tiere_betroffen': 10, 'tiere_verstorben': 11, 'gebaeude_beschaedigt': 12,
                 'gebaeude_teilzerstoert': 13, 'gebaeude_zerstoert': 14}
 KRAEFTE = {'alarmiert': 'B5', 'bereitschaft': 'B8', 'grundschutz': 'B13', 'einsatz': 'B15', 'ruhe': 'B25'}
-STAERKE = {'gesamt': 'E31', 'fw': 'E33', 'kats_hiorg': 'E34', 'thw': 'E35', 'sonstige': 'E36'}
+STAERKE = {'gesamt': 'E31'}   # Festlegung Gemeinde 13.11.2026: nur Gesamtzahl; E33–E36 bleiben leer
 BEURT_ROWS = {'schadenslage': 39, 'fuehrung': 40, 'kraefte': 41, 'logistik': 42, 'kommunikation': 43}
 BEURT_COL = {1: 'E', 2: 'K', 3: 'R'}          # 1 = geringfügig/keine, 2 = erheblich/kompensiert, 3 = kritisch
 AUFGABEN = ['menschenrettung', 'evakuierung', 'brandschutz', 'technische_hilfe', 'cbrn', 'sanitaet',
@@ -41,11 +41,10 @@ def check_tz(v, feld):
 
 def plausi(b):
     st = b.get('staerke', {})
-    teile = [st.get(k) for k in ('fw', 'kats_hiorg', 'thw', 'sonstige')]
-    if isinstance(st.get('gesamt'), int) and all(isinstance(t, int) or t is None for t in teile):
-        s = sum(t or 0 for t in teile)
-        if s != st['gesamt']:
-            warn.append(f"Stärke: gesamt {st['gesamt']} ≠ Summe der Teile {s}")
+    if any(st.get(k) for k in ('fw', 'kats_hiorg', 'thw', 'sonstige')):
+        warn.append('Stärke: nur Gesamtzahl wird eingetragen, Teilstärken (fw/kats_hiorg/thw/sonstige) ignoriert')
+    if st.get('gesamt') is not None and not isinstance(st['gesamt'], int):
+        warn.append(f"Stärke gesamt ist keine Ganzzahl: {st['gesamt']!r}")
     for k, v in b.get('schaden', {}).items():
         if isinstance(v, list) and any(x < 0 for x in v):
             warn.append(f'Schaden {k}: negative Zahl')
