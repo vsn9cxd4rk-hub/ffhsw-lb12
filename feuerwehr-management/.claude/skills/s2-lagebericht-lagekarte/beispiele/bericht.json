@@ -1,17 +1,17 @@
 {
  "kommune": "Gemeinde Heusweiler",
- "zeit": "081300nov26",
- "lfd_nr": 2,
+ "zeit": "141100nov26",
+ "lfd_nr": 1,
  "kraefte": {
-  "alarmiert": "THW OV Saarbrücken FGr WP",
-  "bereitschaft": "LB 113, LB 118 (BR Sportplatz Heusweiler)",
-  "grundschutz": "LB 118",
-  "einsatz": "LB 111, LB 112, LB 115\nFZ Hochwasserschutz",
-  "ruhe": "–"
+  "alarmiert": "THW: FGr WP (OV SB)\nDRK: FZ BP 250",
+  "bereitschaft": "FW: LB 113, LB 118 (BR Sportplatz Heusweiler)\nTHW: OV SB (1 TZ)",
+  "grundschutz": "FW: LB 118",
+  "einsatz": "FW: LB 111, LB 112, LB 114, LB 115, LB 117\nFW: FZ Hochwasserschutz (RV SB)",
+  "ruhe": "./."
  },
  "schaden": {
   "verletzt": [
-   1,
+   0,
    2
   ],
   "vermisst": [
@@ -20,32 +20,40 @@
   ],
   "betreuung": [
    0,
-   35
+   28
   ],
   "gebaeude_beschaedigt": [
-   10,
-   24
+   20,
+   35
+  ],
+  "gebaeude_teilzerstoert": [
+   0,
+   1
   ]
  },
- "umwelt": "Heizöl im Köllerbach, Ölsperre gesetzt",
+ "umwelt": "Heizöl aus vollgelaufenem Keller im Köllerbach (Dilsburg), Ölsperre gesetzt",
  "kritis_bedroht": [
   {
    "sektor": "Energie",
-   "text": "Umspannstation Dilsburg"
+   "text": "Umspannstation Dilsburg, Wasserstand steigt"
   }
  ],
  "kritis_ausgefallen": [
   {
+   "sektor": "Energie",
+   "text": "Stromausfall Wahlschied/Holz, ca. 800 Haushalte"
+  },
+  {
    "sektor": "Transport & Verkehr",
-   "text": "L 141 überflutet"
+   "text": "L141 Eiweiler–Kutzhof durch Bäume blockiert"
   }
  ],
  "staerke": {
-  "gesamt": 148
+  "gesamt": 168
  },
  "verpflegung": {
-  "portionen": 160,
-  "zeitpunkt": "081800nov26"
+  "portionen": 170,
+  "zeitpunkt": "141400nov26"
  },
  "beurteilung": {
   "schadenslage": {
@@ -61,8 +69,8 @@
    "prognose": "Verschärfung"
   },
   "logistik": {
-   "stufe": 1,
-   "prognose": "Stagnation"
+   "stufe": 2,
+   "prognose": "Verschärfung"
   },
   "kommunikation": {
    "stufe": 1,
@@ -70,34 +78,41 @@
   }
  },
  "aufgaben": {
+  "menschenrettung": {
+   "text": "Suche unbestätigt vermisste Person am Köllerbach"
+  },
+  "evakuierung": {
+   "text": "Pflegeheim Wahlschied vorbereitet (Stromausfall)"
+  },
   "technische_hilfe": {
    "text": "Wasserschaden / Pumpen",
    "schwerpunkt": true
   },
-  "evakuierung": {
-   "text": "Pflegeheim Dilsburg vorbereitet"
-  },
   "betreuung": {
-   "text": "Betreuungsstelle Kulturhalle"
+   "text": "Betreuungsstelle Kulturhalle, 28 Personen"
   }
  },
  "raeume": [
   {
    "nr": 1,
-   "text": "EA 1 Ortsmitte/Köllerbach",
+   "text": "Dilsburg/Köllerbach",
    "schwerpunkt": true
   },
   {
    "nr": 2,
-   "text": "EA 2 Dilsburg"
+   "text": "Holz/Wahlschied"
+  },
+  {
+   "nr": 3,
+   "text": "Eiweiler/Kutzhof"
   }
  ],
- "probleme": "1. Pumpenkapazität > 2000 l/min fehlt\n2. Sandsäcke (3.000 Stk.)\n3. –",
- "kurzfassung": "Starkregen seit 10:30, Köllerbach über Ufer.",
- "massnahmen": "Pumpen, Sandsackverbau, Warnung Lautsprecher.",
- "sperrungen": "L 141 zw. Heusweiler und Dilsburg",
- "presse": "SR vor Ort",
- "bemerkungen": "Test",
+ "probleme": "1. Pumpenleistung > 2.000 l/min für Tiefgarage Dilsburg fehlt – THW FGr WP angefordert, Eintreffen offen\n2. 5.000 Sandsäcke inkl. Füllmaterial\n3. Netzersatzanlage ≥ 60 kVA für Pflegeheim Wahlschied, sonst Evakuierung ab ca. 14:00",
+ "kurzfassung": "Allgemein: DWD-Vorabinformation Unwetter für RV SB (14.11. 06:00–18:00): Starkregen lokal > 60 mm/h, orkanartige Böen 90–110 km/h. Seit 09:30 Starkregen und Sturm im Gemeindegebiet.\nEA 1 Dilsburg/Köllerbach: Köllerbach über Ufer, ca. 40 Keller und 1 Tiefgarage (ca. 1,2 m) geflutet, Umspannstation bedroht; unbestätigt 1 Person am Bachlauf vermisst.\nEA 2 Holz/Wahlschied: Dach MFH abgedeckt (unbewohnbar, 12 Bewohner betreut); Stromausfall ca. 800 Haushalte; Freileitung auf L136. Pflegeheim (Markierung 1) Notstrom bis ca. 14:00.\nEA 3 Eiweiler/Kutzhof: zahlreiche umgestürzte Bäume, L141 blockiert.",
+ "massnahmen": "Lenzen Keller/Tiefgarage, Sandsackverbau Köllerbach, Suche am Bachlauf mit Drohne\nWarnung Bevölkerung Dilsburg per Lautsprecher\nBetreuungsstelle Kulturhalle eingerichtet; Evakuierung Pflegeheim Wahlschied vorbereitet\nEnergieversorger informiert (Umspannstation, Freileitung)",
+ "sperrungen": "L141 Eiweiler–Kutzhof (Bäume), L136 bei Holz (Freileitung), Ortsdurchfahrt Dilsburg überflutet",
+ "presse": "Anfrage SR zum Stromausfall Wahlschied, Abstimmung über Gemeinde",
+ "bemerkungen": "ÜBUNG – fiktive Testlage",
  "einheiten": [
   {
    "org": "FW",
@@ -106,18 +121,53 @@
   },
   {
    "org": "FW",
+   "formation": "Löschbezirk",
+   "bezeichnung": "LB 112"
+  },
+  {
+   "org": "FW",
+   "formation": "Löschbezirk",
+   "bezeichnung": "LB 113"
+  },
+  {
+   "org": "FW",
+   "formation": "Löschbezirk",
+   "bezeichnung": "LB 114"
+  },
+  {
+   "org": "FW",
+   "formation": "Löschbezirk",
+   "bezeichnung": "LB 115"
+  },
+  {
+   "org": "FW",
+   "formation": "Löschbezirk",
+   "bezeichnung": "LB 117"
+  },
+  {
+   "org": "FW",
+   "formation": "Löschbezirk",
+   "bezeichnung": "LB 118"
+  },
+  {
+   "org": "FW",
    "formation": "FZ Hochwasserschutz",
    "bezeichnung": "RV SB"
   },
   {
-   "org": "DRK",
-   "formation": "FZ BP 250 (Betreuungsplatz)",
-   "bezeichnung": "DRK RV SB"
+   "org": "THW",
+   "formation": "TZ (Technischer Zug)",
+   "bezeichnung": "OV Saarbrücken"
   },
   {
    "org": "THW",
    "formation": "FGr WP (Wasserschaden/Pumpen)",
    "bezeichnung": "OV Saarbrücken"
+  },
+  {
+   "org": "DRK",
+   "formation": "FZ BP 250 (Betreuungsplatz)",
+   "bezeichnung": "RV Saarbrücken"
   }
  ]
 }

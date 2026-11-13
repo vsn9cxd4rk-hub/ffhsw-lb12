@@ -204,9 +204,10 @@ def main(tpl, symdir, lage_json, out):
         pt = utm_to_emu(*to_utm(k)) if ('utm' in k or 'latlon' in k) else None
         e = to_utm(k)[0] if pt else None
         items.append({**k, 'pt': pt, 'side': 'L' if (e is None or e < E_MID) else 'R'})
-    for side, other in (('L', 'R'), ('R', 'L')):          # Überlauf verteilen
+    for side, other in (('L', 'R'), ('R', 'L')):          # Überlauf: die der Mitte nächsten Orte wechseln
         mine = [i for i in items if i['side'] == side]
-        for i in mine[len(cols[side]):]:
+        mine.sort(key=lambda i: -(i['pt'][0] if i['pt'] else 0) if side == 'L' else (i['pt'][0] if i['pt'] else 0))
+        for i in mine[:max(0, len(mine) - len(cols[side]))]:
             i['side'] = other if sum(1 for j in items if j['side'] == other) < len(cols[other]) else 'T'
     used_ph = []
     for side, boxes in cols.items():
