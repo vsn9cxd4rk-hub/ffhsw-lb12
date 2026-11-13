@@ -11,7 +11,7 @@ lage.json (alle Schlüssel optional außer bearbeiter/takt_zeit):
                {"id":"BRAND_02","latlon":[49.3410,6.9310]} ],
   "flaechen": [ {"typ":"brand","utm":[[E,N],[E,N],...],"text":"EA 1"} ],
   "linien":   [ {"typ":"rettungsweg","utm":[[E,N],...]} ],
-  "kaestchen": [{"id":"EA_01","text":"Ortsmitte: Überflutung"}]  # Randfelder: EA + Gefahren mit Kurztext
+  "kaestchen": [{"id":"EA_01","utm":[350600,5466500]}]  # Randkästchen mit Pfeil zum Ort (RV-Beispiel 03a)
 }
 Flächentypen: ea_grenze, brand, kontaminiert, ueberschwemmt, versorgung, duerre, sonstiges
 Linientypen: rettungsweg, riegelstellung, brandausbreitung
@@ -96,15 +96,27 @@ def add_picture_fit(slide, path, cx, cy, box):
                                     Emu(int(w*s)), Emu(int(h*s)))
 
 
-def add_text(slide, text, x, y, w, size=28, bold=True, center=True):
+def add_text(slide, text, x, y, w, size=28, bold=True, center=True, hinterlegt=True):
     tb = slide.shapes.add_textbox(Emu(int(x)), Emu(int(y)), Emu(int(w)), Emu(500000))
-    tf = tb.text_frame; tf.word_wrap = True
+    tf = tb.text_frame; tf.word_wrap = hinterlegt          # EA-Beschriftung (ohne Hintergrund) einzeilig
     p = tf.paragraphs[0]; p.text = text
     p.font.size = Pt(size); p.font.bold = bold
     if center:
         from pptx.enum.text import PP_ALIGN; p.alignment = PP_ALIGN.CENTER
-    tb.fill.solid(); tb.fill.fore_color.rgb = RGBColor(0xFF, 0xFF, 0xFF); set_alpha(tb, 70)
+    p.font.name = 'Arial'
+    if hinterlegt:
+        tb.fill.solid(); tb.fill.fore_color.rgb = RGBColor(0xFF, 0xFF, 0xFF); set_alpha(tb, 70)
     return tb
+
+
+def pfeil(slide, x1, y1, x2, y2):
+    """Schwarzer Pfeil (6 pt) vom Kästchen zum Ort, Spitze am Ort – wie im RV-Beispiel."""
+    from pptx.enum.shapes import MSO_CONNECTOR
+    c = slide.shapes.add_connector(MSO_CONNECTOR.STRAIGHT, Emu(int(x1)), Emu(int(y1)), Emu(int(x2)), Emu(int(y2)))
+    c.line.color.rgb = RGBColor(0, 0, 0); c.line.width = Emu(76200)
+    ln = c.line._get_or_add_ln()
+    te = etree.SubElement(ln, qn('a:tailEnd')); te.set('type', 'triangle')
+    return c
 
 
 def polyline(slide, pts, closed):
@@ -139,15 +151,20 @@ def main(tpl, symdir, lage_json, out):
         shp = polyline(s, pts, True)
         if fl['typ'] == 'ea_grenze':
             shp.fill.background()
-            shp.line.color.rgb = RGBColor(0, 0, 0); shp.line.width = Emu(57150)
-            shp.line.dash_style = MSO_LINE_DASH_STYLE.DASH_DOT
+            shp.line.color.rgb = RGBColor(0, 0, 0); shp.line.width = Emu(76200)
+            shp.line.dash_style = MSO_LINE_DASH_STYLE.LONG_DASH_DOT
+            shp.line._get_or_add_ln().find(qn('a:prstDash')).set('val', 'lgDashDotDot')   # Strich-Zwei-Punkt wie RV-Beispiel
         else:
             shp.fill.solid(); shp.fill.fore_color.rgb = RGBColor.from_string(AREA[fl['typ']])
             set_alpha(shp, fl.get('deckkraft', 45))
             shp.line.color.rgb = RGBColor.from_string(AREA[fl['typ']]); shp.line.width = Pt(3)
         if fl.get('text'):
             top = max(pts, key=lambda p: p[1])      # Beschriftung über dem nördlichsten Punkt
-            x, y = utm_to_emu(*top); add_text(s, fl['text'], x - 60*mm, y - 16*mm, 120*mm, size=24)
+            x, y = utm_to_emu(*top)
+            if fl['typ'] == 'ea_grenze':            # wie RV-Beispiel: „EA 1: links der Saar“, 36 pt fett, ohne Hintergrund
+                add_text(s, fl['text'], x - 75*mm, y - 22*mm, 150*mm, size=36, hinterlegt=False)
+            else:
+                add_text(s, fl['text'], x - 60*mm, y - 16*mm, 120*mm, size=24)
 
     for ln in lage.get('linien', []):
         pts = [tuple(p) if 'utm' in ln else latlon_to_utm32(*p) for p in (ln.get('utm') or ln['latlon'])]
@@ -172,32 +189,61 @@ def main(tpl, symdir, lage_json, out):
             add_text(s, sy['text'], x - 50*mm, y + box/2 + 1*mm, 100*mm, size=24)
         if sy['id'] not in used: used.append(sy['id'])
 
-    # Kästchen am Rand (Festlegung Gemeinde): Einsatzabschnitte und Gefahren mit Kurztext.
-    # lage["kaestchen"] = [{"id": "EA_01", "text": "Ortsmitte: Überflutung Köllerbach"}, ...]
-    # Fehlt der Schlüssel: automatisch alle verwendeten EA_-Zeichen, danach Gefahren/Schäden.
-    import csv
-    expl = {}
-    idx_csv = os.path.join(symdir, 'index.csv')
-    if os.path.exists(idx_csv):
-        for row in csv.DictReader(open(idx_csv, encoding='utf-8'), delimiter=';'):
-            expl[os.path.splitext(row['Datei'])[0]] = row['Erläuterung']
-    kaest = lage.get('kaestchen')
-    if kaest is None:
-        gef = ('GEFAHR_', 'BRAND_', 'ZERSTÖRUNG_', 'BEFAHRBARKEIT_', 'SITUATION_')
-        kaest = [{'id': i} for i in used if i.startswith('EA_')] + \
-                [{'id': i} for i in used if i.startswith(gef)]
-    phs = sorted([p for p in s.placeholders if p.placeholder_format.type is not None
-                  and 'Bild' in p.name], key=lambda p: (p.top, p.left))
-    if len(kaest) > len(phs):
-        print(f'WARNUNG: {len(kaest)} Kästchen, aber nur {len(phs)} Felder – Rest weggelassen')
-    for k, ph in zip(kaest, phs):
-        p_ = os.path.join(symdir, k['id'] + '.png')
-        if not os.path.exists(p_):
-            raise FileNotFoundError(f"Zeichen {k['id']} fehlt in {symdir}")
-        add_picture_fit(s, p_, ph.left + ph.width // 2, ph.top + int(ph.height * 0.30), int(ph.width * 0.42))
-        add_text(s, k.get('text') or expl.get(k['id'], k['id']), ph.left + 2*mm,
-                 ph.top + int(ph.height * 0.56), ph.width - 4*mm, size=22, bold=False)
-    for ph in phs[:len(kaest)]:
+    # Randkästchen nach RV-Beispiel „03a Lagekarte Übungsbeispiel“:
+    # Zeichen groß in die Kästchen links/rechts, schwarzer Pfeil vom Kästchen zum Ort auf der Karte.
+    # lage["kaestchen"] = [{"id": "EA_01", "utm": [E, N]}, {"id": "GEFAHR_03", "latlon": [..], "text": "optional"}]
+    # Westlich der Kartenmitte -> linke Spalte, östlich -> rechte; Überlauf -> andere Spalte, dann obere Reihe.
+    kaest = lage.get('kaestchen', [])
+    phs = {p.placeholder_format.idx: p for p in s.placeholders if 'Bild' in p.name}
+    cols = {'L': [phs[i] for i in (11, 17, 18, 19, 20, 21, 22) if i in phs],
+            'R': [phs[i] for i in (34, 35, 36, 37, 38, 39, 40) if i in phs],
+            'T': [phs[i] for i in range(24, 33) if i in phs]}
+    E_MID = (MAP_E_MIN + MAP_E_MAX) / 2
+    items = []
+    for k in kaest:
+        pt = utm_to_emu(*to_utm(k)) if ('utm' in k or 'latlon' in k) else None
+        e = to_utm(k)[0] if pt else None
+        items.append({**k, 'pt': pt, 'side': 'L' if (e is None or e < E_MID) else 'R'})
+    for side, other in (('L', 'R'), ('R', 'L')):          # Überlauf verteilen
+        mine = [i for i in items if i['side'] == side]
+        for i in mine[len(cols[side]):]:
+            i['side'] = other if sum(1 for j in items if j['side'] == other) < len(cols[other]) else 'T'
+    used_ph = []
+    for side, boxes in cols.items():
+        mine = [i for i in items if i['side'] == side]
+        key = (lambda i: i['pt'][0] if i['pt'] else 0) if side == 'T' else (lambda i: i['pt'][1] if i['pt'] else 0)
+        mine.sort(key=key)
+        if len(mine) > len(boxes):
+            print(f'WARNUNG: {len(mine) - len(boxes)} Kästchen ohne Platz – weggelassen')
+            mine = mine[:len(boxes)]
+        # reihenfolgetreu dem nächstgelegenen freien Kästchen zuordnen (keine sich kreuzenden Pfeile)
+        start = 0
+        for n, it in enumerate(mine):
+            rest = len(mine) - n - 1
+            cand = range(start, len(boxes) - rest)
+            if it['pt']:
+                c = (lambda b: b.left + b.width // 2) if side == 'T' else (lambda b: b.top + b.height // 2)
+                v = it['pt'][0] if side == 'T' else it['pt'][1]
+                bi = min(cand, key=lambda j: abs(c(boxes[j]) - v))
+            else:
+                bi = cand[0]
+            start = bi + 1
+            ph = boxes[bi]; used_ph.append(ph)
+            path = os.path.join(symdir, it['id'] + '.png')
+            if not os.path.exists(path):
+                raise FileNotFoundError(f"Zeichen {it['id']} fehlt in {symdir}")
+            hat_text = bool(it.get('text'))
+            cy = ph.top + int(ph.height * (0.42 if hat_text else 0.5))
+            add_picture_fit(s, path, ph.left + ph.width // 2, cy, int(ph.width * (0.62 if hat_text else 0.78)))
+            if hat_text:
+                add_text(s, it['text'], ph.left + 2*mm, ph.top + int(ph.height * 0.76),
+                         ph.width - 4*mm, size=20, bold=False)
+            if it['pt']:
+                if side == 'L':   x1, y1 = ph.left + ph.width, ph.top + ph.height // 2
+                elif side == 'R': x1, y1 = ph.left, ph.top + ph.height // 2
+                else:             x1, y1 = ph.left + ph.width // 2, ph.top + ph.height
+                pfeil(s, x1, y1, *it['pt'])
+    for ph in used_ph:
         ph._element.getparent().remove(ph._element)
 
     prs.save(out)
