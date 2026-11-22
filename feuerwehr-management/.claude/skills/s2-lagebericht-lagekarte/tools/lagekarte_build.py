@@ -159,12 +159,14 @@ def main(tpl, symdir, lage_json, out):
             set_alpha(shp, fl.get('deckkraft', 45))
             shp.line.color.rgb = RGBColor.from_string(AREA[fl['typ']]); shp.line.width = Pt(3)
         if fl.get('text'):
-            top = max(pts, key=lambda p: p[1])      # Beschriftung über dem nördlichsten Punkt
-            x, y = utm_to_emu(*top)
+            # Beschriftung mittig über der Nordkante (Übung 14.11.: Ecke überdeckte Grenzlinien)
+            es = [p[0] for p in pts]; ns = [p[1] for p in pts]
+            unten = fl.get('text_pos') == 'S'       # 'S' = unter die Südkante
+            x, y = utm_to_emu((min(es) + max(es)) / 2, min(ns) if unten else max(ns))
             if fl['typ'] == 'ea_grenze':            # wie RV-Beispiel: „EA 1: links der Saar“, 36 pt fett, ohne Hintergrund
-                add_text(s, fl['text'], x - 75*mm, y - 22*mm, 150*mm, size=36, hinterlegt=False)
+                add_text(s, fl['text'], x - 75*mm, (y + 1*mm) if unten else (y - 22*mm), 150*mm, size=36, hinterlegt=False)
             else:
-                add_text(s, fl['text'], x - 60*mm, y - 16*mm, 120*mm, size=24)
+                add_text(s, fl['text'], x - 60*mm, (y + 1*mm) if unten else (y - 16*mm), 120*mm, size=24)
 
     for ln in lage.get('linien', []):
         pts = [tuple(p) if 'utm' in ln else latlon_to_utm32(*p) for p in (ln.get('utm') or ln['latlon'])]

@@ -27,7 +27,7 @@ Nutzer: S2 im Führungsstab der FF Heusweiler. Aufgabe bei Großschadenslagen: L
 - Referenz für Inhalt und Stil: Projektdatei „02b Lagebericht Übungsbeispiel.xlsx“ (RV, 27.08.2026). Achtung: älteres Layout; dort Summenfehler Stärke (142 ≠ 110+18+22).
 
 ## 2. Arbeitsablauf pro Bericht
-1. **Material finden** (in dieser Reihenfolge): Ordner dieses Skills (`vorlagen/`, `tools/`, `zeichen/` neben dieser SKILL.md, im Repo unter `feuerwehr-management/.claude/skills/s2-lagebericht-lagekarte/`) → verbundener Ordner `…/feuerwehr-management/s2-lage/` → angehängte Dateien → Projektdateien. Vorlagen: `Lagebericht Kommune - DDhhmmMMMJJ V1_02.xltx` (Stand 31.08.2026, maßgeblich; „02a Lagebericht Vorlage.xltx“ ist der ältere Stand vom 25.08. – nicht verwenden) und `Lagekarte_Heusweiler_V1-2.potx`; beide liegen als Projektdateien (`project_read(original=true)`). Fehlen sie, danach fragen – nicht nachbauen.
+1. **Material finden** (in dieser Reihenfolge): Ordner dieses Skills (`vorlagen/`, `tools/`, `zeichen/` neben dieser SKILL.md, im Repo unter `feuerwehr-management/.claude/skills/s2-lagebericht-lagekarte/`) → verbundener Ordner `…/feuerwehr-management/s2-lage/` → angehängte Dateien → Projektdateien. Vorlagen: `Lagebericht Kommune - DDhhmmMMMJJ V1_02.xltx` (Stand 31.08.2026, maßgeblich; „02a Lagebericht Vorlage.xltx“ ist der ältere Stand vom 25.08. – nicht verwenden) und `Lagekarte_Heusweiler_V1-2.potx`; beide liegen als Projektdateien (`project_read(original=true)`). Fehlen sie, danach fragen – nicht nachbauen. **Erfahrung Übung 14.11.2026:** Der synchronisierte Skill-Ordner enthielt nur diese SKILL.md. Dann ohne Rückfrage sofort aufbauen: Vorlagen per `project_read(original=true)`, Skripte aus Abschnitt 8, Zeichen per `tz_extract.py` (~2 min) – gleich beim ersten Kontakt in der Lage, nicht erst beim ersten Bericht. **Adressverzeichnis** (seit 15.11.2026, siehe Abschnitt 5): Projektdateien `s2-lage/geo/strassen_heusweiler.csv` und `s2-lage/geo/hnr_bereiche_heusweiler.csv` nach `geo/`, `s2-lage/tools/geo_lookup.py` nach `tools/` legen (per `project_read`, Inhalt unverändert in die Datei schreiben).
 2. **Skripte**: liegen in `tools/` des Skill-Ordners (bzw. `s2-lage/tools/`). Fehlen sie, die drei Skripte aus Abschnitt 8 unverändert in ein eigenes Arbeitsverzeichnis schreiben. Abhängigkeiten: `pip install python-pptx pdfplumber pillow --break-system-packages`, `pdftoppm`, `soffice`. **Auf dem Mac** die Skripte mit dem venv-Interpreter starten, falls vorhanden: `~/.venvs/s2/bin/python tools/…` (siehe README); sonst `python3`. LibreOffice liegt dort ggf. unter `/Applications/LibreOffice.app/Contents/MacOS/soffice`.
 3. **Zeichenbibliothek**: `zeichen/` des Skill-Ordners (bzw. `s2-lage/zeichen/`) (PNG je ID + `index.csv`). Fehlt sie: Projektdatei „03b Übersicht Taktische Zeichen für Lagekarte.pdf“ mit `project_read(original=true)` holen und `python3 tz_extract.py <pdf> zeichen/` ausführen (97 Zeichen, ~20 s). BRAND_05 (Ankerpunkt) ist im PDF leer: Projektdatei „BRAND_05 - Ankerpunkt.SVG“ lesen, weiße Hintergrund-`rect` entfernen, mit `rsvg-convert -w 1300` rendern, auf Inhalt beschneiden, als `zeichen/BRAND_05.png` ablegen. Alle Hilfstabellen-Zeichen liegen zusätzlich als Original-SVG im Projekt (`<ID> - <Erläuterung>.SVG`).
 4. **Lage aufnehmen**: Freitext/Meldungen/Funkprotokoll/Nachrichtenvordrucke des Nutzers in die JSON-Strukturen (Abschnitt 5/6) übersetzen. Je Meldung festhalten: Nachweisungs-Nr., takt. Zeit, Absender, Ort, Inhalt. Mehrere Meldungen zur selben Schadenstelle zusammenführen (nicht doppelt zählen); bestätigt (!) / unbestätigt (?) aus dem Wortlaut, im Zweifel ?. Was nur die Führung entscheidet (Lagebeurteilung, Prognose, EA-Gliederung, Schwerpunkte, Probleme/Bedarfe) **nicht** aus Meldungen ableiten, sondern beim Nutzer abfragen bzw. aus den Schadenskonten übernehmen. Vorherigen Bericht (falls vorhanden) als Basis nehmen: `lfd_nr` +1, Werte übernehmen, nur Änderungen einarbeiten, Änderungen dem Nutzer kurz auflisten.
@@ -36,19 +36,31 @@ Nutzer: S2 im Führungsstab der FF Heusweiler. Aufgabe bei Großschadenslagen: L
    - Schäden-Tabelle: Spalte `!` = bestätigt, `?` = unbestätigt → JSON `[?, !]` (Reihenfolge beachten!). Tiere/Gebäude-Zeilen auf `tiere_*`/`gebaeude_*`.
    - Beurteilung „2↑“ → `{"stufe":2,"prognose":"Verschärfung"}`; `=` → Stagnation; `↓` → Entspannung.
    - Aufgaben: Zeile vorhanden = aktiv; `*` = Schwerpunkt (rot). EA mit `*` = raumbezogener Schwerpunkt.
-   - Gitter `351,2/5466,8` = km → UTM `[351200, 5466800]`. Adresse → Lat/Lon per Suche ermitteln; nicht auffindbar → nicht auf die Karte, im Bericht nennen.
+   - Gitter `351,2/5466,8` = km → UTM `[351200, 5466800]`. Adresse → `python3 tools/geo_lookup.py "Straße Nr" [Ortsteil]` (mehrere: `--datei liste.txt`) liefert UTM direkt für `utm`; nicht auffindbar → nicht auf die Karte, im Bericht nennen.
    - EA mit Ecken → `flaechen` Typ `ea_grenze`, Text „EA n: Name“; EA-Nummer `EA_0n` als `kaestchen` mit Pfeil auf den Mittelpunkt der Fläche.
    - Flächen: Überflutung → `ueberschwemmt`, Brand → `brand`, kontaminiert → `kontaminiert`, Versorgungsausfall → `versorgung`, sonstiges → `sonstiges`. Linien: Rettungsweg/Riegelstellung/Brandausbreitung.
    - Markierungen n → `symbole` `MARKIERUNG_0n` auf der Karte; Bedeutung in Kurzfassung.
    - Orte (Abschnitt 8) → `kaestchen` mit Pfeil. Begriff → Zeichen: Führungsstelle/TEL STELLE_01 · Bereitstellungsraum STELLE_02 (mit Meldekopf STELLE_03) · Lotsenstelle STELLE_04 · Hubschrauberlandezone STELLE_05 · Anlegestelle Boote STELLE_06 · Spontanhelfer STELLE_09 · Verpflegungsstelle STELLE_10 · Wasserentnahmestelle STELLE_14 · Sandsackbefüllung STELLE_15 · Trinkwasserausgabe STELLE_16 · Patientenablage STELLE_20 · Behandlungsplatz STELLE_21 · Anlaufstelle Betroffene STELLE_24 · Betreuungsstelle STELLE_25 · Notunterkunft STELLE_26 · Notfallinfopunkt STELLE_27 · Krankenhaus STELLE_28 · Brand Entstehung/fortentwickelt/Vollbrand BRAND_01/02/03 · Gebäude beschädigt/teilzerstört/zerstört ZERSTÖRUNG_01/02/03 · Straße gesperrt/Einbahn/schwierig/nicht befahrbar BEFAHRBARKEIT_01/02/03/04 · A-/B-/C-Gefahr GEFAHR_01/02/03 · Strom-Gefahr GEFAHR_03_b · Erkundung MASSNAHME_01 · Drohne/Hubschrauber MASSNAHME_02 · Sirene MASSNAHME_03 · Lautsprecher MASSNAHME_04 · Brandbekämpfung MASSNAHME_07 · Löschwasserförderung MASSNAHME_09 · Technische Hilfe MASSNAHME_11 · Motorsäge MASSNAHME_14 · Stromversorgung MASSNAHME_16 · Pumpen MASSNAHME_17 · Sandsackverbau MASSNAHME_18 · Hochwasserabwehr MASSNAHME_19 · Wasserrettung MASSNAHME_20 · CBRN MASSNAHME_21 · Messen MASSNAHME_22 · Dekon MASSNAHME_23 · Öl auf Gewässer MASSNAHME_24 · Kampfmittel MASSNAHME_25 · unbestätigt SITUATION_02 · akut SITUATION_01. Kein passendes Zeichen (z. B. Evakuieren, Räumen, Pflegeheim, Schule) → MARKIERUNG auf der Karte + Text in der Kurzfassung, in Nachbereitung notieren.
    - „ÄNDERUNGEN ZU Nr. X“: letzten Stand (bericht.json/lage.json) laden, nur genannte Felder ersetzen, `lfd_nr` = X+1.
    - **Zellen sind schmal:** Texte für KRITIS (W-Spalte) und Aufgaben (I-Spalte) auf ≤ 30 Zeichen kürzen, Details in Kurzfassung (Probelauf 13.11.: längere Texte werden abgeschnitten).
+
+   **Laufende Erfassung (Übung 14.11.2026, 48 Einsätze):** Einzelmeldungen (Einsatz neu/abgeschlossen, Fahrzeug, Stärke) nicht im Chat mitzählen – dort traten ab ~40 Einsätzen Zählfehler auf. Stattdessen zwei Dateien im Arbeitsverzeichnis fortschreiben und Summen/Übersichten per Skript bilden:
+   - `einsaetze.csv`: Nr;Eingang;Ortsteil;Adresse;Lage;Kräfte;EA;Status (laufend/abgeschlossen/ungeklärt);Abschluss
+   - `fahrzeuge.csv`: Rufname (mit Ortskennung HSW/SWL/…);Org;Typ;Stärke (z. B. 1/6);Status (Einsatz/frei/Grundschutz/abgestellt);Einsatz-Nr.
+   Regeln:
+   - Fährt ein Fahrzeug zu einem neuen Einsatz ohne Abschlussmeldung des vorigen → vorigen auf „ungeklärt“ setzen und einmal nachfragen (nicht still als abgeschlossen werten, vor allem nicht bei Gefahrenlagen wie Gas, Baum, Damm).
+   - Bereits erfasste Adresse erneut gemeldet → fragen, was neu ist (abgeschlossen / neue Lage / Wiederholung).
+   - Unbekannte Adresse als „abgeschlossen“ gemeldet → nachfragen (Tippfehler oder nicht erfasster Einsatz), nichts raten. Nachträglich erfasste Einsätze mit der vom Nutzer genannten Eingangszeit einordnen.
+   - Doppelte Rufnamen (z. B. 1/23 in Heusweiler und Saarwellingen) immer mit Ortskennung führen.
+   - Stärke: „1/6“ = 7 Personen, „2/5/24“ = 31. Fremdkräfte und überörtlich abgestellte eigene Kräfte gesondert ausweisen.
+   - Übersicht „laufende Einsätze“ als Tabelle: Nr., EA, Ortsteil, Adresse, Lage, Kräfte; darunter Frei / Grundschutz / Sperrungen. Gefahrenlagen (⚠️) oben.
+   - Lagerelevante Einzelmeldungen sofort einordnen und der TEL kurz Folgerungen nennen (z. B. Pflegeeinrichtung betroffen, Ortsteil nur noch über Feldweg erreichbar, Öltank droht zu kippen, letzte freie Fahrzeuge gebunden) – inkl. Hinweis, wann eine Sofortmeldung per Funk an den RV angebracht ist.
 5. **Plausibilität prüfen (Abschnitt 7)** – fehlende Angaben **nie erfinden**, sondern leer lassen (Platzhalter bleiben grau stehen).
-   **Schnellmodus (Standard im Einsatz/in der Übung):** höchstens **eine** gebündelte Rückfrage pro Bericht, dann erzeugen. Pflicht sind nur: Zeit, lfd. Nr., Kurzfassung, Lagebeurteilung + Prognose, Probleme/Bedarfe, Stärke gesamt. Alles andere aus dem Vorbericht übernehmen oder leer lassen. Fehlende Punkte nach der Ausgabe in einer Zeile nennen. Ziel: Dateien spätestens 5 Minuten vor der vollen Stunde fertig.
+   **Schnellmodus (Standard im Einsatz/in der Übung):** höchstens **eine** gebündelte Rückfrage pro Bericht, dann erzeugen. Pflicht sind nur: Zeit, lfd. Nr., Kurzfassung, Lagebeurteilung + Prognose, Probleme/Bedarfe, Stärke gesamt. Alles andere aus dem Vorbericht übernehmen oder leer lassen. Fehlende Punkte nach der Ausgabe in einer Zeile nennen. Ziel: Dateien spätestens 5 Minuten vor der vollen Stunde fertig. Bewährt (Übung 14.11.): Annahmeschluss :45 ankündigen; bericht.json/lage.json laufend fortschreiben und testweise erzeugen; auf Wunsch der TEL finale Erzeugung erst :55 – dann nur noch Änderungen einarbeiten (~2 min). Fehlende Pflichtangaben (Beurteilung, Probleme) mit eigenem Vorschlag füllen und dem Nutzer ausdrücklich als „nicht abgestimmt“ nennen. Vor Versand prüfen, ob gemeldete Bedarfe mit eigenen Kräften lösbar sind (freie Fahrzeuge, THW OV, Bauhof) – dann nicht an den RV melden.
    **Fotos als Eingang:** Fotos der analogen Lagekarte oder des Whiteboards (Kräfteübersicht) dürfen als Quelle dienen. Abgelesene Werte (Einheiten, Stärken, EA, Schäden) als Liste zurückgeben und bestätigen lassen, bevor sie in den Bericht gehen – Handschrift wird leicht falsch gelesen.
 6. Erzeugen: `python3 lagebericht_fill.py <xltx> bericht.json Lagebericht_Heusweiler_<Zeit>_Nr<lfd>.xlsx` und `python3 lagekarte_build.py <potx> zeichen/ lage.json Lagekarte_Heusweiler_<Zeit>.pptx`.
 7. **Prüfen**: beide mit `soffice --headless --convert-to pdf` rendern, `pdftoppm -r 50` ansehen (Lagebericht nur Seiten 1–2 ansehen – LibreOffice druckt die ausgeblendeten Hilfsblätter als Seiten 3–5 mit, Excel nicht; Lagekarte nur Folie 1). Kontrolle: Felder an richtiger Stelle, Zeichen auf richtigem Ort, nichts abgeschnitten.
-8. Ausgeben: xlsx + Lagekarte als **PDF nur Folie 1** (`pdfseparate -f 1 -l 1`; Folie 2 ist die Zeichenpalette der Vorlage) + pptx zum Weiterarbeiten. Dateinamen nach Muster der Vorlage: `Lagebericht_Heusweiler_DDhhmmMMMJJ_V<lfd>`. Mail-Entwurf an fuehrungsstab@saarbruecken.de anbieten (Betreff „Lagebericht Gemeinde Heusweiler Nr. X – DDhhmmMMMJJ“; in Übungen die von der Übungsleitung genannte Adresse verwenden, falls abweichend). Nicht selbst versenden. Bei Foto-Fallback im Mailtext vermerken: „Lagekarte als Foto der analog geführten Karte“.
+8. Ausgeben: xlsx + Lagekarte als **PDF nur Folie 1** (`pdfseparate -f 1 -l 1`; Folie 2 ist die Zeichenpalette der Vorlage) + pptx zum Weiterarbeiten. Dateinamen nach Muster der Vorlage: `Lagebericht_Heusweiler_DDhhmmMMMJJ_V<lfd>`. Mail-Entwurf an fuehrungsstab@saarbruecken.de anbieten (Betreff „Lagebericht Gemeinde Heusweiler Nr. X – DDhhmmMMMJJ“; in Übungen die von der Übungsleitung genannte Adresse verwenden, falls abweichend). Nicht selbst versenden. Mailtext zusätzlich direkt im Chat als kopierbaren Block ausgeben (Betreff und Text getrennt). Ist die Zieldatei auf dem TEL-PC in Excel geöffnet, schlägt das Überschreiben fehl → unter neuem Namen ablegen oder kleine Korrekturen (z. B. E31 Stärke) vom Nutzer direkt in der offenen Datei eintragen lassen. Bei Foto-Fallback im Mailtext vermerken: „Lagekarte als Foto der analog geführten Karte“.
    **Mailtext immer aus `vorlagen/Mail_Vorlage.md` vorausfüllen** (Ausfüllregeln stehen in der Vorlage) und als `Mail_Lagebericht_Nr<lfd>_<Zeit>.md` neben Bericht und Karte ablegen. In Übungen Kennzeichnung „ÜBUNG – ÜBUNG – ÜBUNG“ in Betreff und Text (wie die RV-Mails), im Echteinsatz die `[ÜBUNG]`-Zeilen löschen. Ob Übung oder Echteinsatz: aus der Lagemeldung (Hinweis „ÜBUNG“) – im Zweifel einmal nachfragen.
 9. **Nachbereitung mitschreiben:** Auffälligkeiten an Vorlagen, Zeichen und Ablauf (z. B. fehlendes Zeichen, Feld passt nicht, Zeitdruck) knapp sammeln und nach der Lage als Liste ausgeben; im Projekt an „S2-Lage – offene Punkte an RV“ anhängen, wenn der Nutzer zustimmt.
 
@@ -80,7 +92,39 @@ Grundzeichen: Gebäude, Person, Stelle/Einrichtung (Kreis), Führungsstelle, tak
 
 ## 5. Lagekarte – `lage.json`
 Vorlage: A0 quer, Folie 1 = Karte Heusweiler (LVGL 2026, UTM-Gitter 1 km), 25 Randfelder „Taktische Zeichen“, Fußzeile Bearbeiter/Takt. Zeit. Folie 2 = Palette (EA-Beschriftung, Markierungen, Flächen, Linien).
-Kartenausschnitt (ETRS89/UTM 32N): **E 345000–356000, N 5464000–5472000**. Koordinaten außerhalb → Skript bricht ab; Ort dann als Text in den Bericht. Ortsangaben des Nutzers (Straße, Objekt) in Koordinaten übersetzen: per Websuche/Geodienst Lat/Lon ermitteln (`latlon`), sonst Nutzer nach Gitterfeld/Koordinate fragen. Keine Position raten – geratene Lage auf der Karte ist schlimmer als keine.
+Kartenausschnitt (ETRS89/UTM 32N): **E 345000–356000, N 5464000–5472000**. Koordinaten außerhalb → Skript bricht ab; Ort dann als Text in den Bericht. Keine Position raten – geratene Lage auf der Karte ist schlimmer als keine.
+
+**Adressen → Koordinaten: Adressverzeichnis Heusweiler** (OpenStreetMap © OSM-Mitwirkende, ODbL, Abruf 15.11.2026; offline nutzbar, kein Geodienst/Browser nötig):
+- `strassen_heusweiler.csv` – 256 Straßen: ortsteil;strasse;utm_e;utm_n (Median der Adressen);e_min;e_max;n_min;n_max;anz_adressen
+- `hnr_bereiche_heusweiler.csv` – 6.561 Adressen verdichtet zu Hausnummernbereichen (gleiche Parität, ≤60 m): `ortsteil;strasse;von-bis:E,N …`, E/N in 10 m, N minus 546000
+- `geo_lookup.py` – Abfrage mit Toleranz für Schreibweisen („Schillerstr.“, „Goethestrasse“, „Wengenwald“ → „Zum Wengenwald“). Ausgabe `ortsteil;strasse;hausnr;utm_e;utm_n;genauigkeit` mit HAUSNR | NAECHSTE_HNR x | STRASSENMITTE | NICHT_GEFUNDEN (+ Vorschläge, z. B. „Winterscheider Str.“ → Winterscheidtstraße).
+- Geprüft an allen 43 Einsatzadressen der Übung 14.11.: alle gefunden (2 erst über Vorschlag).
+- **Grenzen:** OSM führt in Heusweiler keinen Ortsteil in der Adresse; der Ortsteil ist aus dem nächsten Ortsmittelpunkt abgeleitet und kann an Grenzen abweichen (z. B. „An der Mühle“ → Kirschhof statt Eiweiler, „Am Heidstock“ → Wahlschied statt Holz). Die Koordinate stimmt trotzdem; im Bericht den Ortsteil verwenden, den die Meldung nennt. MEHRDEUTIG (Durchgangsstraßen: Illinger Str., Saarlouiser Str., Hollerbach, In der Hahnheck, Kutzhof) → Ortsteil erfragen oder angeben. NICHT_GEFUNDEN → Vorschläge dem Nutzer nennen, sonst Gitterwert/Beschreibung erfragen.
+- **Aktualisieren** (bei Bedarf, z. B. jährlich; braucht Claude in Chrome): Tab auf `https://overpass-api.de/` öffnen, per `javascript_tool` die Abfrage `[out:json][timeout:180]; area["boundary"="administrative"]["name"="Heusweiler"]["admin_level"="8"]->.g; (nwr["addr:housenumber"](area.g); way["highway"]["name"](area.g); node["place"~"village|suburb|hamlet|town"](area.g);); out center tags;` **asynchron** starten (Ergebnis in `window`-Variable, Dauer ~30 s, sonst CDP-Timeout), als CSV (typ;name;hausnr;…;lat;lon) per Blob-Download speichern, Datei aus dem Download-Ordner holen, in UTM umrechnen (`latlon_to_utm32`), Ortsteil = nächster village/hamlet-Punkt, gleichnamige Straßen nur bei >500 m Abstand trennen, verdichten wie oben und die drei Projektdateien ersetzen.
+
+**Ersatz ohne Verzeichnis:** Ortsteilebene (±200 m) – für FüSt D ebenengerecht, im Bericht „Darstellung auf Ortsteilebene“ vermerken:
+
+| Ort (OSM-Ortsmittelpunkt) | UTM (km) |
+|---|---|
+| Heusweiler | 349,62 / 5467,15 |
+| Dilsburg | 349,76 / 5466,42 |
+| Eiweiler | 349,99 / 5469,78 |
+| Hellenhausen | 350,36 / 5469,51 |
+| Kirschhof | 350,22 / 5468,56 |
+| Hirtel | 349,28 / 5468,50 |
+| Niedersalbach | 348,22 / 5466,79 |
+| Obersalbach-Kurhof | 347,07 / 5468,01 |
+| Berschweiler | 351,95 / 5467,23 |
+| Bietschied | 351,43 / 5465,95 |
+| Numborn | 352,00 / 5468,09 |
+| Kutzhof | 353,62 / 5468,05 |
+| Lummerschied | 354,93 / 5468,79 |
+| Wahlschied | 354,75 / 5467,24 |
+| Holz | 354,25 / 5466,14 |
+
+Feste Orte der Übung 14.11.: THW OV Heusweiler, Eisenbahnstr. 9 = 349,83 / 5467,12 · BR Gerätehaus Wahlschied, Im Dorf 13 = 354,59 / 5467,47 · RHB Berschweiler (Kutzhofer Str., Südseite, vor dem Ortsschild aus Richtung Kutzhof) = 352,25 / 5467,22 (aus Beschreibung, nicht im Verzeichnis).
+
+EA-Rahmen der Übung 14.11. (grob, Ortslagen): EA 1 Heusweiler 348,3–350,3 / 5466,4–5467,9 · EA 2 Eiweiler 349,4–350,9 / 5469,0–5470,6 · EA 3 Berschweiler 351,7–352,7 / 5466,8–5467,6. Mit Fotos der Wandkarte nicht arbeiten, wenn die Gitterbeschriftung nicht lesbar ist (andere Kartengrundlage, Fehler bis ~1 km) – stattdessen Gitterwerte oder Beschreibung („zwischen Kutzhof und Berschweiler, links vor dem Ortsschild“) erfragen und an der Kartenvorlage verorten.
 **Aufbau nach RV-Beispiel 03a** (verbindlich für den Stil):
 - **Auf der Karte:** EA-Grenzen (`ea_grenze`, schwarz Strich-Zwei-Punkt) mit Beschriftung „EA 1: links der Saar“ (36 pt fett, ohne Hintergrund), Schadensflächen (z. B. `ueberschwemmt`), orange Markierungen (`MARKIERUNG_xx`) für markante Stellen. Sonst nichts – Karte frei halten.
 - **In den Randkästchen links/rechts:** EA-Nummern (`EA_xx`) und Gefahren-/Schadens-/Maßnahmen-/Stellenzeichen, groß, ohne Text, je mit **schwarzem Pfeil zum Ort**. Westliche Orte → linke Spalte, östliche → rechte (je 7 Kästchen); Überlauf → andere Spalte, dann obere Reihe. Text im Kästchen nur, wenn das Zeichen allein missverständlich ist.
@@ -95,7 +139,7 @@ Kartenausschnitt (ETRS89/UTM 32N): **E 345000–356000, N 5464000–5472000**. K
               {"id":"STELLE_25","latlon":[49.3440,6.9500],"text":"Betreuungsstelle Kulturhalle"}],
  "linien":[{"typ":"rettungsweg","utm":[[E,N],[E,N]]}]}
 ```
-`kaestchen`: Liste `{id, utm|latlon, text?}`; ohne Koordinate kein Pfeil. `hinterlegung` (Standard true) legt jedes Kartenzeichen auf ein weißes Feld, damit dünne Linienzeichen (Brand, Pumpen, gesperrt) auf der Karte lesbar bleiben. Flächentexte stehen über dem nördlichsten Punkt der Fläche. Im Render auf überlappende Texte prüfen und Texte kürzen bzw. Positionen leicht versetzen. Texte an Zeichen kurz halten (≤ 3 Wörter). EA-Nummern (EA_xx) als Kästchen mit Pfeil in die jeweilige EA-Fläche, Nummern identisch mit Bericht.
+`kaestchen`: Liste `{id, utm|latlon, text?}`; ohne Koordinate kein Pfeil. `hinterlegung` (Standard true) legt jedes Kartenzeichen auf ein weißes Feld, damit dünne Linienzeichen (Brand, Pumpen, gesperrt) auf der Karte lesbar bleiben. Flächentexte stehen mittig über der Nordkante der Fläche; `"text_pos":"S"` setzt sie unter die Südkante (bei Kollision mit einem nördlich angrenzenden EA). Im Render auf überlappende Texte prüfen und Texte kürzen bzw. Positionen leicht versetzen. Texte an Zeichen kurz halten (≤ 3 Wörter). EA-Nummern (EA_xx) als Kästchen mit Pfeil in die jeweilige EA-Fläche, Nummern identisch mit Bericht.
 
 ## 6. Lagebericht – `bericht.json` (Zellen der Vorlage „Lagebericht Gde > GdeVerb“)
 | Schlüssel | Zelle(n) | Regel |
@@ -572,12 +616,14 @@ def main(tpl, symdir, lage_json, out):
             set_alpha(shp, fl.get('deckkraft', 45))
             shp.line.color.rgb = RGBColor.from_string(AREA[fl['typ']]); shp.line.width = Pt(3)
         if fl.get('text'):
-            top = max(pts, key=lambda p: p[1])      # Beschriftung über dem nördlichsten Punkt
-            x, y = utm_to_emu(*top)
+            # Beschriftung mittig über der Nordkante (Übung 14.11.: Ecke überdeckte Grenzlinien)
+            es = [p[0] for p in pts]; ns = [p[1] for p in pts]
+            unten = fl.get('text_pos') == 'S'       # 'S' = unter die Südkante
+            x, y = utm_to_emu((min(es) + max(es)) / 2, min(ns) if unten else max(ns))
             if fl['typ'] == 'ea_grenze':            # wie RV-Beispiel: „EA 1: links der Saar“, 36 pt fett, ohne Hintergrund
-                add_text(s, fl['text'], x - 75*mm, y - 22*mm, 150*mm, size=36, hinterlegt=False)
+                add_text(s, fl['text'], x - 75*mm, (y + 1*mm) if unten else (y - 22*mm), 150*mm, size=36, hinterlegt=False)
             else:
-                add_text(s, fl['text'], x - 60*mm, y - 16*mm, 120*mm, size=24)
+                add_text(s, fl['text'], x - 60*mm, (y + 1*mm) if unten else (y - 16*mm), 120*mm, size=24)
 
     for ln in lage.get('linien', []):
         pts = [tuple(p) if 'utm' in ln else latlon_to_utm32(*p) for p in (ln.get('utm') or ln['latlon'])]
