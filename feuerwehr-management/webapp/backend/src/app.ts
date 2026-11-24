@@ -4,7 +4,7 @@ import cors from 'cors';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import { errorHandler } from './middleware/error.middleware';
 import router from './routes';
 import { logger } from './utils/logger';
@@ -60,6 +60,12 @@ app.use(morgan('combined', {
 // authenticated traffic is counted per user; only anonymous requests fall back to the IP.
 // The counters are in-memory: fine for the single PM2 fork process, a shared store
 // (Redis/MySQL) is needed before running more than one backend instance.
+// express-rate-limit 8: IPv6 clients are grouped per /56 subnet, otherwise every address of
+// the prefix would get its own budget
+function clientIpKey(req: Request): string {
+  return ipKeyGenerator(req.ip ?? '');
+}
+
 function userOrIpKey(req: Request): string {
   const auth = req.headers.authorization;
   if (auth?.startsWith('Bearer ')) {
@@ -71,7 +77,7 @@ function userOrIpKey(req: Request): string {
       // invalid token: count against the IP
     }
   }
-  return `ip:${req.ip}`;
+  return `ip:${clientIpKey(req)}`;
 }
 
 // Refresh and logout need the httpOnly session cookie (a 512-bit random value), so they
@@ -82,7 +88,7 @@ const SESSION_ENDPOINTS = new Set(['/auth/refresh', '/auth/logout']);
 if (process.env.NODE_ENV !== 'development') {
   const generalLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: (req) => (userOrIpKey(req).startsWith('user:') ? 2000 : 300),
+    limit: (req) => (userOrIpKey(req).startsWith('user:') ? 2000 : 300),
     keyGenerator: userOrIpKey,
     skip: (req) => req.method === 'POST' && SESSION_ENDPOINTS.has(req.path),
     standardHeaders: true,
@@ -94,9 +100,9 @@ if (process.env.NODE_ENV !== 'development') {
   // other out; brute force is limited per account and per IP.
   const loginPerAccountLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 10,
+    limit: 10,
     skipSuccessfulRequests: true,
-    keyGenerator: (req) => `${req.ip}:${String(req.body?.username ?? '').trim().toLowerCase()}`,
+    keyGenerator: (req) => `${clientIpKey(req)}:${String(req.body?.username ?? '').trim().toLowerCase()}`,
     standardHeaders: true,
     legacyHeaders: false,
     message: { error: 'Zu viele Anmeldeversuche, bitte 15 Minuten warten.' },
@@ -104,7 +110,7 @@ if (process.env.NODE_ENV !== 'development') {
 
   const loginPerIpLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 50,
+    limit: 50,
     skipSuccessfulRequests: true,
     standardHeaders: true,
     legacyHeaders: false,
