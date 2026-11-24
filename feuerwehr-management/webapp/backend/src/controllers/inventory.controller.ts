@@ -6,6 +6,7 @@ import { pickWritable } from '../utils/body';
 import { categoryUploadDir, removeUpload, sendUpload, toStoredPath } from '../utils/files';
 import { createUpload, discardUpload } from '../utils/upload';
 import { nextInventoryNumber } from '../utils/inventory-number';
+import { param } from '../utils/params';
 
 export const articleDocUpload = createUpload({
   destination: () => categoryUploadDir('article-documents'),
@@ -56,7 +57,7 @@ export async function createWarehouse(req: Request, res: Response): Promise<void
 
 export async function updateWarehouse(req: Request, res: Response): Promise<void> {
   try {
-    const w = await prisma.warehouse.update({ where: { id: parseInt(req.params.id) }, data: pickWritable('Warehouse', req.body) });
+    const w = await prisma.warehouse.update({ where: { id: parseInt(param(req, 'id')) }, data: pickWritable('Warehouse', req.body) });
     sendSuccess(res, w);
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -65,7 +66,7 @@ export async function updateWarehouse(req: Request, res: Response): Promise<void
 
 export async function deleteWarehouse(req: Request, res: Response): Promise<void> {
   try {
-    await prisma.warehouse.delete({ where: { id: parseInt(req.params.id) } });
+    await prisma.warehouse.delete({ where: { id: parseInt(param(req, 'id')) } });
     sendSuccess(res, { message: 'Lager gelöscht' });
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -186,7 +187,7 @@ export async function createArticle(req: Request, res: Response): Promise<void> 
 export async function getArticle(req: Request, res: Response): Promise<void> {
   try {
     const article = await prisma.article.findUnique({
-      where: { id: parseInt(req.params.id) },
+      where: { id: parseInt(param(req, 'id')) },
       include: {
         warehouse: true,
         deviceSubclass: { include: { deviceClass: true } },
@@ -222,7 +223,7 @@ export async function updateArticle(req: Request, res: Response): Promise<void> 
     if (retirementPeriodMonths !== undefined) data.retirementPeriodMonths = retirementPeriodMonths ? parseInt(retirementPeriodMonths) : null;
 
     const article = await prisma.article.update({
-      where: { id: parseInt(req.params.id) },
+      where: { id: parseInt(param(req, 'id')) },
       data,
       include: { warehouse: true, deviceSubclass: { include: { deviceClass: true } } },
     });
@@ -234,7 +235,7 @@ export async function updateArticle(req: Request, res: Response): Promise<void> 
 
 export async function deleteArticle(req: Request, res: Response): Promise<void> {
   try {
-    await prisma.article.delete({ where: { id: parseInt(req.params.id) } });
+    await prisma.article.delete({ where: { id: parseInt(param(req, 'id')) } });
     sendSuccess(res, { message: 'Artikel gelöscht' });
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -244,7 +245,7 @@ export async function deleteArticle(req: Request, res: Response): Promise<void> 
 // Assignments
 export async function assignArticle(req: Request, res: Response): Promise<void> {
   try {
-    const articleId = parseInt(req.params.id);
+    const articleId = parseInt(param(req, 'id'));
     const assignment = await prisma.articleAssignment.create({
       data: { ...pickWritable('ArticleAssignment', req.body, ['articleId']), articleId } as any,
       include: { warehouse: true },
@@ -258,7 +259,7 @@ export async function assignArticle(req: Request, res: Response): Promise<void> 
 export async function updateAssignment(req: Request, res: Response): Promise<void> {
   try {
     const a = await prisma.articleAssignment.update({
-      where: { id: parseInt(req.params.assignId) },
+      where: { id: parseInt(param(req, 'assignId')) },
       data: pickWritable('ArticleAssignment', req.body, ['articleId']),
       include: { warehouse: true },
     });
@@ -270,7 +271,7 @@ export async function updateAssignment(req: Request, res: Response): Promise<voi
 
 export async function deleteAssignment(req: Request, res: Response): Promise<void> {
   try {
-    await prisma.articleAssignment.delete({ where: { id: parseInt(req.params.assignId) } });
+    await prisma.articleAssignment.delete({ where: { id: parseInt(param(req, 'assignId')) } });
     sendSuccess(res, { message: 'Zuweisung gelöscht' });
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -280,7 +281,7 @@ export async function deleteAssignment(req: Request, res: Response): Promise<voi
 // Article Documents
 export async function getArticleDocuments(req: Request, res: Response): Promise<void> {
   try {
-    const articleId = parseInt(req.params.id);
+    const articleId = parseInt(param(req, 'id'));
     const documents = await prisma.articleDocument.findMany({
       where: { articleId },
       orderBy: { createdAt: 'desc' },
@@ -294,7 +295,7 @@ export async function getArticleDocuments(req: Request, res: Response): Promise<
 export async function uploadArticleDocument(req: Request, res: Response): Promise<void> {
   try {
     if (!req.file) { sendError(res, 'Keine Datei hochgeladen', 400); return; }
-    const articleId = parseInt(req.params.id);
+    const articleId = parseInt(param(req, 'id'));
     if (!(await prisma.article.findUnique({ where: { id: articleId }, select: { id: true } }))) {
       discardUpload(req.file);
       sendError(res, 'Artikel nicht gefunden', 404);
@@ -318,7 +319,7 @@ export async function uploadArticleDocument(req: Request, res: Response): Promis
 
 export async function downloadArticleDocument(req: Request, res: Response): Promise<void> {
   try {
-    const doc = await prisma.articleDocument.findUnique({ where: { id: parseInt(req.params.docId) } });
+    const doc = await prisma.articleDocument.findUnique({ where: { id: parseInt(param(req, 'docId')) } });
     if (!doc) { sendError(res, 'Dokument nicht gefunden', 404); return; }
     sendUpload(res, doc.filePath, doc.fileName, doc.mimeType);
   } catch (err) {
@@ -328,7 +329,7 @@ export async function downloadArticleDocument(req: Request, res: Response): Prom
 
 export async function deleteArticleDocument(req: Request, res: Response): Promise<void> {
   try {
-    const doc = await prisma.articleDocument.findUnique({ where: { id: parseInt(req.params.docId) } });
+    const doc = await prisma.articleDocument.findUnique({ where: { id: parseInt(param(req, 'docId')) } });
     if (!doc) { sendError(res, 'Dokument nicht gefunden', 404); return; }
     removeUpload(doc.filePath);
     await prisma.articleDocument.delete({ where: { id: doc.id } });
@@ -341,7 +342,7 @@ export async function deleteArticleDocument(req: Request, res: Response): Promis
 // Article Inspection Standards
 export async function getArticleStandards(req: Request, res: Response): Promise<void> {
   try {
-    const articleId = parseInt(req.params.id);
+    const articleId = parseInt(param(req, 'id'));
     const standards = await prisma.articleInspectionStandard.findMany({
       where: { articleId },
       orderBy: { name: 'asc' },
@@ -354,7 +355,7 @@ export async function getArticleStandards(req: Request, res: Response): Promise<
 
 export async function createArticleStandard(req: Request, res: Response): Promise<void> {
   try {
-    const articleId = parseInt(req.params.id);
+    const articleId = parseInt(param(req, 'id'));
     const standard = await prisma.articleInspectionStandard.create({
       data: { ...pickWritable('ArticleInspectionStandard', req.body, ['articleId']), articleId } as any,
     });
@@ -367,7 +368,7 @@ export async function createArticleStandard(req: Request, res: Response): Promis
 export async function updateArticleStandard(req: Request, res: Response): Promise<void> {
   try {
     const standard = await prisma.articleInspectionStandard.update({
-      where: { id: parseInt(req.params.stdId) },
+      where: { id: parseInt(param(req, 'stdId')) },
       data: pickWritable('ArticleInspectionStandard', req.body, ['articleId']),
     });
     sendSuccess(res, standard);
@@ -378,7 +379,7 @@ export async function updateArticleStandard(req: Request, res: Response): Promis
 
 export async function deleteArticleStandard(req: Request, res: Response): Promise<void> {
   try {
-    await prisma.articleInspectionStandard.delete({ where: { id: parseInt(req.params.stdId) } });
+    await prisma.articleInspectionStandard.delete({ where: { id: parseInt(param(req, 'stdId')) } });
     sendSuccess(res, { message: 'Prüfnorm gelöscht' });
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -388,7 +389,7 @@ export async function deleteArticleStandard(req: Request, res: Response): Promis
 // Article Inspection Schedules
 export async function getArticleSchedules(req: Request, res: Response): Promise<void> {
   try {
-    const articleId = parseInt(req.params.id);
+    const articleId = parseInt(param(req, 'id'));
     const schedules = await prisma.articleInspectionSchedule.findMany({
       where: { articleId },
       include: { inspectionType: true },
@@ -401,7 +402,7 @@ export async function getArticleSchedules(req: Request, res: Response): Promise<
 
 export async function createArticleSchedule(req: Request, res: Response): Promise<void> {
   try {
-    const articleId = parseInt(req.params.id);
+    const articleId = parseInt(param(req, 'id'));
     const schedule = await prisma.articleInspectionSchedule.create({
       data: { ...pickWritable('ArticleInspectionSchedule', req.body, ['articleId']), articleId } as any,
       include: { inspectionType: true },
@@ -415,7 +416,7 @@ export async function createArticleSchedule(req: Request, res: Response): Promis
 export async function updateArticleSchedule(req: Request, res: Response): Promise<void> {
   try {
     const schedule = await prisma.articleInspectionSchedule.update({
-      where: { id: parseInt(req.params.schedId) },
+      where: { id: parseInt(param(req, 'schedId')) },
       data: pickWritable('ArticleInspectionSchedule', req.body, ['articleId']),
       include: { inspectionType: true },
     });
@@ -427,7 +428,7 @@ export async function updateArticleSchedule(req: Request, res: Response): Promis
 
 export async function deleteArticleSchedule(req: Request, res: Response): Promise<void> {
   try {
-    await prisma.articleInspectionSchedule.delete({ where: { id: parseInt(req.params.schedId) } });
+    await prisma.articleInspectionSchedule.delete({ where: { id: parseInt(param(req, 'schedId')) } });
     sendSuccess(res, { message: 'Prüfplan gelöscht' });
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -475,7 +476,7 @@ export async function getDefects(req: Request, res: Response): Promise<void> {
 export async function getDefect(req: Request, res: Response): Promise<void> {
   try {
     const defect = await prisma.articleDefect.findUnique({
-      where: { id: parseInt(req.params.id) },
+      where: { id: parseInt(param(req, 'id')) },
       include: { article: true, repairs: true },
     });
     if (!defect) { sendError(res, 'Mangel nicht gefunden', 404); return; }
@@ -511,7 +512,7 @@ export async function updateDefect(req: Request, res: Response): Promise<void> {
     if (resolvedAt !== undefined) data.resolvedAt = resolvedAt ? new Date(resolvedAt) : null;
 
     const defect = await prisma.articleDefect.update({
-      where: { id: parseInt(req.params.id) },
+      where: { id: parseInt(param(req, 'id')) },
       data,
       include: { article: true },
     });
@@ -523,7 +524,7 @@ export async function updateDefect(req: Request, res: Response): Promise<void> {
 
 export async function deleteDefect(req: Request, res: Response): Promise<void> {
   try {
-    await prisma.articleDefect.delete({ where: { id: parseInt(req.params.id) } });
+    await prisma.articleDefect.delete({ where: { id: parseInt(param(req, 'id')) } });
     sendSuccess(res, { message: 'Mangel gelöscht' });
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -581,7 +582,7 @@ export async function updateRepair(req: Request, res: Response): Promise<void> {
     if (repairedAt !== undefined) data.repairedAt = repairedAt ? new Date(repairedAt) : null;
 
     const repair = await prisma.articleRepair.update({
-      where: { id: parseInt(req.params.id) },
+      where: { id: parseInt(param(req, 'id')) },
       data,
       include: { article: true, defect: true },
     });
@@ -593,7 +594,7 @@ export async function updateRepair(req: Request, res: Response): Promise<void> {
 
 export async function deleteRepair(req: Request, res: Response): Promise<void> {
   try {
-    await prisma.articleRepair.delete({ where: { id: parseInt(req.params.id) } });
+    await prisma.articleRepair.delete({ where: { id: parseInt(param(req, 'id')) } });
     sendSuccess(res, { message: 'Reparatur gelöscht' });
   } catch (err) {
     sendError(res, (err as Error).message);

@@ -6,13 +6,14 @@ import { convertDates } from '../utils/dates';
 import { pickWritable } from '../utils/body';
 import { recordUploadDir, removeUpload, sendUpload, toStoredPath } from '../utils/files';
 import { createUpload, discardUpload } from '../utils/upload';
+import { param } from '../utils/params';
 
 const EVENT_DATE_FIELDS = ['date'];
 const FIREWATCH_DATE_FIELDS = ['date'];
 const CATEGORY_UEBUNG = 5;
 
 export const eventDocUpload = createUpload({
-  destination: (req) => recordUploadDir('events', req.params.id),
+  destination: (req) => recordUploadDir('events', param(req, 'id')),
   kinds: ['pdf', 'doc', 'docx'],
   rejectMessage: 'Nur PDF- und Word-Dateien sind erlaubt',
 });
@@ -56,7 +57,7 @@ export async function createEvent(req: Request, res: Response): Promise<void> {
 
 export async function getEvent(req: Request, res: Response): Promise<void> {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(param(req, 'id'));
     const event = await prisma.event.findUnique({
       where: { id },
       include: {
@@ -77,7 +78,7 @@ export async function getEvent(req: Request, res: Response): Promise<void> {
 export async function updateEvent(req: Request, res: Response): Promise<void> {
   try {
     const event = await prisma.event.update({
-      where: { id: parseInt(req.params.id) },
+      where: { id: parseInt(param(req, 'id')) },
       data: convertDates(pickWritable('Event', req.body), EVENT_DATE_FIELDS) as any,
     });
     sendSuccess(res, event);
@@ -88,7 +89,7 @@ export async function updateEvent(req: Request, res: Response): Promise<void> {
 
 export async function deleteEvent(req: Request, res: Response): Promise<void> {
   try {
-    await prisma.event.delete({ where: { id: parseInt(req.params.id) } });
+    await prisma.event.delete({ where: { id: parseInt(param(req, 'id')) } });
     sendSuccess(res, { message: 'Veranstaltung gelöscht' });
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -98,7 +99,7 @@ export async function deleteEvent(req: Request, res: Response): Promise<void> {
 // Attendance
 export async function getAttendance(req: Request, res: Response): Promise<void> {
   try {
-    const eventId = parseInt(req.params.id);
+    const eventId = parseInt(param(req, 'id'));
     const event = await prisma.event.findUnique({ where: { id: eventId } });
     if (!event) { sendError(res, 'Veranstaltung nicht gefunden', 404); return; }
 
@@ -136,7 +137,7 @@ export async function getAttendance(req: Request, res: Response): Promise<void> 
 
 export async function updateAttendance(req: Request, res: Response): Promise<void> {
   try {
-    const eventId = parseInt(req.params.id);
+    const eventId = parseInt(param(req, 'id'));
     const event = await prisma.event.findUnique({ where: { id: eventId } });
     if (!event) { sendError(res, 'Veranstaltung nicht gefunden', 404); return; }
 
@@ -196,7 +197,7 @@ export async function createFireWatch(req: Request, res: Response): Promise<void
 
 export async function getFireWatch(req: Request, res: Response): Promise<void> {
   try {
-    const fw = await prisma.fireWatch.findUnique({ where: { id: parseInt(req.params.id) } });
+    const fw = await prisma.fireWatch.findUnique({ where: { id: parseInt(param(req, 'id')) } });
     if (!fw) { sendError(res, 'Brandsicherheitswache nicht gefunden', 404); return; }
     sendSuccess(res, fw);
   } catch (err) {
@@ -207,7 +208,7 @@ export async function getFireWatch(req: Request, res: Response): Promise<void> {
 export async function updateFireWatch(req: Request, res: Response): Promise<void> {
   try {
     const fw = await prisma.fireWatch.update({
-      where: { id: parseInt(req.params.id) },
+      where: { id: parseInt(param(req, 'id')) },
       data: convertDates(pickWritable('FireWatch', req.body), FIREWATCH_DATE_FIELDS) as any,
     });
     sendSuccess(res, fw);
@@ -218,7 +219,7 @@ export async function updateFireWatch(req: Request, res: Response): Promise<void
 
 export async function deleteFireWatch(req: Request, res: Response): Promise<void> {
   try {
-    await prisma.fireWatch.delete({ where: { id: parseInt(req.params.id) } });
+    await prisma.fireWatch.delete({ where: { id: parseInt(param(req, 'id')) } });
     sendSuccess(res, { message: 'Brandsicherheitswache gelöscht' });
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -229,7 +230,7 @@ export async function deleteFireWatch(req: Request, res: Response): Promise<void
 export async function getEventDocuments(req: Request, res: Response): Promise<void> {
   try {
     const docs = await prisma.eventDocument.findMany({
-      where: { eventId: parseInt(req.params.id) },
+      where: { eventId: parseInt(param(req, 'id')) },
       orderBy: { createdAt: 'desc' },
     });
     sendSuccess(res, docs);
@@ -241,7 +242,7 @@ export async function getEventDocuments(req: Request, res: Response): Promise<vo
 export async function uploadEventDocument(req: Request, res: Response): Promise<void> {
   try {
     if (!req.file) { sendError(res, 'Keine Datei hochgeladen', 400); return; }
-    const eventId = parseInt(req.params.id);
+    const eventId = parseInt(param(req, 'id'));
     if (!(await prisma.event.findUnique({ where: { id: eventId }, select: { id: true } }))) {
       discardUpload(req.file);
       sendError(res, 'Veranstaltung nicht gefunden', 404);
@@ -265,7 +266,7 @@ export async function uploadEventDocument(req: Request, res: Response): Promise<
 
 export async function downloadEventDocument(req: Request, res: Response): Promise<void> {
   try {
-    const doc = await prisma.eventDocument.findUnique({ where: { id: parseInt(req.params.docId) } });
+    const doc = await prisma.eventDocument.findUnique({ where: { id: parseInt(param(req, 'docId')) } });
     if (!doc) { sendError(res, 'Dokument nicht gefunden', 404); return; }
     sendUpload(res, doc.filePath, doc.fileName, doc.mimeType);
   } catch (err) {
@@ -275,7 +276,7 @@ export async function downloadEventDocument(req: Request, res: Response): Promis
 
 export async function deleteEventDocument(req: Request, res: Response): Promise<void> {
   try {
-    const doc = await prisma.eventDocument.findUnique({ where: { id: parseInt(req.params.docId) } });
+    const doc = await prisma.eventDocument.findUnique({ where: { id: parseInt(param(req, 'docId')) } });
     if (!doc) { sendError(res, 'Dokument nicht gefunden', 404); return; }
     removeUpload(doc.filePath);
     await prisma.eventDocument.delete({ where: { id: doc.id } });

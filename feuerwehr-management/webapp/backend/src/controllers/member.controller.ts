@@ -4,6 +4,7 @@ import { sendSuccess, sendError, sendPaginated } from '../utils/response';
 import { getPagination } from '../utils/pagination';
 import { convertDates } from '../utils/dates';
 import { pickWritable } from '../utils/body';
+import { param } from '../utils/params';
 
 const DATE_FIELDS = ['birthDate', 'memberSince', 'memberUntil', 'marriageDate'];
 const EXAMINATION_DATE_FIELDS = ['g25Date', 'g26Date', 'g30Date', 'agtTrainingDate', 'lkwLicenseExpiry'];
@@ -112,7 +113,7 @@ export async function createMember(req: Request, res: Response): Promise<void> {
 
 export async function getMember(req: Request, res: Response): Promise<void> {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(param(req, 'id'));
     const member = await prisma.member.findFirst({
       where: { id, deletedAt: null },
       include: {
@@ -131,7 +132,7 @@ export async function getMember(req: Request, res: Response): Promise<void> {
 
 export async function updateMember(req: Request, res: Response): Promise<void> {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(param(req, 'id'));
     const existing = await prisma.member.findFirst({ where: { id, deletedAt: null } });
     if (!existing) { sendError(res, 'Mitglied nicht gefunden', 404); return; }
 
@@ -193,7 +194,7 @@ export async function updateMember(req: Request, res: Response): Promise<void> {
 
 export async function deleteMember(req: Request, res: Response): Promise<void> {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(param(req, 'id'));
     await prisma.member.update({
       where: { id },
       data: { deletedAt: new Date(), isInactive: true },
@@ -206,7 +207,7 @@ export async function deleteMember(req: Request, res: Response): Promise<void> {
 
 export async function getMemberHistory(req: Request, res: Response): Promise<void> {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(param(req, 'id'));
     const history = await prisma.memberHistory.findMany({
       where: { memberId: id },
       orderBy: { changedAt: 'desc' },
@@ -220,7 +221,7 @@ export async function getMemberHistory(req: Request, res: Response): Promise<voi
 // Family
 export async function createMemberFamily(req: Request, res: Response): Promise<void> {
   try {
-    const memberId = parseInt(req.params.id);
+    const memberId = parseInt(param(req, 'id'));
     const family = await prisma.memberFamily.create({
       data: { ...pickWritable('MemberFamily', req.body, ['memberId']), memberId } as any,
     });
@@ -232,7 +233,7 @@ export async function createMemberFamily(req: Request, res: Response): Promise<v
 
 export async function updateMemberFamily(req: Request, res: Response): Promise<void> {
   try {
-    const id = parseInt(req.params.familyId);
+    const id = parseInt(param(req, 'familyId'));
     const family = await prisma.memberFamily.update({
       where: { id },
       data: pickWritable('MemberFamily', req.body, ['memberId']),
@@ -245,7 +246,7 @@ export async function updateMemberFamily(req: Request, res: Response): Promise<v
 
 export async function deleteMemberFamily(req: Request, res: Response): Promise<void> {
   try {
-    await prisma.memberFamily.delete({ where: { id: parseInt(req.params.familyId) } });
+    await prisma.memberFamily.delete({ where: { id: parseInt(param(req, 'familyId')) } });
     sendSuccess(res, { message: 'Angehöriger gelöscht' });
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -255,7 +256,7 @@ export async function deleteMemberFamily(req: Request, res: Response): Promise<v
 // Work
 export async function upsertMemberWork(req: Request, res: Response): Promise<void> {
   try {
-    const memberId = parseInt(req.params.id);
+    const memberId = parseInt(param(req, 'id'));
     const data = pickWritable('MemberWork', req.body, ['memberId']);
     const work = await prisma.memberWork.upsert({
       where: { memberId },
@@ -271,7 +272,7 @@ export async function upsertMemberWork(req: Request, res: Response): Promise<voi
 // Bank
 export async function upsertMemberBank(req: Request, res: Response): Promise<void> {
   try {
-    const memberId = parseInt(req.params.id);
+    const memberId = parseInt(param(req, 'id'));
     const data = pickWritable('MemberBank', req.body, ['memberId']);
     const bank = await prisma.memberBank.upsert({
       where: { memberId },
@@ -287,7 +288,7 @@ export async function upsertMemberBank(req: Request, res: Response): Promise<voi
 // Examination
 export async function upsertMemberExamination(req: Request, res: Response): Promise<void> {
   try {
-    const memberId = parseInt(req.params.id);
+    const memberId = parseInt(param(req, 'id'));
     const data = convertDates(pickWritable('MemberExamination', req.body, ['memberId']), EXAMINATION_DATE_FIELDS);
     const exam = await prisma.memberExamination.upsert({
       where: { memberId },
@@ -303,7 +304,7 @@ export async function upsertMemberExamination(req: Request, res: Response): Prom
 // Availability
 export async function createMemberAvailability(req: Request, res: Response): Promise<void> {
   try {
-    const memberId = parseInt(req.params.id);
+    const memberId = parseInt(param(req, 'id'));
     const av = await prisma.memberAvailability.create({
       data: { ...convertDates(pickWritable('MemberAvailability', req.body, ['memberId']), AVAILABILITY_DATE_FIELDS), memberId } as any,
     });
@@ -316,7 +317,7 @@ export async function createMemberAvailability(req: Request, res: Response): Pro
 // Courses
 export async function getMemberCourses(req: Request, res: Response): Promise<void> {
   try {
-    const memberId = parseInt(req.params.id);
+    const memberId = parseInt(param(req, 'id'));
     const courses = await prisma.course.findMany({
       where: { memberId },
       include: { category: true },
@@ -348,7 +349,7 @@ async function applyQualificationFromCourse(memberId: number, categoryId: number
 
 export async function createMemberCourse(req: Request, res: Response): Promise<void> {
   try {
-    const memberId = parseInt(req.params.id);
+    const memberId = parseInt(param(req, 'id'));
     const course = await prisma.course.create({
       data: { ...convertDates(pickWritable('Course', req.body, ['memberId']), COURSE_DATE_FIELDS), memberId } as any,
       include: { category: true },
@@ -362,7 +363,7 @@ export async function createMemberCourse(req: Request, res: Response): Promise<v
 
 export async function updateMemberCourse(req: Request, res: Response): Promise<void> {
   try {
-    const id = parseInt(req.params.courseId);
+    const id = parseInt(param(req, 'courseId'));
     const course = await prisma.course.update({
       where: { id },
       data: convertDates(pickWritable('Course', req.body, ['memberId']), COURSE_DATE_FIELDS),
@@ -396,7 +397,7 @@ export async function createMemberGroup(req: Request, res: Response): Promise<vo
 
 export async function updateMemberGroup(req: Request, res: Response): Promise<void> {
   try {
-    const id = parseInt(req.params.groupId);
+    const id = parseInt(param(req, 'groupId'));
     const group = await prisma.memberGroup.update({ where: { id }, data: pickWritable('MemberGroup', req.body) });
     sendSuccess(res, group);
   } catch (err) {
@@ -407,7 +408,7 @@ export async function updateMemberGroup(req: Request, res: Response): Promise<vo
 // AGT Records
 export async function getAgtRecords(req: Request, res: Response): Promise<void> {
   try {
-    const memberId = parseInt(req.params.id);
+    const memberId = parseInt(param(req, 'id'));
     const records = await prisma.agtRecord.findMany({
       where: { memberId },
       orderBy: { date: 'desc' },
@@ -420,7 +421,7 @@ export async function getAgtRecords(req: Request, res: Response): Promise<void> 
 
 export async function createAgtRecord(req: Request, res: Response): Promise<void> {
   try {
-    const memberId = parseInt(req.params.id);
+    const memberId = parseInt(param(req, 'id'));
     const { type, date, result, notes } = req.body;
     const record = await prisma.agtRecord.create({
       data: { memberId, type, date: new Date(date), result: result || null, notes: notes || null },
@@ -433,7 +434,7 @@ export async function createAgtRecord(req: Request, res: Response): Promise<void
 
 export async function deleteAgtRecord(req: Request, res: Response): Promise<void> {
   try {
-    const id = parseInt(req.params.recordId);
+    const id = parseInt(param(req, 'recordId'));
     await prisma.agtRecord.delete({ where: { id } });
     sendSuccess(res, { message: 'Eintrag gelöscht' });
   } catch (err) {
@@ -444,7 +445,7 @@ export async function deleteAgtRecord(req: Request, res: Response): Promise<void
 // Absences
 export async function createMemberAbsence(req: Request, res: Response): Promise<void> {
   try {
-    const memberId = parseInt(req.params.id);
+    const memberId = parseInt(param(req, 'id'));
     const absence = await prisma.absence.create({
       data: { ...convertDates(pickWritable('Absence', req.body, ['memberId']), ABSENCE_DATE_FIELDS), memberId } as any,
     });
@@ -456,7 +457,7 @@ export async function createMemberAbsence(req: Request, res: Response): Promise<
 
 export async function updateMemberAbsence(req: Request, res: Response): Promise<void> {
   try {
-    const id = parseInt(req.params.absenceId);
+    const id = parseInt(param(req, 'absenceId'));
     const absence = await prisma.absence.update({
       where: { id },
       data: convertDates(pickWritable('Absence', req.body, ['memberId']), ABSENCE_DATE_FIELDS) as any,
@@ -469,7 +470,7 @@ export async function updateMemberAbsence(req: Request, res: Response): Promise<
 
 export async function deleteMemberAbsence(req: Request, res: Response): Promise<void> {
   try {
-    const id = parseInt(req.params.absenceId);
+    const id = parseInt(param(req, 'absenceId'));
     await prisma.absence.delete({ where: { id } });
     sendSuccess(res, { message: 'Abwesenheit gelöscht' });
   } catch (err) {

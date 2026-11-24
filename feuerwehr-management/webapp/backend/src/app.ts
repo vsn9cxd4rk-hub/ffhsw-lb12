@@ -46,6 +46,13 @@ app.use(compression());
 // Body parsing
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// Express 5 leaves req.body undefined for requests without a parsable body (Express 4: {}).
+// The controllers destructure req.body, e.g. a POST without payload; keep the old contract.
+// multer replaces req.body for multipart uploads later on.
+app.use((req, _res, next) => {
+  if (req.body === undefined) req.body = {};
+  next();
+});
 
 // Cookie parser
 app.use(cookieParser());

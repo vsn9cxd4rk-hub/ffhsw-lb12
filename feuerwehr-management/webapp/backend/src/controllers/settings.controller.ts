@@ -6,6 +6,7 @@ import { pickWritable } from '../utils/body';
 import { addMonths } from '../utils/dates';
 import { categoryUploadDir, removeUpload, sendUpload, toStoredPath } from '../utils/files';
 import { createUpload, discardUpload } from '../utils/upload';
+import { param } from '../utils/params';
 
 export const templateUpload = createUpload({
   destination: () => categoryUploadDir('templates'),
@@ -62,7 +63,7 @@ export async function createRank(req: Request, res: Response): Promise<void> {
 
 export async function updateRank(req: Request, res: Response): Promise<void> {
   try {
-    const rank = await prisma.rank.update({ where: { id: parseInt(req.params.id) }, data: pickWritable('Rank', req.body) });
+    const rank = await prisma.rank.update({ where: { id: parseInt(param(req, 'id')) }, data: pickWritable('Rank', req.body) });
     sendSuccess(res, rank);
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -71,7 +72,7 @@ export async function updateRank(req: Request, res: Response): Promise<void> {
 
 export async function deleteRank(req: Request, res: Response): Promise<void> {
   try {
-    await prisma.rank.delete({ where: { id: parseInt(req.params.id) } });
+    await prisma.rank.delete({ where: { id: parseInt(param(req, 'id')) } });
     sendSuccess(res, { message: 'Dienstgrad gelöscht' });
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -109,7 +110,7 @@ export async function createYear(req: Request, res: Response): Promise<void> {
 
 export async function updateYear(req: Request, res: Response): Promise<void> {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(param(req, 'id'));
     if (req.body.isActive) {
       await prisma.year.updateMany({ where: { id: { not: id } }, data: { isActive: false } });
     }
@@ -158,7 +159,7 @@ export async function uploadTemplate(req: Request, res: Response): Promise<void>
 
 export async function updateTemplate(req: Request, res: Response): Promise<void> {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(param(req, 'id'));
     const existing = await prisma.template.findUnique({ where: { id } });
     if (!existing) { discardUpload(req.file); sendError(res, 'Template nicht gefunden', 404); return; }
 
@@ -187,7 +188,7 @@ export async function updateTemplate(req: Request, res: Response): Promise<void>
 
 export async function downloadTemplate(req: Request, res: Response): Promise<void> {
   try {
-    const template = await prisma.template.findUnique({ where: { id: parseInt(req.params.id) } });
+    const template = await prisma.template.findUnique({ where: { id: parseInt(param(req, 'id')) } });
     if (!template) { sendError(res, 'Template nicht gefunden', 404); return; }
     sendUpload(res, template.filePath, template.name + path.extname(template.filePath), template.mimeType);
   } catch (err) {
@@ -197,7 +198,7 @@ export async function downloadTemplate(req: Request, res: Response): Promise<voi
 
 export async function deleteTemplate(req: Request, res: Response): Promise<void> {
   try {
-    const template = await prisma.template.findUnique({ where: { id: parseInt(req.params.id) } });
+    const template = await prisma.template.findUnique({ where: { id: parseInt(param(req, 'id')) } });
     if (!template) { sendError(res, 'Template nicht gefunden', 404); return; }
     removeUpload(template.filePath);
     await prisma.template.delete({ where: { id: template.id } });
@@ -210,7 +211,7 @@ export async function deleteTemplate(req: Request, res: Response): Promise<void>
 export async function getTemplateHistory(req: Request, res: Response): Promise<void> {
   try {
     const history = await prisma.templateHistory.findMany({
-      where: { templateId: parseInt(req.params.id) },
+      where: { templateId: parseInt(param(req, 'id')) },
       orderBy: { changedAt: 'desc' },
     });
     sendSuccess(res, history);
@@ -250,7 +251,7 @@ export async function createDeviceClass(req: Request, res: Response): Promise<vo
 
 export async function updateDeviceClass(req: Request, res: Response): Promise<void> {
   try {
-    const dc = await prisma.deviceClass.update({ where: { id: parseInt(req.params.id) }, data: pickWritable('DeviceClass', req.body) });
+    const dc = await prisma.deviceClass.update({ where: { id: parseInt(param(req, 'id')) }, data: pickWritable('DeviceClass', req.body) });
     sendSuccess(res, dc);
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -259,7 +260,7 @@ export async function updateDeviceClass(req: Request, res: Response): Promise<vo
 
 export async function deleteDeviceClass(req: Request, res: Response): Promise<void> {
   try {
-    await prisma.deviceClass.delete({ where: { id: parseInt(req.params.id) } });
+    await prisma.deviceClass.delete({ where: { id: parseInt(param(req, 'id')) } });
     sendSuccess(res, { message: 'Geräteklasse gelöscht' });
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -268,7 +269,7 @@ export async function deleteDeviceClass(req: Request, res: Response): Promise<vo
 
 export async function createSubclass(req: Request, res: Response): Promise<void> {
   try {
-    const classId = parseInt(req.params.classId);
+    const classId = parseInt(param(req, 'classId'));
     const sc = await prisma.deviceSubclass.create({
       data: { deviceClassId: classId, name: req.body.name, sortOrder: req.body.sortOrder || 0 },
     });
@@ -280,7 +281,7 @@ export async function createSubclass(req: Request, res: Response): Promise<void>
 
 export async function updateSubclass(req: Request, res: Response): Promise<void> {
   try {
-    const sc = await prisma.deviceSubclass.update({ where: { id: parseInt(req.params.id) }, data: pickWritable('DeviceSubclass', req.body) });
+    const sc = await prisma.deviceSubclass.update({ where: { id: parseInt(param(req, 'id')) }, data: pickWritable('DeviceSubclass', req.body) });
     sendSuccess(res, sc);
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -289,7 +290,7 @@ export async function updateSubclass(req: Request, res: Response): Promise<void>
 
 export async function deleteSubclass(req: Request, res: Response): Promise<void> {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(param(req, 'id'));
     await prisma.$transaction(async (tx) => {
       const criteria = await tx.inspectionCriterion.findMany({ where: { deviceSubclassId: id }, select: { id: true } });
       const criterionIds = criteria.map(c => c.id);
@@ -307,7 +308,7 @@ export async function deleteSubclass(req: Request, res: Response): Promise<void>
 
 export async function createCriterion(req: Request, res: Response): Promise<void> {
   try {
-    const subclassId = parseInt(req.params.subclassId);
+    const subclassId = parseInt(param(req, 'subclassId'));
     const criterion = await prisma.inspectionCriterion.create({
       data: { deviceSubclassId: subclassId, name: req.body.name, sortOrder: req.body.sortOrder || 0 },
     });
@@ -319,7 +320,7 @@ export async function createCriterion(req: Request, res: Response): Promise<void
 
 export async function updateCriterion(req: Request, res: Response): Promise<void> {
   try {
-    const criterion = await prisma.inspectionCriterion.update({ where: { id: parseInt(req.params.id) }, data: pickWritable('InspectionCriterion', req.body) });
+    const criterion = await prisma.inspectionCriterion.update({ where: { id: parseInt(param(req, 'id')) }, data: pickWritable('InspectionCriterion', req.body) });
     sendSuccess(res, criterion);
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -328,7 +329,7 @@ export async function updateCriterion(req: Request, res: Response): Promise<void
 
 export async function deleteCriterion(req: Request, res: Response): Promise<void> {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(param(req, 'id'));
     await prisma.$transaction(async (tx) => {
       await tx.inspectionCriterionResult.deleteMany({ where: { criterionId: id } });
       await tx.inspectionCriterion.delete({ where: { id } });
@@ -360,7 +361,7 @@ export async function createInspectionType(req: Request, res: Response): Promise
 
 export async function updateInspectionType(req: Request, res: Response): Promise<void> {
   try {
-    const t = await prisma.inspectionType.update({ where: { id: parseInt(req.params.id) }, data: pickWritable('InspectionType', req.body) });
+    const t = await prisma.inspectionType.update({ where: { id: parseInt(param(req, 'id')) }, data: pickWritable('InspectionType', req.body) });
     sendSuccess(res, t);
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -369,7 +370,7 @@ export async function updateInspectionType(req: Request, res: Response): Promise
 
 export async function deleteInspectionType(req: Request, res: Response): Promise<void> {
   try {
-    await prisma.inspectionType.delete({ where: { id: parseInt(req.params.id) } });
+    await prisma.inspectionType.delete({ where: { id: parseInt(param(req, 'id')) } });
     sendSuccess(res, { message: 'Prüfungsart gelöscht' });
   } catch (err) {
     sendError(res, (err as Error).message);

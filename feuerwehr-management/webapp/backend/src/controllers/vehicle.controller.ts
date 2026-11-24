@@ -3,6 +3,7 @@ import { prisma } from '../config/database';
 import { sendSuccess, sendError } from '../utils/response';
 import { convertDates } from '../utils/dates';
 import { pickWritable } from '../utils/body';
+import { param } from '../utils/params';
 
 const LOGBOOK_DATE_FIELDS = ['date'];
 const EQUIPMENT_INSPECTION_DATE_FIELDS = ['lastInspection', 'nextInspection'];
@@ -37,7 +38,7 @@ export async function createVehicle(req: Request, res: Response): Promise<void> 
 
 export async function getVehicle(req: Request, res: Response): Promise<void> {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(param(req, 'id'));
     const vehicle = await prisma.vehicle.findUnique({
       where: { id },
       include: {
@@ -56,7 +57,7 @@ export async function getVehicle(req: Request, res: Response): Promise<void> {
 
 export async function updateVehicle(req: Request, res: Response): Promise<void> {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(param(req, 'id'));
     const vehicle = await prisma.vehicle.update({
       where: { id },
       data: pickWritable('Vehicle', req.body),
@@ -70,7 +71,7 @@ export async function updateVehicle(req: Request, res: Response): Promise<void> 
 
 export async function deleteVehicle(req: Request, res: Response): Promise<void> {
   try {
-    await prisma.vehicle.delete({ where: { id: parseInt(req.params.id) } });
+    await prisma.vehicle.delete({ where: { id: parseInt(param(req, 'id')) } });
     sendSuccess(res, { message: 'Fahrzeug gelöscht' });
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -79,7 +80,7 @@ export async function deleteVehicle(req: Request, res: Response): Promise<void> 
 
 export async function upsertVehicleInspection(req: Request, res: Response): Promise<void> {
   try {
-    const vehicleId = parseInt(req.params.id);
+    const vehicleId = parseInt(param(req, 'id'));
     const data: Record<string, unknown> = {};
     const dateFields = ['tuevDate', 'spDate', 'serviceDate'];
     const boolFields = ['notifyTuev', 'notifySp', 'notifyService'];
@@ -107,7 +108,7 @@ export async function upsertVehicleInspection(req: Request, res: Response): Prom
 
 export async function getLogbook(req: Request, res: Response): Promise<void> {
   try {
-    const vehicleId = parseInt(req.params.id);
+    const vehicleId = parseInt(param(req, 'id'));
     const page = parseInt(req.query.page as string) || 1;
     const limit = 20;
 
@@ -134,7 +135,7 @@ function mileageInvalid(start: unknown, end: unknown): boolean {
 
 export async function createLogbookEntry(req: Request, res: Response): Promise<void> {
   try {
-    const vehicleId = parseInt(req.params.id);
+    const vehicleId = parseInt(param(req, 'id'));
     if (mileageInvalid(req.body.startMileage, req.body.endMileage)) {
       sendError(res, MILEAGE_ERROR, 400);
       return;
@@ -150,7 +151,7 @@ export async function createLogbookEntry(req: Request, res: Response): Promise<v
 
 export async function updateLogbookEntry(req: Request, res: Response): Promise<void> {
   try {
-    const id = parseInt(req.params.entryId);
+    const id = parseInt(param(req, 'entryId'));
     // A partial update is checked against the stored value of the other field
     if (req.body.startMileage != null || req.body.endMileage != null) {
       const existing = await prisma.logbookEntry.findUnique({ where: { id }, select: { startMileage: true, endMileage: true } });
@@ -171,7 +172,7 @@ export async function updateLogbookEntry(req: Request, res: Response): Promise<v
 
 export async function getEquipmentInspections(req: Request, res: Response): Promise<void> {
   try {
-    const vehicleId = parseInt(req.params.id);
+    const vehicleId = parseInt(param(req, 'id'));
     const inspections = await prisma.equipmentInspection.findMany({
       where: { vehicleId },
       orderBy: { type: 'asc' },
@@ -184,7 +185,7 @@ export async function getEquipmentInspections(req: Request, res: Response): Prom
 
 export async function createEquipmentInspection(req: Request, res: Response): Promise<void> {
   try {
-    const vehicleId = parseInt(req.params.id);
+    const vehicleId = parseInt(param(req, 'id'));
     const inspection = await prisma.equipmentInspection.create({
       data: { ...convertDates(pickWritable('EquipmentInspection', req.body, ['vehicleId']), EQUIPMENT_INSPECTION_DATE_FIELDS), vehicleId } as any,
     });
@@ -196,7 +197,7 @@ export async function createEquipmentInspection(req: Request, res: Response): Pr
 
 export async function updateEquipmentInspection(req: Request, res: Response): Promise<void> {
   try {
-    const id = parseInt(req.params.inspId);
+    const id = parseInt(param(req, 'inspId'));
     const inspection = await prisma.equipmentInspection.update({
       where: { id },
       data: convertDates(pickWritable('EquipmentInspection', req.body, ['vehicleId']), EQUIPMENT_INSPECTION_DATE_FIELDS) as any,

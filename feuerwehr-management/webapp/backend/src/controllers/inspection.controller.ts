@@ -5,6 +5,7 @@ import { getPagination } from '../utils/pagination';
 import { addMonths } from '../utils/dates';
 import { categoryUploadDir, removeUpload, sendUpload, toStoredPath } from '../utils/files';
 import { createUpload, discardUpload } from '../utils/upload';
+import { param } from '../utils/params';
 
 export const inspectionDocUpload = createUpload({
   destination: () => categoryUploadDir('inspection-documents'),
@@ -141,7 +142,7 @@ export async function getDueInspections(req: Request, res: Response): Promise<vo
 // Inspection history for a specific article
 export async function getArticleInspections(req: Request, res: Response): Promise<void> {
   try {
-    const articleId = parseInt(req.params.articleId);
+    const articleId = parseInt(param(req, 'articleId'));
     const inspections = await prisma.articleInspection.findMany({
       where: { articleId },
       include: {
@@ -195,7 +196,7 @@ export async function getInspectors(_req: Request, res: Response): Promise<void>
 // Get inspection criteria for an article based on its subclass
 export async function getInspectionCriteria(req: Request, res: Response): Promise<void> {
   try {
-    const articleId = parseInt(req.params.articleId);
+    const articleId = parseInt(param(req, 'articleId'));
     const article = await prisma.article.findUnique({
       where: { id: articleId },
       select: { deviceSubclassId: true },
@@ -303,7 +304,7 @@ export async function createInspection(req: Request, res: Response): Promise<voi
 // Update inspection
 export async function updateInspection(req: Request, res: Response): Promise<void> {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(param(req, 'id'));
     const { inspectedAt, inspectedBy, inspectionTypeId, notes, criterionResults } = req.body;
 
     const existing = await prisma.articleInspection.findUnique({
@@ -429,7 +430,7 @@ export async function getInspectionReport(req: Request, res: Response): Promise<
 // Inspection document endpoints
 export async function getInspectionDocuments(req: Request, res: Response): Promise<void> {
   try {
-    const inspectionId = parseInt(req.params.id);
+    const inspectionId = parseInt(param(req, 'id'));
     const docs = await prisma.inspectionDocument.findMany({
       where: { inspectionId },
       orderBy: { createdAt: 'desc' },
@@ -443,7 +444,7 @@ export async function getInspectionDocuments(req: Request, res: Response): Promi
 export async function uploadInspectionDocument(req: Request, res: Response): Promise<void> {
   try {
     if (!req.file) { sendError(res, 'Keine Datei hochgeladen', 400); return; }
-    const inspectionId = parseInt(req.params.id);
+    const inspectionId = parseInt(param(req, 'id'));
 
     const inspection = await prisma.articleInspection.findUnique({ where: { id: inspectionId } });
     if (!inspection) { discardUpload(req.file); sendError(res, 'Prüfung nicht gefunden', 404); return; }
@@ -466,7 +467,7 @@ export async function uploadInspectionDocument(req: Request, res: Response): Pro
 
 export async function downloadInspectionDocument(req: Request, res: Response): Promise<void> {
   try {
-    const doc = await prisma.inspectionDocument.findUnique({ where: { id: parseInt(req.params.docId) } });
+    const doc = await prisma.inspectionDocument.findUnique({ where: { id: parseInt(param(req, 'docId')) } });
     if (!doc) { sendError(res, 'Dokument nicht gefunden', 404); return; }
     sendUpload(res, doc.filePath, doc.fileName, doc.mimeType);
   } catch (err) {
@@ -476,7 +477,7 @@ export async function downloadInspectionDocument(req: Request, res: Response): P
 
 export async function deleteInspectionDocument(req: Request, res: Response): Promise<void> {
   try {
-    const doc = await prisma.inspectionDocument.findUnique({ where: { id: parseInt(req.params.docId) } });
+    const doc = await prisma.inspectionDocument.findUnique({ where: { id: parseInt(param(req, 'docId')) } });
     if (!doc) { sendError(res, 'Dokument nicht gefunden', 404); return; }
     removeUpload(doc.filePath);
     await prisma.inspectionDocument.delete({ where: { id: doc.id } });

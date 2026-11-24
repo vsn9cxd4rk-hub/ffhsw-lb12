@@ -10,6 +10,7 @@ import {
 } from '../controllers/operation.controller';
 import { generateOperationReport, generatePersonnelSheet, generatePersonnelSheets } from '../services/report-generator.service';
 import { sendSuccess, sendError } from '../utils/response';
+import { param } from '../utils/params';
 
 const router = Router();
 router.use(authenticate);
@@ -37,7 +38,7 @@ router.delete('/:id/personnel/:personnelId', deletePersonnel);
 // Report generation
 router.post('/:id/generate-report', async (req: Request, res: Response) => {
   try {
-    const result = await generateOperationReport(parseInt(req.params.id));
+    const result = await generateOperationReport(parseInt(param(req, 'id')));
     sendSuccess(res, result, 201);
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -48,8 +49,8 @@ router.post('/:id/generate-personnel-sheet', async (req: Request, res: Response)
   try {
     const { vehicleFilter } = req.body;
     const result = vehicleFilter
-      ? await generatePersonnelSheet(parseInt(req.params.id), vehicleFilter)
-      : await generatePersonnelSheets(parseInt(req.params.id));
+      ? await generatePersonnelSheet(parseInt(param(req, 'id')), vehicleFilter)
+      : await generatePersonnelSheets(parseInt(param(req, 'id')));
     sendSuccess(res, result, 201);
   } catch (err) {
     sendError(res, (err as Error).message);

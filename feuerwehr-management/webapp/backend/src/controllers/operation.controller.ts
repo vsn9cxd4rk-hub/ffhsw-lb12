@@ -7,6 +7,7 @@ import { pickWritable } from '../utils/body';
 import { recordUploadDir, removeUpload, sendUpload, toStoredPath } from '../utils/files';
 import { createUpload, discardUpload } from '../utils/upload';
 import { AUTHOR_ROLE_COMMANDER } from '../services/report-generator.service';
+import { param } from '../utils/params';
 
 const OPERATION_DATE_FIELDS = ['date'];
 
@@ -17,7 +18,7 @@ const OPERATION_DATE_FIELDS = ['date'];
 const OPERATION_DERIVED_FIELDS = ['vehicles', 'leaderCount', 'memberCount', 'departureTime', 'arrivalTime', 'returnTime'];
 
 export const uploadMiddleware = createUpload({
-  destination: (req) => recordUploadDir('operations', req.params.id),
+  destination: (req) => recordUploadDir('operations', param(req, 'id')),
   kinds: ['pdf', 'doc', 'docx'],
   rejectMessage: 'Nur PDF- und Word-Dateien sind erlaubt',
 });
@@ -69,7 +70,7 @@ export async function createOperation(req: Request, res: Response): Promise<void
 
 export async function getOperation(req: Request, res: Response): Promise<void> {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(param(req, 'id'));
     const op = await prisma.operation.findUnique({
       where: { id },
       include: { times: true },
@@ -83,7 +84,7 @@ export async function getOperation(req: Request, res: Response): Promise<void> {
 
 export async function updateOperation(req: Request, res: Response): Promise<void> {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(param(req, 'id'));
     const data = convertDates(pickWritable('Operation', req.body, OPERATION_DERIVED_FIELDS), OPERATION_DATE_FIELDS) as any;
     // A separate commander only exists when the author was not in charge themselves
     if (data.authorRole === AUTHOR_ROLE_COMMANDER) data.commanderName = null;
@@ -96,7 +97,7 @@ export async function updateOperation(req: Request, res: Response): Promise<void
 
 export async function deleteOperation(req: Request, res: Response): Promise<void> {
   try {
-    await prisma.operation.delete({ where: { id: parseInt(req.params.id) } });
+    await prisma.operation.delete({ where: { id: parseInt(param(req, 'id')) } });
     sendSuccess(res, { message: 'Einsatz gelöscht' });
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -133,7 +134,7 @@ async function syncOperationAggregates(operationId: number): Promise<void> {
 
 export async function createOperationTime(req: Request, res: Response): Promise<void> {
   try {
-    const operationId = parseInt(req.params.id);
+    const operationId = parseInt(param(req, 'id'));
     const t = await prisma.operationTime.create({
       data: { ...pickWritable('OperationTime', req.body, ['operationId']), operationId } as any,
     });
@@ -147,7 +148,7 @@ export async function createOperationTime(req: Request, res: Response): Promise<
 export async function updateOperationTime(req: Request, res: Response): Promise<void> {
   try {
     const t = await prisma.operationTime.update({
-      where: { id: parseInt(req.params.timeId) },
+      where: { id: parseInt(param(req, 'timeId')) },
       data: pickWritable('OperationTime', req.body, ['operationId']),
     });
     await syncOperationAggregates(t.operationId);
@@ -159,7 +160,7 @@ export async function updateOperationTime(req: Request, res: Response): Promise<
 
 export async function deleteOperationTime(req: Request, res: Response): Promise<void> {
   try {
-    const t = await prisma.operationTime.delete({ where: { id: parseInt(req.params.timeId) } });
+    const t = await prisma.operationTime.delete({ where: { id: parseInt(param(req, 'timeId')) } });
     await syncOperationAggregates(t.operationId);
     sendSuccess(res, { message: 'Zeiteintrag gelöscht' });
   } catch (err) {
@@ -170,7 +171,7 @@ export async function deleteOperationTime(req: Request, res: Response): Promise<
 // Documents
 export async function getDocuments(req: Request, res: Response): Promise<void> {
   try {
-    const operationId = parseInt(req.params.id);
+    const operationId = parseInt(param(req, 'id'));
     const documents = await prisma.operationDocument.findMany({
       where: { operationId },
       orderBy: { createdAt: 'desc' },
@@ -183,7 +184,7 @@ export async function getDocuments(req: Request, res: Response): Promise<void> {
 
 export async function uploadDocument(req: Request, res: Response): Promise<void> {
   try {
-    const operationId = parseInt(req.params.id);
+    const operationId = parseInt(param(req, 'id'));
     if (!req.file) {
       sendError(res, 'Keine Datei hochgeladen', 400);
       return;
@@ -213,7 +214,7 @@ export async function uploadDocument(req: Request, res: Response): Promise<void>
 export async function downloadDocument(req: Request, res: Response): Promise<void> {
   try {
     const doc = await prisma.operationDocument.findUnique({
-      where: { id: parseInt(req.params.docId) },
+      where: { id: parseInt(param(req, 'docId')) },
     });
     if (!doc) { sendError(res, 'Dokument nicht gefunden', 404); return; }
     sendUpload(res, doc.filePath, doc.fileName, doc.mimeType);
@@ -225,7 +226,7 @@ export async function downloadDocument(req: Request, res: Response): Promise<voi
 export async function deleteDocument(req: Request, res: Response): Promise<void> {
   try {
     const doc = await prisma.operationDocument.findUnique({
-      where: { id: parseInt(req.params.docId) },
+      where: { id: parseInt(param(req, 'docId')) },
     });
     if (!doc) { sendError(res, 'Dokument nicht gefunden', 404); return; }
 
@@ -240,7 +241,7 @@ export async function deleteDocument(req: Request, res: Response): Promise<void>
 // Personnel
 export async function getPersonnel(req: Request, res: Response): Promise<void> {
   try {
-    const operationId = parseInt(req.params.id);
+    const operationId = parseInt(param(req, 'id'));
     const personnel = await prisma.operationPersonnel.findMany({
       where: { operationId },
       include: {
@@ -262,7 +263,7 @@ export async function getPersonnel(req: Request, res: Response): Promise<void> {
 
 export async function addPersonnel(req: Request, res: Response): Promise<void> {
   try {
-    const operationId = parseInt(req.params.id);
+    const operationId = parseInt(param(req, 'id'));
     const { memberId, vehicleName, function: fn, section } = req.body;
     const p = await prisma.operationPersonnel.create({
       data: { operationId, memberId, vehicleName, function: fn, section: section || 'deployed' },
@@ -285,7 +286,7 @@ export async function addPersonnel(req: Request, res: Response): Promise<void> {
 export async function updatePersonnel(req: Request, res: Response): Promise<void> {
   try {
     const p = await prisma.operationPersonnel.update({
-      where: { id: parseInt(req.params.personnelId) },
+      where: { id: parseInt(param(req, 'personnelId')) },
       data: pickWritable('OperationPersonnel', req.body, ['operationId']),
       include: {
         member: {
@@ -305,7 +306,7 @@ export async function updatePersonnel(req: Request, res: Response): Promise<void
 
 export async function deletePersonnel(req: Request, res: Response): Promise<void> {
   try {
-    await prisma.operationPersonnel.delete({ where: { id: parseInt(req.params.personnelId) } });
+    await prisma.operationPersonnel.delete({ where: { id: parseInt(param(req, 'personnelId')) } });
     sendSuccess(res, { message: 'Einsatzkraft entfernt' });
   } catch (err) {
     sendError(res, (err as Error).message);

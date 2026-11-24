@@ -7,6 +7,7 @@ import { convertDates } from '../utils/dates';
 import { pickWritable } from '../utils/body';
 import { categoryUploadDir, removeUpload, sendUpload, toStoredPath } from '../utils/files';
 import { createUpload, discardUpload } from '../utils/upload';
+import { param } from '../utils/params';
 
 const COURSE_DATE_FIELDS = ['startDate', 'endDate'];
 
@@ -70,7 +71,7 @@ export async function createCourse(req: Request, res: Response): Promise<void> {
 export async function getCourse(req: Request, res: Response): Promise<void> {
   try {
     const course = await prisma.course.findUnique({
-      where: { id: parseInt(req.params.id) },
+      where: { id: parseInt(param(req, 'id')) },
       include: { category: true, member: { select: { id: true, firstName: true, lastName: true, rank: true } } },
     });
     if (!course) { sendError(res, 'Lehrgang nicht gefunden', 404); return; }
@@ -83,7 +84,7 @@ export async function getCourse(req: Request, res: Response): Promise<void> {
 export async function updateCourse(req: Request, res: Response): Promise<void> {
   try {
     const course = await prisma.course.update({
-      where: { id: parseInt(req.params.id) },
+      where: { id: parseInt(param(req, 'id')) },
       data: convertDates(pickWritable('Course', req.body), COURSE_DATE_FIELDS) as any,
       include: { category: true },
     });
@@ -95,7 +96,7 @@ export async function updateCourse(req: Request, res: Response): Promise<void> {
 
 export async function deleteCourse(req: Request, res: Response): Promise<void> {
   try {
-    await prisma.course.delete({ where: { id: parseInt(req.params.id) } });
+    await prisma.course.delete({ where: { id: parseInt(param(req, 'id')) } });
     sendSuccess(res, { message: 'Lehrgang gelöscht' });
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -105,7 +106,7 @@ export async function deleteCourse(req: Request, res: Response): Promise<void> {
 // Certificate upload
 export async function uploadCertificate(req: Request, res: Response): Promise<void> {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(param(req, 'id'));
     if (!req.file) { sendError(res, 'Keine Datei hochgeladen', 400); return; }
 
     const course = await prisma.course.findUnique({ where: { id } });
@@ -128,7 +129,7 @@ export async function uploadCertificate(req: Request, res: Response): Promise<vo
 export async function downloadCertificate(req: Request, res: Response): Promise<void> {
   try {
     const course = await prisma.course.findUnique({
-      where: { id: parseInt(req.params.id) },
+      where: { id: parseInt(param(req, 'id')) },
       include: { category: { select: { name: true } }, member: { select: { firstName: true, lastName: true } } },
     });
     if (!course || !course.certificatePath) { sendError(res, 'Keine Urkunde vorhanden', 404); return; }
@@ -143,7 +144,7 @@ export async function downloadCertificate(req: Request, res: Response): Promise<
 
 export async function deleteCertificate(req: Request, res: Response): Promise<void> {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(param(req, 'id'));
     const course = await prisma.course.findUnique({ where: { id } });
     if (!course) { sendError(res, 'Lehrgang nicht gefunden', 404); return; }
 
@@ -177,7 +178,7 @@ export async function createCategory(req: Request, res: Response): Promise<void>
 export async function updateCategory(req: Request, res: Response): Promise<void> {
   try {
     const cat = await prisma.courseCategory.update({
-      where: { id: parseInt(req.params.id) },
+      where: { id: parseInt(param(req, 'id')) },
       data: pickWritable('CourseCategory', req.body),
     });
     sendSuccess(res, cat);
@@ -188,7 +189,7 @@ export async function updateCategory(req: Request, res: Response): Promise<void>
 
 export async function deleteCategory(req: Request, res: Response): Promise<void> {
   try {
-    await prisma.courseCategory.delete({ where: { id: parseInt(req.params.id) } });
+    await prisma.courseCategory.delete({ where: { id: parseInt(param(req, 'id')) } });
     sendSuccess(res, { message: 'Kategorie gelöscht' });
   } catch (err) {
     sendError(res, (err as Error).message);

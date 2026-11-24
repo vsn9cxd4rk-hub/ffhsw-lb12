@@ -10,6 +10,7 @@ import {
 } from '../controllers/event.controller';
 import { generateBswChecklist, generateBswReport, generateExerciseAttendance } from '../services/report-generator.service';
 import { sendSuccess, sendError } from '../utils/response';
+import { param } from '../utils/params';
 
 const router = Router();
 router.use(authenticate);
@@ -37,7 +38,7 @@ router.delete('/:id/documents/:docId', deleteEventDocument);
 // Brandsicherheitswache (Kategorie 3): Checkliste/Bericht aus Formulardaten generieren
 router.post('/:id/bsw/checkliste', async (req: Request, res: Response) => {
   try {
-    const result = await generateBswChecklist(parseInt(req.params.id));
+    const result = await generateBswChecklist(parseInt(param(req, 'id')));
     sendSuccess(res, result, 201);
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -46,7 +47,7 @@ router.post('/:id/bsw/checkliste', async (req: Request, res: Response) => {
 
 router.post('/:id/bsw/bericht', async (req: Request, res: Response) => {
   try {
-    const result = await generateBswReport(parseInt(req.params.id));
+    const result = await generateBswReport(parseInt(param(req, 'id')));
     sendSuccess(res, result, 201);
   } catch (err) {
     sendError(res, (err as Error).message);
@@ -56,7 +57,7 @@ router.post('/:id/bsw/bericht', async (req: Request, res: Response) => {
 // Übung (Kategorie 5): Nachweis Übungsteilnahme aus Anwesenheit generieren
 router.post('/:id/uebung/besuch', async (req: Request, res: Response) => {
   try {
-    const result = await generateExerciseAttendance(parseInt(req.params.id));
+    const result = await generateExerciseAttendance(parseInt(param(req, 'id')));
     sendSuccess(res, result, 201);
   } catch (err) {
     sendError(res, (err as Error).message);

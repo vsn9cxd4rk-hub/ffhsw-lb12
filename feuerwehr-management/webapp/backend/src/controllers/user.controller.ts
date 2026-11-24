@@ -6,6 +6,7 @@ import { sendSuccess, sendError, sendPaginated } from '../utils/response';
 import { getPagination } from '../utils/pagination';
 import { pickWritable } from '../utils/body';
 import { passwordRules } from '../utils/password';
+import { param } from '../utils/params';
 
 export const createUserValidation = [
   body('username').trim().isLength({ min: 3 }).withMessage('Benutzername min. 3 Zeichen'),
@@ -96,7 +97,7 @@ export async function createUser(req: Request, res: Response): Promise<void> {
 export async function getUser(req: Request, res: Response): Promise<void> {
   try {
     const user = await prisma.user.findUnique({
-      where: { id: parseInt(req.params.id) },
+      where: { id: parseInt(param(req, 'id')) },
       select: {
         id: true, username: true, email: true, name: true,
         isAdmin: true, isActive: true, groupId: true, memberId: true,
@@ -114,7 +115,7 @@ export async function getUser(req: Request, res: Response): Promise<void> {
 
 export async function updateUser(req: Request, res: Response): Promise<void> {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(param(req, 'id'));
     const { email, name, isAdmin, isActive, groupId, memberId, password } = req.body;
 
     const data: Record<string, unknown> = {};
@@ -169,7 +170,7 @@ export async function updateUser(req: Request, res: Response): Promise<void> {
 
 export async function deleteUser(req: Request, res: Response): Promise<void> {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(param(req, 'id'));
     if (id === req.user!.id) {
       sendError(res, 'Sie können sich nicht selbst löschen', 400);
       return;
@@ -202,7 +203,7 @@ export async function createPermissionGroup(req: Request, res: Response): Promis
 
 export async function updatePermissionGroup(req: Request, res: Response): Promise<void> {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(param(req, 'id'));
     const group = await prisma.permissionGroup.update({ where: { id }, data: pickWritable('PermissionGroup', req.body) });
     sendSuccess(res, group);
   } catch (err) {
@@ -212,7 +213,7 @@ export async function updatePermissionGroup(req: Request, res: Response): Promis
 
 export async function deletePermissionGroup(req: Request, res: Response): Promise<void> {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(param(req, 'id'));
     await prisma.permissionGroup.delete({ where: { id } });
     sendSuccess(res, { message: 'Gruppe gelöscht' });
   } catch (err) {
