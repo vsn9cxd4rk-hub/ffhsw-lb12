@@ -58,10 +58,10 @@ fi
 
 info "Quellverzeichnis: $SOURCE_DIR"
 
-# Ab 1.4.0 (nodemailer 10, Tailwind CSS 4) wird Node.js 20 oder neuer benötigt
+# Ab 1.4.1 wird Node.js 22 oder neuer benötigt (Node 20 ist seit 30.04.2026 End-of-Life)
 NODE_MAJOR="$(node -v 2>/dev/null | sed -E 's/^v([0-9]+).*/\1/')"
-[[ -z "$NODE_MAJOR" || "$NODE_MAJOR" -lt 20 ]] && \
-  error "Node.js 20 oder neuer erforderlich (installiert: $(node -v 2>/dev/null || echo keins)). Manjaro: sudo pacman -S nodejs npm"
+[[ -z "$NODE_MAJOR" || "$NODE_MAJOR" -lt 22 ]] && \
+  error "Node.js 22 oder neuer erforderlich (installiert: $(node -v 2>/dev/null || echo keins)). Manjaro: sudo pacman -S nodejs npm"
 info "Node.js: $(node -v)"
 echo ""
 read -p "Update durchführen? Vorher wird ein Backup erstellt. [j/N]: " CONFIRM

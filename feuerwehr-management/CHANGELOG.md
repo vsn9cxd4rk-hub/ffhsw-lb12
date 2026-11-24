@@ -5,6 +5,23 @@ Neueste Version zuerst. Die Einträge für Anwender stehen zusätzlich in
 Versionsnummer); beide Stellen gemeinsam pflegen. Update-Schritte für Produktiv- und
 Backup-System: `deploy/UPDATE-MANJARO.md`.
 
+## 1.4.1 – 2026-11-22 (gegenüber 1.4.0)
+
+Wartungs-Update ohne Änderungen an Bedienung oder Datenbankschema.
+
+### Sicherheit
+
+- `npm audit`: Backend und Frontend wieder 0 Meldungen (vorher Backend 11, Frontend 4). Per `npm update` innerhalb der bestehenden Versionsbereiche angehoben, u.a. multer 2.5.0 (DoS über `fileFilter`), nodemailer 10.6.1 (Adressparser), qs, axios/follow-redirects (Credential-Header bei Redirects), dompurify (über jsPDF), Vite 6.4.6 (`server.fs.deny`).
+- Override `glob` 13 → 14 (über `exceljs` → `archiver` 5; behebt glob/minimatch-Meldungen).
+- Neue Override `effect` ^3.22.5 (ReDoS, über `prisma` → `@prisma/config`). `npm audit fix` wollte stattdessen das Prisma-CLI auf 6.12.0 zurückstufen, passend zum Client bleibt es auf 6.19.3.
+- Frontend: `zod`, `react-hook-form` und `@hookform/resolvers` entfernt; sie wurden nirgends importiert. Damit entfällt auch die Zod-Meldung (Fix nur in Zod 4).
+
+### Für Administratoren
+
+- **Node.js ≥ 22** (Node 20 ist seit 30.04.2026 End-of-Life). `update.sh`, Installationsskripte und `engines` in den `package.json` prüfen das; Neuinstallationen nutzen Node 24 LTS.
+- Docker: `node:24-bookworm-slim`, `nginx:1.30-alpine` (vorher `node:22`, `nginx:1.27`).
+- Keine SQL-Migration nötig.
+
 ## 1.4.0 – 2026-10-14 (gegenüber 1.3.2)
 
 Sicherheits-Update: Berechtigungen für Veranstaltungen und Ausbildung, Schutz von

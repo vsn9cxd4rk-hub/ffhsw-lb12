@@ -22,7 +22,7 @@ APP_NAME="feuerwehrmanagement"
 APP_USER="lb12admin"
 APP_DIR="/var/www/feuerwehrmanagement"
 LOG_DIR="/var/log/feuerwehrmanagement"
-NODE_VERSION="20"
+NODE_VERSION="24"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 

@@ -123,12 +123,12 @@ else
 fi
 
 # --------------------------------------------------------------------------
-# Node.js 20 installieren
+# Node.js 24 (LTS) installieren
 # --------------------------------------------------------------------------
-if ! command -v node &>/dev/null || [[ "$(node -v | cut -d'v' -f2 | cut -d'.' -f1)" -lt 18 ]]; then
-  info "Node.js 20 wird installiert..."
-  brew install node@20
-  brew link --overwrite --force node@20
+if ! command -v node &>/dev/null || [[ "$(node -v | cut -d'v' -f2 | cut -d'.' -f1)" -lt 22 ]]; then
+  info "Node.js 24 wird installiert..."
+  brew install node@24
+  brew link --overwrite --force node@24
   success "Node.js $(node -v) installiert"
 else
   success "Node.js $(node -v) bereits installiert"
