@@ -32,7 +32,7 @@ Für den Betrieb:
 
 | Bereich | Änderung | Wer erledigt es |
 | --- | --- | --- |
-| Node.js | mindestens Version 22 (empfohlen: 24 oder 26 LTS) | Schritt 2 (manuell, falls nötig) |
+| Node.js | mindestens Version 22.12 (empfohlen: 24 oder 26 LTS) | Schritt 2 (manuell, falls nötig) |
 | `.env` | `JWT_ACCESS_SECRET` muss zufällig und mindestens 32 Zeichen lang sein, sonst startet das Backend nicht. `JWT_REFRESH_SECRET` wird nicht verwendet und kann entfallen. | Schritt 3 (manuell) |
 | Datenbank | neue Spalten `users.mustChangePassword` und `operations.commanderName` | `update.sh` (`deploy/migrate-1.3.x-to-1.4.0.sql`) |
 | Daten | Berechtigungen br4/br5 setzen, Konten mit Standardpasswort markieren, Upload-Pfade relativ zu `UPLOAD_PATH` speichern | automatisch beim ersten Backend-Start |
@@ -63,7 +63,7 @@ mysql -u FFWVSLB12 -p FFWVSLB12 -e "SELECT COUNT(*) FROM operation_reports WHERE
 node -v
 ```
 
-Ausgabe `v22.x` oder höher: weiter mit Schritt 3. Sonst aktualisieren:
+Ausgabe `v22.12` oder höher: weiter mit Schritt 3. Sonst aktualisieren:
 
 ```bash
 sudo pacman -Syu nodejs npm

@@ -23,7 +23,7 @@ test.describe('Einsätze', () => {
   test('zeigt alle Tabs in Einsatz-Detail', async ({ page }) => {
     await page.goto('/operations');
     // Click on first operation if exists
-    const firstRow = page.locator('table tbody tr').first();
+    const firstRow = page.locator('table[aria-busy="false"] tbody tr').first();
     if (await firstRow.isVisible()) {
       await firstRow.click();
       await expect(page.getByRole('button', { name: 'Details' })).toBeVisible();
@@ -37,7 +37,7 @@ test.describe('Einsätze', () => {
 
   test('Details-Tab zeigt Einsatzbericht-Felder', async ({ page }) => {
     await page.goto('/operations');
-    const firstRow = page.locator('table tbody tr').first();
+    const firstRow = page.locator('table[aria-busy="false"] tbody tr').first();
     if (await firstRow.isVisible()) {
       await firstRow.click();
       await expect(page.getByText('Einsatzbericht-Details')).toBeVisible();
@@ -92,7 +92,7 @@ test.describe('Einsätze', () => {
 
   test('Einsatzstichwort bietet Dropdown-Auswahl', async ({ page }) => {
     await page.goto('/operations');
-    const firstRow = page.locator('table tbody tr').first();
+    const firstRow = page.locator('table[aria-busy="false"] tbody tr').first();
     if (await firstRow.isVisible()) {
       await firstRow.click();
       const stichwort = page.locator('label:has-text("Einsatzstichwort") + select');
@@ -106,7 +106,7 @@ test.describe('Einsätze', () => {
 
   test('Einsatzart-Checkboxen sind vorhanden', async ({ page }) => {
     await page.goto('/operations');
-    const firstRow = page.locator('table tbody tr').first();
+    const firstRow = page.locator('table[aria-busy="false"] tbody tr').first();
     if (await firstRow.isVisible()) {
       await firstRow.click();
       await expect(page.getByLabel('Kleinbrand a')).toBeVisible();
@@ -119,7 +119,7 @@ test.describe('Einsätze', () => {
 test.describe('Einsatz - Kräfte-Tab', () => {
   test('zeigt Kräfte-Sektionen', async ({ page }) => {
     await page.goto('/operations');
-    const firstRow = page.locator('table tbody tr').first();
+    const firstRow = page.locator('table[aria-busy="false"] tbody tr').first();
     if (await firstRow.isVisible()) {
       await firstRow.click();
       await page.getByRole('button', { name: 'Kräfte' }).click();
@@ -130,7 +130,7 @@ test.describe('Einsatz - Kräfte-Tab', () => {
 
   test('kann Einsatzkraft hinzufügen', async ({ page }) => {
     await page.goto('/operations');
-    const firstRow = page.locator('table tbody tr').first();
+    const firstRow = page.locator('table[aria-busy="false"] tbody tr').first();
     if (await firstRow.isVisible()) {
       await firstRow.click();
       await page.getByRole('button', { name: 'Kräfte' }).click();

@@ -58,10 +58,14 @@ fi
 
 info "Quellverzeichnis: $SOURCE_DIR"
 
-# Ab 1.4.1 wird Node.js 22 oder neuer benötigt (Node 20 ist seit 30.04.2026 End-of-Life)
-NODE_MAJOR="$(node -v 2>/dev/null | sed -E 's/^v([0-9]+).*/\1/')"
-[[ -z "$NODE_MAJOR" || "$NODE_MAJOR" -lt 22 ]] && \
-  error "Node.js 22 oder neuer erforderlich (installiert: $(node -v 2>/dev/null || echo keins)). Manjaro: sudo pacman -S nodejs npm"
+# Ab 1.5.0 wird Node.js 22.12 oder neuer benötigt (Vite 8, Prisma 7); Node 20 ist seit
+# 30.04.2026 End-of-Life
+NODE_VERSION="$(node -v 2>/dev/null | sed -E 's/^v//')"
+NODE_MAJOR="${NODE_VERSION%%.*}"
+NODE_MINOR="$(echo "$NODE_VERSION" | cut -d. -f2)"
+if [[ -z "$NODE_VERSION" || "$NODE_MAJOR" -lt 22 || ( "$NODE_MAJOR" -eq 22 && "$NODE_MINOR" -lt 12 ) ]]; then
+  error "Node.js 22.12 oder neuer erforderlich (installiert: $(node -v 2>/dev/null || echo keins)). Manjaro: sudo pacman -S nodejs npm"
+fi
 info "Node.js: $(node -v)"
 echo ""
 read -p "Update durchführen? Vorher wird ein Backup erstellt. [j/N]: " CONFIRM

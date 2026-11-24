@@ -21,7 +21,7 @@
 |---|---|---|
 | Ubuntu | 22.04 LTS | Empfohlenes Betriebssystem |
 | Debian | 12 | Alternative |
-| Node.js | ≥ 22 (empfohlen 24 LTS) | Backend-Laufzeitumgebung |
+| Node.js | ≥ 22.12 (empfohlen 24 LTS) | Backend-Laufzeitumgebung |
 | MySQL | 8.x | Datenbank |
 | Nginx | aktuell | Web-/Proxy-Server |
 | PM2 | aktuell | Prozessmanagement |
@@ -235,7 +235,7 @@ sudo bash /var/www/feuerwehrmanagement/scripts/update.sh /pfad/zum/neuen/quellco
 ```
 
 Das Update-Skript führt folgendes aus:
-1. Node.js-Version prüfen (ab 1.4.1 mindestens 22)
+1. Node.js-Version prüfen (ab 1.5.0 mindestens 22.12)
 2. Pre-Update-Backup erstellen
 3. Backend-Code aktualisieren
 4. npm-Abhängigkeiten laut Lockfile installieren (`npm ci`)

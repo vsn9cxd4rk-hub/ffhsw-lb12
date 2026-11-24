@@ -4,7 +4,7 @@
   "description": "Feuerwehr Management System Backend",
   "main": "dist/server.js",
   "engines": {
-    "node": ">=22"
+    "node": ">=22.12.0"
   },
   "scripts": {
     "dev": "tsx watch src/server.ts",

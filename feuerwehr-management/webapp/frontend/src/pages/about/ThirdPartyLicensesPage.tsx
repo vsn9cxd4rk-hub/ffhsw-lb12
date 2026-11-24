@@ -10,17 +10,17 @@ interface Library {
   category: 'frontend' | 'backend';
 }
 
-// Versions as installed via package-lock.json (Release 1.4.1). Keep in sync when
+// Versions as installed via package-lock.json (Release 1.5.0). Keep in sync when
 // updating dependencies; build tools are listed because they ship code into the bundle.
 const libraries: Library[] = [
   // Frontend
-  { name: 'React', version: '18.3.1', license: 'MIT', url: 'https://react.dev', category: 'frontend' },
-  { name: 'React DOM', version: '18.3.1', license: 'MIT', url: 'https://react.dev', category: 'frontend' },
+  { name: 'React', version: '19.3.1', license: 'MIT', url: 'https://react.dev', category: 'frontend' },
+  { name: 'React DOM', version: '19.3.1', license: 'MIT', url: 'https://react.dev', category: 'frontend' },
   { name: 'React Router DOM', version: '7.18.6', license: 'MIT', url: 'https://reactrouter.com', category: 'frontend' },
-  { name: '@headlessui/react', version: '1.7.19', license: 'MIT', url: 'https://headlessui.com', category: 'frontend' },
+  { name: '@headlessui/react', version: '2.2.10', license: 'MIT', url: 'https://headlessui.com', category: 'frontend' },
   { name: '@heroicons/react', version: '2.2.0', license: 'MIT', url: 'https://heroicons.com', category: 'frontend' },
   { name: '@tanstack/react-query', version: '5.108.2', license: 'MIT', url: 'https://tanstack.com/query', category: 'frontend' },
-  { name: 'axios', version: '1.20.0', license: 'MIT', url: 'https://axios-http.com', category: 'frontend' },
+  { name: 'axios', version: '1.21.1', license: 'MIT', url: 'https://axios-http.com', category: 'frontend' },
   { name: 'zustand', version: '5.1.0', license: 'MIT', url: 'https://github.com/pmndrs/zustand', category: 'frontend' },
   { name: 'date-fns', version: '4.4.0', license: 'MIT', url: 'https://date-fns.org', category: 'frontend' },
   { name: 'jsPDF', version: '4.2.1', license: 'MIT', url: 'https://github.com/parallax/jsPDF', category: 'frontend' },
@@ -29,20 +29,22 @@ const libraries: Library[] = [
   { name: 'JsBarcode', version: '3.12.3', license: 'MIT', url: 'https://github.com/lindell/JsBarcode', category: 'frontend' },
   { name: 'Recharts', version: '3.11.0', license: 'MIT', url: 'https://recharts.github.io', category: 'frontend' },
   { name: 'clsx', version: '2.1.1', license: 'MIT', url: 'https://github.com/lukeed/clsx', category: 'frontend' },
-  { name: 'tailwind-merge', version: '2.6.2', license: 'MIT', url: 'https://github.com/dcastil/tailwind-merge', category: 'frontend' },
+  { name: 'tailwind-merge', version: '3.7.1', license: 'MIT', url: 'https://github.com/dcastil/tailwind-merge', category: 'frontend' },
   { name: 'Tailwind CSS', version: '4.3.5', license: 'MIT', url: 'https://tailwindcss.com', category: 'frontend' },
-  { name: 'Vite', version: '6.4.6', license: 'MIT', url: 'https://vite.dev', category: 'frontend' },
-  { name: 'TypeScript', version: '5.9.3', license: 'Apache-2.0', url: 'https://www.typescriptlang.org', category: 'frontend' },
+  { name: 'Vite', version: '8.3.8', license: 'MIT', url: 'https://vite.dev', category: 'frontend' },
+  { name: 'TypeScript', version: '7.0.2', license: 'Apache-2.0', url: 'https://www.typescriptlang.org', category: 'frontend' },
   // Backend
-  { name: 'Node.js', version: '≥ 22', license: 'MIT', url: 'https://nodejs.org', category: 'backend' },
-  { name: 'Express', version: '4.22.3', license: 'MIT', url: 'https://expressjs.com', category: 'backend' },
-  { name: 'Prisma', version: '6.19.3', license: 'Apache-2.0', url: 'https://www.prisma.io', category: 'backend' },
-  { name: 'bcryptjs', version: '2.4.3', license: 'MIT', url: 'https://github.com/dcodeIO/bcrypt.js', category: 'backend' },
+  { name: 'Node.js', version: '≥ 22.12', license: 'MIT', url: 'https://nodejs.org', category: 'backend' },
+  { name: 'Express', version: '5.3.0', license: 'MIT', url: 'https://expressjs.com', category: 'backend' },
+  { name: 'Prisma', version: '7.10.1', license: 'Apache-2.0', url: 'https://www.prisma.io', category: 'backend' },
+  { name: 'Prisma MariaDB-Adapter', version: '7.10.1', license: 'Apache-2.0', url: 'https://www.prisma.io', category: 'backend' },
+  { name: 'MariaDB Connector/Node.js', version: '3.5.4', license: 'LGPL-2.1-or-later', url: 'https://github.com/mariadb-corporation/mariadb-connector-nodejs', category: 'backend' },
+  { name: 'bcryptjs', version: '3.0.3', license: 'MIT', url: 'https://github.com/dcodeIO/bcrypt.js', category: 'backend' },
   { name: 'compression', version: '1.8.2', license: 'MIT', url: 'https://github.com/expressjs/compression', category: 'backend' },
   { name: 'cookie-parser', version: '1.4.7', license: 'MIT', url: 'https://github.com/expressjs/cookie-parser', category: 'backend' },
   { name: 'cors', version: '2.8.6', license: 'MIT', url: 'https://github.com/expressjs/cors', category: 'backend' },
-  { name: 'dotenv', version: '16.6.1', license: 'BSD-2-Clause', url: 'https://github.com/motdotla/dotenv', category: 'backend' },
-  { name: 'express-rate-limit', version: '7.5.1', license: 'MIT', url: 'https://github.com/express-rate-limit/express-rate-limit', category: 'backend' },
+  { name: 'dotenv', version: '18.0.10', license: 'BSD-2-Clause', url: 'https://github.com/motdotla/dotenv', category: 'backend' },
+  { name: 'express-rate-limit', version: '8.7.5', license: 'MIT', url: 'https://github.com/express-rate-limit/express-rate-limit', category: 'backend' },
   { name: 'express-validator', version: '7.3.2', license: 'MIT', url: 'https://express-validator.github.io', category: 'backend' },
   { name: 'helmet', version: '8.3.0', license: 'MIT', url: 'https://helmetjs.github.io', category: 'backend' },
   { name: 'jsonwebtoken', version: '9.0.3', license: 'MIT', url: 'https://github.com/auth0/node-jsonwebtoken', category: 'backend' },

@@ -13,6 +13,12 @@ async function createMember(page: Page, firstName: string, lastName: string, gro
   return { firstName: uniqueFirst, lastName };
 }
 
+// Wait for the PUT before reloading: axios starts the request asynchronously (since 1.21
+// it reads the XSRF cookie via the async Cookie Store API), an immediate reload aborts it.
+function savedEvent(page: import('@playwright/test').Page) {
+  return page.waitForResponse(r => /\/api\/events\/\d+$/.test(r.url()) && r.request().method() === 'PUT' && r.ok());
+}
+
 async function createEvent(page: Page, name: string, category: string): Promise<string> {
   // Eindeutiger Name, damit wiederholte Testläufe eindeutig bleiben.
   const uniqueName = `${name}-${Date.now()}`;
@@ -55,7 +61,10 @@ test.describe('Veranstaltung - Übung', () => {
     const checkbox = page.getByRole('checkbox', { name: 'AGT-Übung' });
     await expect(checkbox).not.toBeChecked();
     await checkbox.check();
-    await page.getByRole('button', { name: 'Speichern' }).click();
+    await Promise.all([
+      savedEvent(page),
+      page.getByRole('button', { name: 'Speichern' }).click(),
+    ]);
 
     await page.reload();
     await page.getByRole('button', { name: 'Übung' }).click();
@@ -76,10 +85,13 @@ test.describe('Veranstaltung - Übung', () => {
   });
 
   test('Nachweis Übungsteilnahme kann als PDF erzeugt und im Dokumente-Tab gefunden werden', async ({ page }) => {
+    test.setTimeout(60000);
     await createEvent(page, 'Test-Uebung-PDF', '5');
     await page.getByRole('button', { name: 'Übung' }).click();
     await page.getByRole('button', { name: 'Nachweis als PDF erzeugen' }).click();
-    await expect(page.getByText(/erzeugt|fehlt|fehlgeschlagen/i)).toBeVisible({ timeout: 15000 });
+    // Exactly the result message: the static hint "Erzeugt ein PDF ..." matched /erzeugt/i
+    // right away. The PDF conversion (LibreOffice) takes about 10 s locally.
+    await expect(page.getByText('Nachweis wurde erzeugt')).toBeVisible({ timeout: 45000 });
 
     await page.getByRole('button', { name: 'Dokumente' }).click();
     await expect(page.getByText(/Uebungsbesuch/i)).toBeVisible();
