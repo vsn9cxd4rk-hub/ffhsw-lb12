@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma } from '../generated/prisma/client';
 
 // Never client-writable on any model: identity/bookkeeping columns and server-managed
 // file locations (a client-supplied filePath would let download/delete endpoints read or
@@ -10,15 +10,25 @@ const ALWAYS_OMIT = new Set([
 
 type FieldInfo = { json: boolean };
 
+/** Json columns ("Model.field"); tests/body-fields.test.ts checks this against schema.prisma. */
+export const JSON_FIELDS = new Set(['Event.bswData']);
+
+// Prisma 7 (prisma-client generator) has no Prisma.dmmf; <Model>ScalarFieldEnum lists the
+// model's own columns, relation fields are not part of it.
 const writableFields = new Map<string, Map<string, FieldInfo>>(
-  Prisma.dmmf.datamodel.models.map((model) => [
-    model.name,
-    new Map(
-      model.fields
-        .filter((f) => (f.kind === 'scalar' || f.kind === 'enum') && !f.isUpdatedAt && !ALWAYS_OMIT.has(f.name))
-        .map((f) => [f.name, { json: f.type === 'Json' }] as const),
-    ),
-  ]),
+  Object.values(Prisma.ModelName).map((model) => {
+    const columns = Object.values(
+      (Prisma as unknown as Record<string, Record<string, string>>)[`${model}ScalarFieldEnum`],
+    );
+    return [
+      model,
+      new Map(
+        columns
+          .filter((f) => !ALWAYS_OMIT.has(f))
+          .map((f) => [f, { json: JSON_FIELDS.has(`${model}.${f}`) }] as const),
+      ),
+    ];
+  }),
 );
 
 /**

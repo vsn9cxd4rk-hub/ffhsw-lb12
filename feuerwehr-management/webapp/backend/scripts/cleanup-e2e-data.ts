@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import fs from 'fs';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '../src/generated/prisma/client';
 import { recordUploadDir, removeUpload } from '../src/utils/files';
 
 /**

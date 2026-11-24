@@ -107,9 +107,11 @@ npm run build
 # Bestandstabellen umbauen und scheitert an FK-Indizes bzw. events.bswData.
 info "  Datenbankmigrationen werden ausgeführt..."
 shopt -s nullglob
-for migration in "${SOURCE_DIR}"/deploy/migrate-1.3.x-to-*.sql; do
+# Alle Skripte ab 1.3.x in Versionsreihenfolge; jedes ist idempotent und darf erneut laufen.
+# Prisma 7: Die Verbindung kommt aus prisma.config.ts (DATABASE_URL aus .env), --schema entfällt.
+for migration in "${SOURCE_DIR}"/deploy/migrate-1.3.x-to-*.sql "${SOURCE_DIR}"/deploy/migrate-1.4.*-to-*.sql; do
   info "    $(basename "$migration")"
-  npx prisma db execute --file "$migration" --schema prisma/schema.prisma
+  npx prisma db execute --file "$migration"
 done
 shopt -u nullglob
 

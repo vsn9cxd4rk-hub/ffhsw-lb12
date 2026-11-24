@@ -1,3 +1,5 @@
+// Prisma 7 no longer reads .env itself (DATABASE_URL)
+import 'dotenv/config';
 import { beforeAll, afterAll } from 'vitest';
 import { prisma } from '../src/config/database';
 import { signAccessToken } from '../src/config/jwt';

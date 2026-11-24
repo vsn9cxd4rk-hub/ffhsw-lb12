@@ -6,6 +6,7 @@
 set -e
 
 echo "Synchronisiere Datenbankschema (prisma db push)..."
-npx prisma db push --skip-generate
+# Prisma 7: db push generiert nicht mehr selbst, --skip-generate entfällt
+npx prisma db push
 
 exec "$@"

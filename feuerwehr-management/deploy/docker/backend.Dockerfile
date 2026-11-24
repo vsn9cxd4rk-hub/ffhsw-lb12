@@ -6,9 +6,10 @@
 FROM node:24-bookworm-slim AS builder
 WORKDIR /app
 
-COPY webapp/backend/package.json ./
+COPY webapp/backend/package.json webapp/backend/package-lock.json webapp/backend/prisma.config.ts ./
 COPY webapp/backend/prisma ./prisma
-RUN npm install && npx prisma generate
+# Prisma 7 generates the client into src/generated (output in schema.prisma)
+RUN npm ci && npx prisma generate
 
 COPY webapp/backend/tsconfig.json ./
 COPY webapp/backend/src ./src
@@ -25,6 +26,7 @@ WORKDIR /app
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/prisma.config.ts ./
 COPY webapp/backend/package.json ./
 
 COPY deploy/docker/backend-entrypoint.sh /usr/local/bin/entrypoint.sh

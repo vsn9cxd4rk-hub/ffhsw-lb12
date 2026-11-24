@@ -1,10 +1,13 @@
+// Prisma 7: Rust-free client, generated into src/ (not node_modules) as CommonJS for tsc.
+// The connection URL comes from prisma.config.ts (CLI) and src/config/database.ts (runtime).
 generator client {
-  provider = "prisma-client-js"
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
 }
 
 datasource db {
   provider = "mysql"
-  url      = env("DATABASE_URL")
 }
 
 // ==================== AUTH & USER MANAGEMENT ====================

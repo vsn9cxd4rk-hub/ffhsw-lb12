@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma } from '../generated/prisma/client';
 import bcrypt from 'bcryptjs';
 import { prisma } from '../config/database';
 import { logger } from '../utils/logger';

@@ -20,3 +20,4 @@ releases/
 .git/
 .vscode/
 .claude/
+webapp/backend/src/generated/
