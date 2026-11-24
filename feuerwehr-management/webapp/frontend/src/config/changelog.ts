@@ -23,8 +23,15 @@ export const CHANGELOG: ChangelogEntry[] = [
     version: '1.4.1',
     previousVersion: '1.4.0',
     date: '2026-11-22',
-    summary: 'Wartungs-Update: aktualisierte Bibliotheken mit Sicherheitskorrekturen, keine Änderungen an der Bedienung.',
+    summary: 'Wartungs-Update: letzte Prüfung in der Bestandsliste, Stärke im Einsatzbericht als Gesamtzahl, aktualisierte Bibliotheken.',
     sections: [
+      {
+        title: 'Geändert',
+        items: [
+          'Bestandsliste: Neue Spalte „Letzte Prüfung“ mit Datum und Ergebnis (io/nio) der jüngsten Prüfung des Geräts, auch im PDF-Export.',
+          'Einsatzbericht: Die Stärke je Fahrzeug steht als Gesamtzahl im Bericht (z.B. 9 statt 1/8/9). Erfasst wird weiterhin getrennt nach GF- und FM-Stärke; der Kräftenachweis bleibt unverändert.',
+        ],
+      },
       {
         title: 'Sicherheit',
         items: [

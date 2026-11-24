@@ -20,7 +20,7 @@ const libraries: Library[] = [
   { name: '@headlessui/react', version: '1.7.19', license: 'MIT', url: 'https://headlessui.com', category: 'frontend' },
   { name: '@heroicons/react', version: '2.2.0', license: 'MIT', url: 'https://heroicons.com', category: 'frontend' },
   { name: '@tanstack/react-query', version: '5.108.2', license: 'MIT', url: 'https://tanstack.com/query', category: 'frontend' },
-  { name: 'axios', version: '1.21.1', license: 'MIT', url: 'https://axios-http.com', category: 'frontend' },
+  { name: 'axios', version: '1.20.0', license: 'MIT', url: 'https://axios-http.com', category: 'frontend' },
   { name: 'zustand', version: '5.1.0', license: 'MIT', url: 'https://github.com/pmndrs/zustand', category: 'frontend' },
   { name: 'date-fns', version: '4.4.0', license: 'MIT', url: 'https://date-fns.org', category: 'frontend' },
   { name: 'jsPDF', version: '4.2.1', license: 'MIT', url: 'https://github.com/parallax/jsPDF', category: 'frontend' },

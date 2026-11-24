@@ -139,6 +139,8 @@ export function CriteriaInspectionModal({ isOpen, onClose, articles, preselected
       queryClient.invalidateQueries({ queryKey: ['inspections'] });
       queryClient.invalidateQueries({ queryKey: ['inspections-history'] });
       queryClient.invalidateQueries({ queryKey: ['due-inspections'] });
+      // Bestandsliste shows the last inspection per article
+      queryClient.invalidateQueries({ queryKey: ['articles'] });
       onClose();
     },
     onError: (err: unknown) => {
