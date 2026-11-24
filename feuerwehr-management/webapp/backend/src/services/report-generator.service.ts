@@ -158,7 +158,7 @@ function escapeForRegex(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-interface TimeEntry {
+export interface TimeEntry {
   vehicleName: string;
   leaderCount: number;
   memberCount: number;
@@ -184,7 +184,13 @@ export function formatDuration(minutes: number): string {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
 
-function replaceOleWithVehicleTable(xml: string, times: TimeEntry[]): string {
+// Einsatzbericht shows the strength as total head count (e.g. 9). The GF/FM split
+// (1/8/9) is still entered per vehicle and used in the Kräftenachweis.
+export function reportStrength(leaderCount: number, memberCount: number): string {
+  return String(leaderCount + memberCount);
+}
+
+export function replaceOleWithVehicleTable(xml: string, times: TimeEntry[]): string {
   // Find and remove the paragraph containing the OLE object using indexOf (regex-free)
   const objStart = xml.indexOf('<w:object');
   if (objStart === -1) return xml;
@@ -210,7 +216,7 @@ function replaceOleWithVehicleTable(xml: string, times: TimeEntry[]): string {
   let dataRows = '';
   for (const t of times) {
     const gesamt = t.leaderCount + t.memberCount;
-    const staerkeStr = `${t.leaderCount}/${t.memberCount}/${gesamt}`;
+    const staerkeStr = reportStrength(t.leaderCount, t.memberCount);
     const einsatzMinutes = calcDurationMinutes(t.departureTime, t.returnTime);
     const einsatzzeit = formatDuration(einsatzMinutes);
     const gesamtMinutes = einsatzMinutes * gesamt;

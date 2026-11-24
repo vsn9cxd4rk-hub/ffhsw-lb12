@@ -5,6 +5,29 @@ Neueste Version zuerst. Die Einträge für Anwender stehen zusätzlich in
 Versionsnummer); beide Stellen gemeinsam pflegen. Update-Schritte für Produktiv- und
 Backup-System: `deploy/UPDATE-MANJARO.md`.
 
+## 1.4.1 – 2026-11-22 (gegenüber 1.4.0)
+
+Wartungs-Update mit zwei Fehlerkorrekturen, ohne Änderung am Datenbankschema.
+
+### Geändert
+
+- **Bestandsliste, letzte Prüfung:** Neue Spalte „Letzte Prüfung“ (Datum, io/nio) und gleiche Spalte im PDF-Export. `GET /api/inventory/articles` liefert je Artikel `lastInspection` (jüngste nach `inspectedAt`, sonst `null`). Der CSV-Export bleibt unverändert, weil er dem Importformat entspricht. Nach einer Prüfung lädt die Liste neu.
+- **Einsatzbericht, Stärke:** Die Fahrzeugtabelle zeigt die Stärke als Gesamtzahl (`9` statt `1/8/9`). Erfasst wird weiter getrennt nach GF/FM; Kräftenachweis und Gesamtzeit (Einsatzzeit × Stärke) sind unverändert.
+
+### Sicherheit
+
+- `npm audit`: Backend und Frontend wieder 0 Meldungen (vorher Backend 11, Frontend 4). Per `npm update` innerhalb der bestehenden Versionsbereiche angehoben, u.a. multer 2.5.0 (DoS über `fileFilter`), nodemailer 10.6.1 (Adressparser), qs, follow-redirects 1.16.3 (Credential-Header bei Redirects), dompurify (über jsPDF), Vite 6.4.6 (`server.fs.deny`).
+- Override `glob` 13 → 14 (über `exceljs` → `archiver` 5; behebt glob/minimatch-Meldungen).
+- Neue Override `effect` ^3.22.5 (ReDoS, über `prisma` → `@prisma/config`). `npm audit fix` wollte stattdessen das Prisma-CLI auf 6.12.0 zurückstufen, passend zum Client bleibt es auf 6.19.3.
+- **axios bleibt auf 1.20.0 (fest gepinnt):** Mit axios 1.21.x gingen in den E2E-Tests kurz nach dem Laden einer Seite Eingaben und Navigation verloren (BSW-Formular, AGT-Übung, Klick in der Bestandsliste); mit 1.20.0 stabil (Bisektion über alle Paket-Updates). Die Sicherheitskorrektur steckt in `follow-redirects` 1.16.3, das axios 1.20.0 bereits nutzt. Ursache wird für 1.5.0 untersucht.
+- Frontend: `zod`, `react-hook-form` und `@hookform/resolvers` entfernt; sie wurden nirgends importiert. Damit entfällt auch die Zod-Meldung (Fix nur in Zod 4).
+
+### Für Administratoren
+
+- **Node.js ≥ 22** (Node 20 ist seit 30.04.2026 End-of-Life). `update.sh`, Installationsskripte und `engines` in den `package.json` prüfen das; Neuinstallationen nutzen Node 24 LTS.
+- Docker: `node:24-bookworm-slim`, `nginx:1.30-alpine` (vorher `node:22`, `nginx:1.27`).
+- Keine SQL-Migration nötig.
+
 ## 1.4.0 – 2026-10-14 (gegenüber 1.3.2)
 
 Sicherheits-Update: Berechtigungen für Veranstaltungen und Ausbildung, Schutz von

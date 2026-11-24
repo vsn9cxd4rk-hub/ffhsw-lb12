@@ -1,8 +1,11 @@
 {
   "name": "feuerwehr-backend",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "Feuerwehr Management System Backend",
   "main": "dist/server.js",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
@@ -48,7 +51,7 @@
     "@types/multer": "^1.4.12",
     "@types/node": "^22.15.0",
     "@types/supertest": "^6.0.2",
-    "prisma": "^6.6.0",
+    "prisma": "^6.19.3",
     "supertest": "^7.0.0",
     "tsx": "^4.23.15",
     "typescript": "^5.8.3",
@@ -61,7 +64,8 @@
       "unzipper": "^0.12.5",
       "fast-csv": "^5.0.8"
     },
-    "glob": "^13.0.6"
+    "glob": "^14.0.6",
+    "effect": "^3.22.5"
   },
   "allowScripts": {
     "@prisma/client": true,

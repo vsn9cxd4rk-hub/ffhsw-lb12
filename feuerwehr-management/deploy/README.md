@@ -21,7 +21,7 @@
 |---|---|---|
 | Ubuntu | 22.04 LTS | Empfohlenes Betriebssystem |
 | Debian | 12 | Alternative |
-| Node.js | 20.x | Backend-Laufzeitumgebung |
+| Node.js | ≥ 22 (empfohlen 24 LTS) | Backend-Laufzeitumgebung |
 | MySQL | 8.x | Datenbank |
 | Nginx | aktuell | Web-/Proxy-Server |
 | PM2 | aktuell | Prozessmanagement |
@@ -48,7 +48,7 @@ sudo bash /tmp/feuerwehr/deploy/install-debian.sh   # Manjaro: install-manjaro.s
 Das Installationsskript führt folgende Schritte automatisch durch:
 
 - System aktualisieren
-- Node.js 20, MySQL, Nginx, PM2 installieren
+- Node.js 24, MySQL, Nginx, PM2 installieren
 - Systembenutzer `lb12admin` anlegen
 - Verzeichnisstruktur erstellen
 - MySQL-Datenbank und Benutzer einrichten
@@ -235,7 +235,7 @@ sudo bash /var/www/feuerwehrmanagement/scripts/update.sh /pfad/zum/neuen/quellco
 ```
 
 Das Update-Skript führt folgendes aus:
-1. Node.js-Version prüfen (ab 1.4.0 mindestens 20)
+1. Node.js-Version prüfen (ab 1.4.1 mindestens 22)
 2. Pre-Update-Backup erstellen
 3. Backend-Code aktualisieren
 4. npm-Abhängigkeiten laut Lockfile installieren (`npm ci`)

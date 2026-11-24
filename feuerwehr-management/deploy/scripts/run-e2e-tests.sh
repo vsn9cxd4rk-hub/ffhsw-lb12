@@ -4,7 +4,7 @@
 # Für Manjaro Linux / Produktionsserver
 #
 # Voraussetzungen:
-#   - Node.js 20+ installiert
+#   - Node.js 22+ installiert
 #   - MariaDB läuft mit Datenbank FFWVSLB12
 #   - Projekt liegt unter /var/www/feuerwehrmanagement oder wird per Argument übergeben
 #

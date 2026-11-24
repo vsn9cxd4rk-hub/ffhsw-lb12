@@ -20,6 +20,33 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.4.1',
+    previousVersion: '1.4.0',
+    date: '2026-11-22',
+    summary: 'Wartungs-Update: letzte Prüfung in der Bestandsliste, Stärke im Einsatzbericht als Gesamtzahl, aktualisierte Bibliotheken.',
+    sections: [
+      {
+        title: 'Geändert',
+        items: [
+          'Bestandsliste: Neue Spalte „Letzte Prüfung“ mit Datum und Ergebnis (io/nio) der jüngsten Prüfung des Geräts, auch im PDF-Export.',
+          'Einsatzbericht: Die Stärke je Fahrzeug steht als Gesamtzahl im Bericht (z.B. 9 statt 1/8/9). Erfasst wird weiterhin getrennt nach GF- und FM-Stärke; der Kräftenachweis bleibt unverändert.',
+        ],
+      },
+      {
+        title: 'Sicherheit',
+        items: [
+          'Bibliotheken mit bekannten Sicherheitslücken aktualisiert (u.a. Datei-Upload, E-Mail-Versand, Verbindungen zum Server). Für Backend und Frontend liegen keine offenen Meldungen mehr vor.',
+          'Nicht mehr verwendete Bibliotheken entfernt.',
+        ],
+      },
+    ],
+    adminNotes: [
+      'Node.js 22 oder neuer erforderlich (Node.js 20 wird seit 30.04.2026 nicht mehr mit Sicherheitsupdates versorgt). Empfohlen: 24 oder 26 LTS. update.sh prüft das.',
+      'Keine Schemaänderung, keine SQL-Migration.',
+      'Docker: Basis-Images node:24-bookworm-slim und nginx:1.30-alpine.',
+    ],
+  },
+  {
     version: '1.4.0',
     previousVersion: '1.3.2',
     date: '2026-10-14',

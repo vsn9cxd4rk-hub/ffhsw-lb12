@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Article } from '../types';
+import { formatDate } from './format';
 
 export function exportInventoryCsv(articles: Article[]) {
   const headers = [
@@ -66,7 +67,7 @@ export function exportInventoryPdf(articles: Article[], title: string) {
 
   const headers = [
     'Inv.-Nr.', 'Bezeichnung', 'Hersteller', 'Geräteklasse',
-    'Lagerort', 'S/N', 'DIN', 'Intervall', 'Wert', 'Status',
+    'Lagerort', 'S/N', 'DIN', 'Intervall', 'Letzte Prüfung', 'Wert', 'Status',
   ];
 
   const rows = articles.map(a => [
@@ -78,6 +79,7 @@ export function exportInventoryPdf(articles: Article[], title: string) {
     a.serialNumber || '-',
     a.din || '-',
     a.inspectionInterval ? a.inspectionInterval + ' Mon.' : '-',
+    a.lastInspection ? formatDate(a.lastInspection.inspectedAt) + (a.lastInspection.result === 'passed' ? ' (io)' : ' (nio)') : '-',
     a.value ? a.value.toLocaleString('de-DE', { minimumFractionDigits: 2 }) + ' EUR' : '-',
     a.isDecommissioned ? 'Außer Dienst' : 'Aktiv',
   ]);

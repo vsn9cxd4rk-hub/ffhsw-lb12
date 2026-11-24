@@ -11,7 +11,7 @@ import { Modal } from '../../components/ui/Modal';
 import { Input } from '../../components/ui/Input';
 import { Textarea } from '../../components/ui/Textarea';
 import { Badge } from '../../components/ui/Badge';
-import { formatCurrency } from '../../utils/format';
+import { formatCurrency, formatDate } from '../../utils/format';
 import client from '../../api/client';
 import { settingsApi } from '../../api/settings';
 import { exportInventoryCsv, exportInventoryPdf } from '../../utils/inventoryExport';
@@ -269,6 +269,16 @@ export function InventoryPage() {
     }},
     { key: 'warehouse', header: 'Lagerort', sortable: true, sortValue: (a: Article) => a.warehouse?.name || '', render: (a: Article) => a.warehouse?.name || '-' },
     { key: 'inspectionInterval', header: 'Prüfintervall', sortable: true, sortValue: (a: Article) => a.inspectionInterval || 0, render: (a: Article) => a.inspectionInterval ? `${a.inspectionInterval} Monate` : '-' },
+    { key: 'lastInspection', header: 'Letzte Prüfung', render: (a: Article) => {
+      const li = a.lastInspection;
+      if (!li) return <span className="text-gray-400">-</span>;
+      return (
+        <div className="flex items-center gap-1.5 whitespace-nowrap">
+          <span className="text-sm">{formatDate(li.inspectedAt)}</span>
+          <Badge variant={li.result === 'passed' ? 'success' : 'danger'}>{li.result === 'passed' ? 'io' : 'nio'}</Badge>
+        </div>
+      );
+    }},
     { key: 'status', header: 'Status', render: (a: Article) =>
       a.isDecommissioned ? <Badge variant="default">Außer Dienst</Badge> : null
     },
@@ -334,7 +344,8 @@ export function InventoryPage() {
         </div>
 
         {/* Articles table */}
-        <div className="flex-1 space-y-4">
+        {/* min-w-0: lets the table scroll inside instead of widening the page */}
+        <div className="flex-1 min-w-0 space-y-4">
           <div className="flex items-center justify-between">
             <SearchInput value={search} onChange={setSearch} placeholder="Artikel suchen..." className="w-64" />
             <div className="flex items-center gap-2">

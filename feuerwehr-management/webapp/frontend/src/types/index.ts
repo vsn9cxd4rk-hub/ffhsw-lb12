@@ -335,6 +335,8 @@ export interface Article {
   inspectionSchedules?: ArticleInspectionSchedule[];
   defects?: ArticleDefect[];
   repairs?: ArticleRepair[];
+  /** Most recent inspection; only set by the article list (GET /inventory/articles) */
+  lastInspection?: Pick<ArticleInspection, 'id' | 'inspectedAt' | 'result' | 'nextDueDate'> | null;
 }
 
 export interface ArticleAssignment {

@@ -117,7 +117,7 @@ Write-Ok "winget verfügbar"
 $nodeOk = Test-Command "node"
 if ($nodeOk) {
     $nodeVer = [int](node -v).TrimStart("v").Split(".")[0]
-    $nodeOk  = $nodeVer -ge 18
+    $nodeOk  = $nodeVer -ge 22
 }
 
 if (-not $nodeOk) {

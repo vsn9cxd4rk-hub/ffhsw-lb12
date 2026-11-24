@@ -8,6 +8,12 @@ test.describe('Bestandsliste', () => {
     await expect(page.getByRole('button', { name: 'Neuer Artikel' })).toBeVisible();
   });
 
+  test('zeigt die Spalte „Letzte Prüfung“', async ({ page }) => {
+    await page.goto('/inventory');
+    await expect(page.getByRole('columnheader', { name: 'Letzte Prüfung' })).toBeVisible();
+    await expect(page.locator('table tbody tr').first()).toBeVisible();
+  });
+
   test('öffnet Artikel-Formular', async ({ page }) => {
     await page.goto('/inventory');
     await page.getByRole('button', { name: 'Neuer Artikel' }).click();

@@ -131,13 +131,20 @@ export async function getArticles(req: Request, res: Response): Promise<void> {
           assignments: {
             include: { warehouse: true },
           },
+          // Most recent inspection only, for the "Letzte Prüfung" column
+          inspections: {
+            orderBy: [{ inspectedAt: 'desc' }, { id: 'desc' }],
+            take: 1,
+            select: { id: true, inspectedAt: true, result: true, nextDueDate: true },
+          },
         },
         orderBy,
       }),
       prisma.article.count({ where }),
     ]);
 
-    sendPaginated(res, articles, total, page, limit);
+    const data = articles.map(({ inspections, ...a }) => ({ ...a, lastInspection: inspections[0] ?? null }));
+    sendPaginated(res, data, total, page, limit);
   } catch (err) {
     sendError(res, (err as Error).message);
   }

@@ -92,7 +92,7 @@ export function HelpPage() {
 
         {/* 3. Bestandsliste */}
         <H2 id="bestandsliste">3. Bestandsliste</H2>
-        <P>Die Bestandsliste enthält alle Geräte und Ausrüstungsgegenstände des Löschbezirks.</P>
+        <P>Die Bestandsliste enthält alle Geräte und Ausrüstungsgegenstände des Löschbezirks. Die Spalte „Letzte Prüfung“ zeigt Datum und Ergebnis (io/nio) der jüngsten Prüfung eines Geräts.</P>
         <H3>Artikel anlegen/bearbeiten</H3>
         <P>Über den Button "Neuer Artikel" können Sie einen neuen Gegenstand erfassen. Folgende Felder stehen zur Verfügung:</P>
         <ul className="mb-4">

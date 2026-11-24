@@ -19,19 +19,19 @@ sudo pacman -Syu
 # Benoetigte Pakete installieren
 sudo pacman -S nodejs npm mysql nginx git base-devel
 
-# Node.js Version pruefen (mindestens v20)
+# Node.js Version pruefen (mindestens v22)
 node --version
 npm --version
 ```
 
-Falls Node.js 20 nicht verfuegbar ist:
+Falls Node.js 22 oder neuer nicht verfuegbar ist:
 
 ```bash
 # Alternative: nvm (Node Version Manager)
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
 source ~/.bashrc
-nvm install 20
-nvm use 20
+nvm install 24
+nvm use 24
 ```
 
 ---

@@ -42,11 +42,11 @@ brew --version
 ## 2. Pakete installieren
 
 ```bash
-# Node.js 20, MySQL/MariaDB, Git
-brew install node@20 mariadb git
+# Node.js 24, MySQL/MariaDB, Git
+brew install node@24 mariadb git
 
-# node@20 in PATH hängen
-brew link --overwrite --force node@20
+# node@24 in PATH hängen
+brew link --overwrite --force node@24
 
 # Versionen prüfen
 node --version    # sollte v20.x.x zeigen

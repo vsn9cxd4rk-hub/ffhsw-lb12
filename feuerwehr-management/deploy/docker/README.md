@@ -33,11 +33,11 @@ Login: `admin` / `Admin123!` – **sofort nach dem ersten Login ändern.**
 
 ## Architektur
 
-- **frontend** (`nginx:1.27-alpine`): serviert die gebaute React-SPA und proxied
+- **frontend** (`nginx:1.30-alpine`): serviert die gebaute React-SPA und proxied
   `/api/` zum `backend`-Service. Hochgeladene Dateien liefert nginx nicht direkt
   aus, Downloads laufen über die authentifizierte API.
   Einziger Service mit veröffentlichtem Host-Port.
-- **backend** (`node:22-bookworm-slim`): Express-API, kein veröffentlichter
+- **backend** (`node:24-bookworm-slim`): Express-API, kein veröffentlichter
   Port – nur über das interne Docker-Netzwerk erreichbar. Beim Start gleicht
   der Entrypoint das DB-Schema per `prisma db push` ab.
 - **db** (`mysql:8.4`): persistiert nach Volume `db_data`.
