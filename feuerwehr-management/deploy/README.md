@@ -240,7 +240,7 @@ Das Update-Skript führt folgendes aus:
 3. Backend-Code aktualisieren
 4. npm-Abhängigkeiten laut Lockfile installieren (`npm ci`)
 5. TypeScript kompilieren
-6. SQL-Migrationen `deploy/migrate-1.3.x-to-*.sql` ausführen, danach devDependencies entfernen
+6. SQL-Migrationen `deploy/migrate-1.3.x-to-*.sql` und `deploy/migrate-1.4.*-to-*.sql` ausführen, danach devDependencies entfernen
 7. Frontend neu bauen und deployen
 8. Hilfsskripte aktualisieren
 9. Backend per `pm2 reload` neu starten (ohne Downtime); einmalige Datenmigrationen laufen beim Start
@@ -256,6 +256,9 @@ mysql -u FFWVSLB12 -p FFWVSLB12 < deploy/migrate-add-agt-exercise.sql
 ```
 
 Alle Migrationen sind idempotent (können mehrfach ausgeführt werden).
+
+**Update von 1.4.x auf 1.5.0:** `deploy/migrate-1.4.1-to-1.5.0.sql` (führt
+`update.sh` aus): neue Tabellen für das Modul S2 Lage. Node.js ≥ 22.12 erforderlich.
 
 **Update von 1.3.x auf 1.4.0:** `deploy/migrate-1.3.x-to-1.4.0.sql` (führt
 `update.sh` aus); die vollständige Anleitung inklusive nginx-Anpassung,

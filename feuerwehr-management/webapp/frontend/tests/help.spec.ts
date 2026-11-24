@@ -27,9 +27,9 @@ test.describe('Online-Hilfe', () => {
     await expect(page.getByRole('heading', { name: '7. Personal' })).toBeVisible();
     await expect(page.getByRole('heading', { name: '8. Fahrzeuge' })).toBeVisible();
     await expect(page.getByRole('heading', { name: '9. Einsätze & Veranstaltungen' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: '10. Installation Windows' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: '11. Installation Linux' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: '12. Wartung & Backup' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '11. Installation Windows' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '12. Installation Linux' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '13. Wartung & Backup' })).toBeVisible();
   });
 
   test('Hilfe-Link im Header funktioniert', async ({ page }) => {

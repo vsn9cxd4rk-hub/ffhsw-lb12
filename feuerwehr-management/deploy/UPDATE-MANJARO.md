@@ -36,6 +36,8 @@ Für den Betrieb:
 | `.env` | `JWT_ACCESS_SECRET` muss zufällig und mindestens 32 Zeichen lang sein, sonst startet das Backend nicht. `JWT_REFRESH_SECRET` wird nicht verwendet und kann entfallen. | Schritt 3 (manuell) |
 | Datenbank | neue Spalten `users.mustChangePassword` und `operations.commanderName` | `update.sh` (`deploy/migrate-1.3.x-to-1.4.0.sql`) |
 | Daten | Berechtigungen br4/br5 setzen, Konten mit Standardpasswort markieren, Upload-Pfade relativ zu `UPLOAD_PATH` speichern | automatisch beim ersten Backend-Start |
+| Datenbank (1.5.0) | sechs neue Tabellen `s2_*` für das Modul S2 Lage | `update.sh` (`deploy/migrate-1.4.1-to-1.5.0.sql`) |
+| Daten (1.5.0) | Berechtigung „S2-Lage führen“ (br6) für Gruppen mit „Gruppenführer“ im Namen | automatisch beim ersten Backend-Start |
 | nginx | `/uploads/` wird nicht mehr direkt ausgeliefert (nur noch angemeldet über die API), zusätzliche Security-Header | Schritt 5 (manuell) |
 | E2E-Tests | Admin-Passwort kommt aus `E2E_ADMIN_PASSWORD` | nur wer Playwright nutzt |
 
@@ -113,8 +115,8 @@ sudo bash /var/www/feuerwehrmanagement/scripts/update.sh /pfad/zum/projekt
 ```
 
 Das Skript prüft Node.js, legt ein Backup an, installiert die Abhängigkeiten exakt nach
-Lockfile (`npm ci`), baut Backend und Frontend, führt `deploy/migrate-1.3.x-to-1.4.0.sql`
-aus (idempotent) und startet das Backend neu.
+Lockfile (`npm ci`), baut Backend und Frontend, führt die SQL-Migrationen
+(`deploy/migrate-1.3.x-to-1.4.0.sql`, `deploy/migrate-1.4.1-to-1.5.0.sql`) aus (idempotent) und startet das Backend neu.
 
 > Ältere `update.sh`-Versionen (1.3.x) fallen bei der Migration auf `prisma db push` zurück,
 > das an `events.bswData` scheitert. Das Skript aktualisiert sich zwar selbst, aber erst am

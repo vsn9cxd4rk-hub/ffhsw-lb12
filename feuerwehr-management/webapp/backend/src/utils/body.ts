@@ -11,7 +11,7 @@ const ALWAYS_OMIT = new Set([
 type FieldInfo = { json: boolean };
 
 /** Json columns ("Model.field"); tests/body-fields.test.ts checks this against schema.prisma. */
-export const JSON_FIELDS = new Set(['Event.bswData']);
+export const JSON_FIELDS = new Set(['Event.bswData', 'S2Bericht.data', 'S2Abschnitt.flaeche', 'S2Objekt.punkte']);
 
 // Prisma 7 (prisma-client generator) has no Prisma.dmmf; <Model>ScalarFieldEnum lists the
 // model's own columns, relation fields are not part of it.

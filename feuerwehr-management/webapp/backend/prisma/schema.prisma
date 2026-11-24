@@ -938,3 +938,143 @@ model Year {
 
   @@map("years")
 }
+
+// ============================================================================
+// S2 Lage (1.5.0): Lagebericht/Lagekarte für die TEL der Gemeinde, mehrere Bearbeiter
+// gleichzeitig. Every editable row carries `version` (optimistic locking: an update with
+// an outdated version is rejected with 409 instead of silently overwriting a colleague's
+// change) and `updatedBy` (display name for "zuletzt geändert von").
+// Koordinaten: ETRS89/UTM 32N in Metern, wie das Gitter der Lagekarte.
+// ============================================================================
+
+model S2Lage {
+  id         Int       @id @default(autoincrement())
+  name       String    @db.VarChar(200)
+  kommune    String    @default("Gemeinde Heusweiler") @db.VarChar(100)
+  isExercise Boolean   @default(false)
+  status     String    @default("aktiv") @db.VarChar(20) // aktiv | beendet
+  recipient  String    @default("fuehrungsstab@saarbruecken.de") @db.VarChar(200)
+  contact    String?   @db.VarChar(200) // Erreichbarkeit der TEL (Mailtext)
+  startedAt  DateTime  @default(now())
+  endedAt    DateTime?
+  version    Int       @default(1)
+  createdBy  String?   @db.VarChar(100)
+  updatedBy  String?   @db.VarChar(100)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  berichte   S2Bericht[]
+  abschnitte S2Abschnitt[]
+  kraefte    S2Kraft[]
+  objekte    S2Objekt[]
+  meldungen  S2Meldung[]
+
+  @@map("s2_lagen")
+}
+
+// One Lagebericht per hour (lfdNr 1, 2, ...); `data` holds the report fields in the
+// structure of the S2 skill's bericht.json (Zellen der RV-Vorlage V1_02)
+model S2Bericht {
+  id           Int      @id @default(autoincrement())
+  lageId       Int
+  lfdNr        Int
+  zeit         String   @db.VarChar(11) // taktische Zeit DDhhmmMMMJJ, z. B. 141400nov26
+  bearbeiter   String?  @db.VarChar(100)
+  karteAlsFoto Boolean  @default(false)
+  status       String   @default("entwurf") @db.VarChar(20) // entwurf | versendet
+  data         Json
+  version      Int      @default(1)
+  createdBy    String?  @db.VarChar(100)
+  updatedBy    String?  @db.VarChar(100)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  lage S2Lage @relation(fields: [lageId], references: [id], onDelete: Cascade)
+
+  @@unique([lageId, lfdNr])
+  @@map("s2_berichte")
+}
+
+model S2Abschnitt {
+  id          Int      @id @default(autoincrement())
+  lageId      Int
+  nr          Int // EA-Nummer 1-10 (Zeichen EA_01..EA_10, Zeile im Lagebericht)
+  name        String   @db.VarChar(100)
+  lage        String?  @db.Text
+  schwerpunkt Boolean  @default(false)
+  flaeche     Json? // Ecken [[E, N], ...] der EA-Grenze
+  version     Int      @default(1)
+  updatedBy   String?  @db.VarChar(100)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  lageRef S2Lage    @relation(fields: [lageId], references: [id], onDelete: Cascade)
+  kraefte S2Kraft[]
+
+  @@unique([lageId, nr])
+  @@map("s2_abschnitte")
+}
+
+model S2Kraft {
+  id          Int      @id @default(autoincrement())
+  lageId      Int
+  abschnittId Int?
+  org         String   @db.VarChar(20) // FW, RD/eRD, THW, ASB, DLRG, DRK, JUH, MHD, NKS, BW
+  formation   String?  @db.VarChar(100) // Liste der RV-Vorlage, z. B. Löschbezirk, TZ (Technischer Zug)
+  bezeichnung String   @db.VarChar(100) // Einheit/Rufname, z. B. LB 111 oder HSW 1/23
+  staerke     String?  @db.VarChar(20) // Erfassung als 1/8/9, 1/6 oder Gesamtzahl
+  status      String   @default("alarmiert") @db.VarChar(20) // alarmiert | bereitschaft | grundschutz | einsatz | ruhe | entlassen
+  bemerkung   String?  @db.VarChar(255)
+  version     Int      @default(1)
+  updatedBy   String?  @db.VarChar(100)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  lage      S2Lage       @relation(fields: [lageId], references: [id], onDelete: Cascade)
+  abschnitt S2Abschnitt? @relation(fields: [abschnittId], references: [id], onDelete: SetNull)
+
+  @@index([lageId])
+  @@map("s2_kraefte")
+}
+
+// Objects on the Lagekarte: taktisches Zeichen (typ = Zeichen-ID wie STELLE_02), Fläche
+// (typ = brand, ueberschwemmt, ...) or Linie (typ = rettungsweg, ...)
+model S2Objekt {
+  id            Int      @id @default(autoincrement())
+  lageId        Int
+  art           String   @db.VarChar(20) // zeichen | flaeche | linie
+  typ           String   @db.VarChar(30)
+  punkte        Json // [[E, N], ...]; ein Punkt bei Zeichen
+  text          String?  @db.VarChar(100)
+  randkaestchen Boolean  @default(true) // Zeichen im Randkästchen mit Pfeil (RV-Beispiel 03a) statt auf der Karte
+  version       Int      @default(1)
+  updatedBy     String?  @db.VarChar(100)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  lage S2Lage @relation(fields: [lageId], references: [id], onDelete: Cascade)
+
+  @@index([lageId])
+  @@map("s2_objekte")
+}
+
+// Eingehende Einzelmeldungen (Nachrichtenvordruck, Funk, Telefon) mit Zeitstempel
+model S2Meldung {
+  id        Int      @id @default(autoincrement())
+  lageId    Int
+  nr        String?  @db.VarChar(20) // Nachweisungs-Nr.
+  eingangAt DateTime @default(now())
+  absender  String?  @db.VarChar(100)
+  ort       String?  @db.VarChar(200)
+  inhalt    String   @db.Text
+  erledigt  Boolean  @default(false)
+  version   Int      @default(1)
+  updatedBy String?  @db.VarChar(100)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  lage S2Lage @relation(fields: [lageId], references: [id], onDelete: Cascade)
+
+  @@index([lageId, eingangAt])
+  @@map("s2_meldungen")
+}

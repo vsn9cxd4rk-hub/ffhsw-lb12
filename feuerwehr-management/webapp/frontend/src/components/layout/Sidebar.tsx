@@ -15,10 +15,11 @@ import {
   ChartBarSquareIcon,
   Bars3Icon,
   XMarkIcon,
+  MapIcon,
 } from '@heroicons/react/24/outline';
 import { cn } from '../../utils/cn';
 import { useAuthStore } from '../../store/auth.store';
-import { BIT_VEHICLES, BIT_OPERATIONS, BIT_EQUIPMENT } from '../../config/permissionBits';
+import { BIT_VEHICLES, BIT_OPERATIONS, BIT_EQUIPMENT, BIT_S2 } from '../../config/permissionBits';
 
 // bit = Fähigkeiten-Bit, adminOnly = nur Benutzer mit isAdmin (wie requireAdmin im Backend).
 interface NavItem {
@@ -38,6 +39,7 @@ const navigation: NavItem[] = [
   { name: 'Mängel', href: '/defects', icon: ExclamationTriangleIcon, bit: BIT_EQUIPMENT },
   { name: 'Einsätze', href: '/operations', icon: FireIcon, bit: BIT_OPERATIONS },
   { name: 'Statistik', href: '/statistics', icon: ChartBarSquareIcon, bit: BIT_OPERATIONS },
+  { name: 'S2 Lage', href: '/s2', icon: MapIcon, bit: BIT_S2 },
   { name: 'Veranstaltungen', href: '/events', icon: CalendarIcon },
   { name: 'Ausbildung', href: '/training', icon: AcademicCapIcon },
   { name: 'Einstellungen', href: '/settings', icon: Cog6ToothIcon, adminOnly: true },

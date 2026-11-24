@@ -2,7 +2,7 @@ import { Prisma } from '../generated/prisma/client';
 import bcrypt from 'bcryptjs';
 import { prisma } from '../config/database';
 import { logger } from '../utils/logger';
-import { BIT_EVENTS, BIT_OPERATIONS, BIT_TRAINING } from '../config/permissionBits';
+import { BIT_EVENTS, BIT_OPERATIONS, BIT_S2, BIT_TRAINING } from '../config/permissionBits';
 import { isAbsoluteAnyOs, legacyRelativePath } from '../utils/files';
 
 /**
@@ -28,6 +28,19 @@ const MIGRATIONS: DataMigration[] = [
         data: { [BIT_EVENTS]: true, [BIT_TRAINING]: true },
       });
       return `${count} Gruppe(n) erhielten ${BIT_EVENTS}/${BIT_TRAINING}`;
+    },
+  },
+  {
+    // 1.5.0: the S2 module is meant for Gruppenführer. Groups named like that (seed groups
+    // "Gruppenführer" and "Gerätewart + Gruppenführer") get the new bit; others via settings.
+    key: 'migration.permissionBits.s2',
+    description: 'S2-Lage: Berechtigung für Gruppen „Gruppenführer“',
+    run: async (tx) => {
+      const { count } = await tx.permissionGroup.updateMany({
+        where: { name: { contains: 'Gruppenführer' } },
+        data: { [BIT_S2]: true },
+      });
+      return `${count} Gruppe(n) erhielten ${BIT_S2}`;
     },
   },
   {

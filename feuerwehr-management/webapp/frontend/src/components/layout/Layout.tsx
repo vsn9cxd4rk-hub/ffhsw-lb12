@@ -14,6 +14,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/inventory': 'Bestandsliste',
   '/operations': 'Einsätze',
   '/events': 'Veranstaltungen',
+  '/s2': 'S2 Lage',
   '/training': 'Ausbildung',
   '/settings': 'Einstellungen',
   '/admin/users': 'Benutzerverwaltung',
@@ -26,6 +27,7 @@ function getPageTitle(pathname: string): string {
   if (pathname.startsWith('/vehicles/')) return 'Fahrzeugakte';
   if (pathname.startsWith('/operations/')) return 'Einsatzdetails';
   if (pathname.startsWith('/events/')) return 'Veranstaltung';
+  if (pathname.startsWith('/s2/')) return 'S2 Lage';
   return 'Feuerwehr Management';
 }
 

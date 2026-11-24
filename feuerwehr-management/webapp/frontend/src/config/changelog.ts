@@ -20,6 +20,38 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.5.0',
+    previousVersion: '1.4.1',
+    date: '2026-11-24',
+    summary: 'Neues Modul S2 Lage: Lagebericht und Lagekarte für die TEL, mehrere Bearbeiter gleichzeitig. Dazu aktualisierte Grundlagen (React 19, Express 5, Prisma 7).',
+    sections: [
+      {
+        title: 'Neu: S2 Lage',
+        items: [
+          'Lagen anlegen (Einsatz oder Übung) und von mehreren Gruppenführern gleichzeitig bearbeiten; Änderungen der anderen erscheinen nach wenigen Sekunden. Gleichzeitige Änderungen am selben Eintrag werden erkannt statt überschrieben.',
+          'Meldungseingang mit Zeitstempel, Nachweisungs-Nr., Absender und Ort; abhaken, wenn eingearbeitet.',
+          'Einsatzabschnitte (EA 1–10, ein Schwerpunkt) und Kräfte mit Status und Stärke. Stärke wie gewohnt erfassen (1/8/9), im Lagebericht steht die Gesamtzahl.',
+          'Lagekarte im Browser auf der Karte Heusweiler mit 97 taktischen Zeichen der RV-Hilfstabelle, Flächen, Linien und EA-Grenzen. Orte per Klick, Gitterwert oder Adresse.',
+          'Stündliche Fortschreibung des Lageberichts: neue Nummer übernimmt alle Werte, Zeit ist die nächste volle Stunde.',
+          'Export: Lagebericht als Excel (Vorlage RV Saarbrücken V1_02), Lagekarte als PDF und PowerPoint, Mailtext nach Vorlage. Plausibilitätsprüfung vor dem Versand.',
+          'Neue Berechtigung „S2-Lage führen“; die Gruppen „Gruppenführer“ erhalten sie automatisch.',
+        ],
+      },
+      {
+        title: 'Geändert',
+        items: [
+          'Technische Grundlagen auf aktuelle Hauptversionen gebracht (React 19, Vite 8, Express 5, Prisma 7, TypeScript 7). Die Oberfläche bleibt gleich, Seiten bauen schneller auf.',
+        ],
+      },
+    ],
+    adminNotes: [
+      'Node.js 22.12 oder neuer erforderlich (Vite 8, Prisma 7). update.sh prüft das.',
+      'Datenbank: neue Tabellen für S2 Lage, Migration deploy/migrate-1.4.1-to-1.5.0.sql (update.sh führt sie aus).',
+      'Prisma 7 verbindet sich über den MariaDB-Treiber; die Datenbank-URL steht weiter in DATABASE_URL (.env).',
+      'PDF der Lagekarte braucht LibreOffice wie die übrigen PDF-Berichte.',
+    ],
+  },
+  {
     version: '1.4.1',
     previousVersion: '1.4.0',
     date: '2026-11-22',

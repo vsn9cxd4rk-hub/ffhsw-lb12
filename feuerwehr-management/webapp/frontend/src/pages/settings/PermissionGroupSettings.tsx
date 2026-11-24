@@ -8,7 +8,7 @@ import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Table } from '../../components/ui/Table';
 import { Badge } from '../../components/ui/Badge';
-import { BIT_VEHICLES, BIT_OPERATIONS, BIT_EQUIPMENT, BIT_EVENTS, BIT_TRAINING } from '../../config/permissionBits';
+import { BIT_VEHICLES, BIT_OPERATIONS, BIT_EQUIPMENT, BIT_EVENTS, BIT_TRAINING, BIT_S2 } from '../../config/permissionBits';
 
 const CAPABILITIES = [
   { bit: BIT_VEHICLES, label: 'Fahrzeuge' },
@@ -16,6 +16,7 @@ const CAPABILITIES = [
   { bit: BIT_EQUIPMENT, label: 'Gerätewart-Bereich (Bestand/Prüfbuch/Mängel)' },
   { bit: BIT_EVENTS, label: 'Veranstaltungen pflegen (Anwesenheit, BSW, Dokumente)' },
   { bit: BIT_TRAINING, label: 'Ausbildung pflegen (Lehrgänge, Urkunden)' },
+  { bit: BIT_S2, label: 'S2-Lage führen (Lagemeldungen, Kräfte, Lagekarte, Lagebericht)' },
 ];
 
 export function PermissionGroupSettings() {

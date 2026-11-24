@@ -27,7 +27,9 @@ import { StatisticsPage } from './pages/statistics/StatisticsPage';
 import { ThirdPartyLicensesPage } from './pages/about/ThirdPartyLicensesPage';
 import { RequireAdmin } from './components/layout/RequireAdmin';
 import { RequirePermission } from './components/layout/RequirePermission';
-import { BIT_VEHICLES, BIT_OPERATIONS, BIT_EQUIPMENT } from './config/permissionBits';
+import { BIT_VEHICLES, BIT_OPERATIONS, BIT_EQUIPMENT, BIT_S2 } from './config/permissionBits';
+import { S2LagenPage } from './pages/s2/S2LagenPage';
+import { S2LageDetailPage } from './pages/s2/S2LageDetailPage';
 
 
 export default function App() {
@@ -68,6 +70,8 @@ export default function App() {
 
           {/* Statistics - capability: Einsätze */}
           <Route path="/statistics" element={<RequirePermission bit={BIT_OPERATIONS}><StatisticsPage /></RequirePermission>} />
+          <Route path="/s2" element={<RequirePermission bit={BIT_S2}><S2LagenPage /></RequirePermission>} />
+          <Route path="/s2/:id" element={<RequirePermission bit={BIT_S2}><S2LageDetailPage /></RequirePermission>} />
 
           {/* Events */}
           <Route path="/events" element={<EventsPage />} />

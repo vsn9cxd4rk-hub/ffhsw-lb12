@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import fs from 'fs';
-import { PrismaClient } from '../src/generated/prisma/client';
+import { prisma } from '../src/config/database';
 import { recordUploadDir, removeUpload } from '../src/utils/files';
 
 /**
@@ -12,7 +12,7 @@ import { recordUploadDir, removeUpload } from '../src/utils/files';
  */
 
 // Own client: the shared one logs every query in development
-const prisma = new PrismaClient({ log: ['error'] });
+// Shared client with the MariaDB driver adapter (Prisma 7 has no built-in engine anymore)
 
 const STAMP = String.raw`\d{13}`;
 
@@ -73,6 +73,12 @@ export async function cleanupE2eData(): Promise<Record<string, number>> {
     select: { id: true, name: true },
   })).filter(c => DEVICE_CLASS_NAME.test(c.name));
 
+  // S2 Lagen of the specs: "PW-Lage <timestamp>" (Berichte, Kräfte, ... cascade)
+  const lagen = (await prisma.s2Lage.findMany({
+    where: { name: { startsWith: 'PW-Lage ' } },
+    select: { id: true, name: true },
+  })).filter(l => /^PW-Lage \d+$/.test(l.name));
+
   // Files first; the DB rows cascade (documents, attendances, courses, logbook, ...)
   const certificates = await prisma.course.findMany({
     where: { memberId: { in: members.map(m => m.id) }, certificatePath: { not: null } },
@@ -97,6 +103,7 @@ export async function cleanupE2eData(): Promise<Record<string, number>> {
     prisma.article.deleteMany({ where: ids(articles) }),
     prisma.deviceClass.deleteMany({ where: ids(deviceClasses) }),
     prisma.user.deleteMany({ where: ids(users) }),
+    prisma.s2Lage.deleteMany({ where: ids(lagen) }),
   ]);
 
   return {
@@ -107,6 +114,7 @@ export async function cleanupE2eData(): Promise<Record<string, number>> {
     Artikel: articles.length,
     Geräteklassen: deviceClasses.length,
     Benutzer: users.length,
+    'S2-Lagen': lagen.length,
   };
 }
 

@@ -27,6 +27,8 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma.config.ts ./
+# S2 Lage: Vorlagen (Lagebericht/Lagekarte RV Saarbrücken), taktische Zeichen, Adressverzeichnis
+COPY webapp/backend/assets ./assets
 COPY webapp/backend/package.json ./
 
 COPY deploy/docker/backend-entrypoint.sh /usr/local/bin/entrypoint.sh

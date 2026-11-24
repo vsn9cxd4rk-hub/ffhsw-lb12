@@ -6,3 +6,6 @@ export const BIT_EQUIPMENT = 'br3'; // Gerätewart-Bereich: Bestandsliste, Prüf
 // Read access to the following areas is open to every logged-in user; the bit grants writing.
 export const BIT_EVENTS = 'br4'; // Veranstaltungen/BSW pflegen: Anwesenheit, Dokumente, Berichte
 export const BIT_TRAINING = 'br5'; // Ausbildung pflegen: Lehrgänge, Urkunden
+// Only for holders of the bit (no read access for others): the Lage can contain information on
+// people affected, see the data protection note in the S2 skill
+export const BIT_S2 = 'br6'; // S2-Lage führen: Lagemeldungen, Kräfte, Lagekarte, Lagebericht

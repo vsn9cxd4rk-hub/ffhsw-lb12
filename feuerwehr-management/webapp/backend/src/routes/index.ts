@@ -10,6 +10,7 @@ import trainingRoutes from './training.routes';
 import settingsRoutes from './settings.routes';
 import dashboardRoutes from './dashboard.routes';
 import inspectionRoutes from './inspection.routes';
+import s2Routes from './s2.routes';
 
 const router = Router();
 
@@ -24,5 +25,6 @@ router.use('/training', trainingRoutes);
 router.use('/settings', settingsRoutes);
 router.use('/dashboard', dashboardRoutes);
 router.use('/inspections', inspectionRoutes);
+router.use('/s2', s2Routes);
 
 export default router;

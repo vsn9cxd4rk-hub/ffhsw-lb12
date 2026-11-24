@@ -93,6 +93,16 @@ export function ThirdPartyLicensesPage() {
 
       <Section title="Frontend" libs={frontendLibs} />
       <Section title="Backend" libs={backendLibs} />
+
+      <h2 className="text-lg font-semibold text-gray-900 mt-8 mb-3">Daten und Vorlagen (S2 Lage)</h2>
+      <ul className="text-sm text-gray-700 space-y-2 list-disc pl-5">
+        <li>
+          Adressverzeichnis Heusweiler: Daten von{' '}
+          <a className="text-blue-700 hover:underline" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a>,
+          © OpenStreetMap-Mitwirkende, verfügbar unter der Open Database License (ODbL), Abruf 15.11.2026.
+        </li>
+        <li>Lagekarte: Kartengrundlage LVGL (2026) aus der Vorlage „Lagekarte Heusweiler V1-2“; Lagebericht-Vorlage V1_02 und taktische Zeichen (Hilfstabelle Rev. 01.00) des Führungsstabs RV Saarbrücken. Nur für den dienstlichen Gebrauch.</li>
+      </ul>
     </div>
   );
 }

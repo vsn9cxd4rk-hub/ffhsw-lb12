@@ -5,6 +5,48 @@ Neueste Version zuerst. Die Einträge für Anwender stehen zusätzlich in
 Versionsnummer); beide Stellen gemeinsam pflegen. Update-Schritte für Produktiv- und
 Backup-System: `deploy/UPDATE-MANJARO.md`.
 
+## 1.5.0 – in Entwicklung (gegenüber 1.4.1)
+
+Neues Modul **S2 Lage** und Umstieg auf die aktuellen Hauptversionen aller Bibliotheken.
+Enthält alle Korrekturen aus 1.4.1 (`support/1.4.0`).
+
+### Neu: S2 Lage
+
+Der S2-Skill (Lagebericht nach Excel-Vorlage RV Saarbrücken, Lagekarte mit taktischen Zeichen,
+Lagemeldung, Mail) als Modul der Web-App, für mehrere Bearbeiter gleichzeitig.
+
+- **Lagen** (Einsatz/Übung) mit Empfänger und Erreichbarkeit der TEL; Status aktiv/beendet.
+- **Meldungseingang** mit Zeitstempel, Nachweisungs-Nr., Absender, Ort; „eingearbeitet“ abhaken.
+- **Einsatzabschnitte** EA 1–10 mit EA-Grenze auf der Karte, genau ein raumbezogener Schwerpunkt (wird beim Setzen an anderen EA entfernt).
+- **Kräfte** mit Organisation/Formation (Listen der RV-Vorlage), Status (alarmiert, Bereitschaft, Grundschutz, Einsatz, Ruhe, entlassen), EA-Zuordnung und Stärke im gewohnten Schema. Gesamtzahl: Ist die letzte Zahl die Summe der übrigen, ist sie die Gesamtstärke (1/8/9 = 9), sonst Summe (1/6 = 7, 2/5/24 = 31). Daraus die Kräftezeilen B5–B25, Stärke E31 und die Einheitenliste.
+- **Lagekarte im Browser** auf dem Kartenbild der Vorlage (UTM-Kalibrierung wie `lagekarte_build.py`): 97 taktische Zeichen, Flächen, Linien, EA-Grenzen; Orte per Klick, Gitterwert (351,2/5466,8) oder Adresse aus dem Adressverzeichnis Heusweiler (OSM, offline). Zeichen wahlweise im Randkästchen mit Pfeil (RV-Beispiel 03a) oder direkt auf der Karte.
+- **Lagebericht** mit stündlicher Fortschreibung (lfd. Nr. + 1, alle Werte übernommen, Zeit = nächste volle Stunde als taktische Zeit), alle Felder der Vorlage V1_02, Einsatzabschnitte automatisch aus den EA.
+- **Export:** Lagebericht `.xlsx`, Lagekarte `.pptx` und `.pdf` (nur Folie 1), Mailtext nach `Mail_Vorlage.md` (Übungskennzeichnung, nächster Bericht). Die App versendet nichts selbst.
+- **Plausibilitätsprüfung** wie Abschnitt 7 des Skills (u.a. kritisch/Verschärfung ohne Probleme, mehrere Schwerpunkte, EA ohne Grenze, Verstorbene gesunken, Stärkesprung, zu viele Randkästchen).
+- **Mehrbenutzer:** Alle Clients laden den Stand alle 5 s. Jede Zeile hat eine `version`; ein Update auf veraltetem Stand wird mit 409 und dem aktuellen Stand abgelehnt („zwischenzeitlich von X geändert“), der Lagebericht-Editor zeigt fremde Änderungen an, solange eigene ungespeichert sind.
+- **Berechtigung** „S2-Lage führen“ (br6); ohne sie kein Zugriff, auch nicht lesend.
+- Exporte sind TypeScript-Ports von `lagebericht_fill.py`, `lagekarte_build.py` und `geo_lookup.py` (direkt auf dem XML der Vorlagen, wie die Skripte); geprüft gegen die Ausgabe der Python-Skripte. Kein Python auf dem Server nötig.
+
+### Geändert
+
+- React 19, React DOM 19, Headless UI 2, tailwind-merge 3, Vite 8 (Rolldown), @vitejs/plugin-react 6, TypeScript 7 (Frontend und Backend).
+- Express 5 (Routenparameter, leerer Body), express-rate-limit 8 (IPv6-Subnetze), dotenv 18, bcryptjs 3, vitest 5.
+- Prisma 7: Rust-freier Client mit MariaDB-Treiberadapter, Datenbank-URL in `prisma.config.ts`.
+- axios wieder aktuell (1.21.x). Der Pin auf 1.20.0 in 1.4.1 war unnötig: Die E2E-Tests luden direkt nach dem Speichern neu, bevor axios 1.21 (asynchrones Lesen des XSRF-Cookies) den Request abgeschickt hatte. Die Tests warten jetzt auf die Antwort.
+
+### Behoben
+
+- `prisma/seed.ts` und das E2E-Aufräumskript liefen mit Prisma 7 nicht (Client ohne Treiberadapter); damit wäre auf Neuinstallationen kein Admin angelegt worden.
+- E2E-Tests: Klick auf Platzhalterzeilen während des Ladens (Tabellen setzen jetzt `aria-busy`), PDF-Tests warteten nicht auf die Erzeugung.
+
+### Für Administratoren
+
+- **Node.js ≥ 22.12** (Vite 8, Prisma 7); `update.sh` prüft das.
+- **SQL-Migration** `deploy/migrate-1.4.1-to-1.5.0.sql` (sechs neue Tabellen `s2_*`, idempotent); `update.sh` führt sie aus. `init-db.sql` enthält die Tabellen für Neuinstallationen.
+- Beim ersten Start erhalten Gruppen mit „Gruppenführer“ im Namen die Berechtigung br6 (Datenmigration, einmalig).
+- Neue Dateien im Backend unter `webapp/backend/assets/s2/` (Vorlagen, Zeichen, Adressverzeichnis); das Docker-Image kopiert sie mit.
+- PDF der Lagekarte über LibreOffice (A0, ~8 s).
+
 ## 1.4.1 – 2026-11-22 (gegenüber 1.4.0)
 
 Wartungs-Update mit zwei Fehlerkorrekturen, ohne Änderung am Datenbankschema.

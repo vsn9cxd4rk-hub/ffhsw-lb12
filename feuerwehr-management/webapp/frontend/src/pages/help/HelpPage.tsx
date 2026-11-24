@@ -10,9 +10,10 @@ const chapters = [
   { id: 'personal', title: '7. Personal' },
   { id: 'fahrzeuge', title: '8. Fahrzeuge' },
   { id: 'einsaetze', title: '9. Einsätze & Veranstaltungen' },
-  { id: 'install-windows', title: '10. Installation Windows' },
-  { id: 'install-linux', title: '11. Installation Linux' },
-  { id: 'wartung', title: '12. Wartung & Backup' },
+  { id: 's2', title: '10. S2 Lage' },
+  { id: 'install-windows', title: '11. Installation Windows' },
+  { id: 'install-linux', title: '12. Installation Linux' },
+  { id: 'wartung', title: '13. Wartung & Backup' },
 ];
 
 function H2({ id, children }: { id: string; children: React.ReactNode }) {
@@ -202,8 +203,22 @@ export function HelpPage() {
         <H3>Veranstaltungen</H3>
         <P>Dienstabende, Übungen und sonstige Veranstaltungen mit Anwesenheitsliste. Kategorien: Einsatz, Dienstabend, BSW, Sonstige, Übung.</P>
 
-        {/* 10. Installation Windows */}
-        <H2 id="install-windows">10. Installation Windows</H2>
+        {/* 10. S2 Lage */}
+        <H2 id="s2">10. S2 Lage</H2>
+        <P>Lagebericht und Lagekarte für die TEL der Gemeinde bei Großschadenslagen, nach den Vorgaben des Führungsstabs RV Saarbrücken (Excel-Vorlage V1_02, Lagekarte Heusweiler). Das Modul ist nur mit der Berechtigung „S2-Lage führen“ sichtbar (Gruppenführer). Mehrere Bearbeiter können gleichzeitig an derselben Lage arbeiten: Änderungen der anderen erscheinen nach etwa 5 Sekunden. Hat jemand denselben Eintrag inzwischen geändert, wird die eigene Änderung nicht still überschrieben, sondern mit einem Hinweis abgelehnt – neu laden und erneut eintragen.</P>
+        <H3>Ablauf</H3>
+        <ul className="mb-4">
+          <Li><strong>Lage anlegen</strong> — Bezeichnung, Übung ja/nein, Empfänger des Lageberichts (Standard fuehrungsstab@saarbruecken.de, in Übungen die Adresse der Übungsleitung), Erreichbarkeit der TEL.</Li>
+          <Li><strong>Meldungen</strong> — Eingehende Einzelmeldungen mit Zeitstempel, Nachweisungs-Nr., Absender und Ort erfassen. Abhaken, sobald sie in Bericht oder Karte eingearbeitet sind.</Li>
+          <Li><strong>Abschnitte &amp; Kräfte</strong> — Einsatzabschnitte (EA 1–10, genau ein Schwerpunkt) und Kräfte mit Organisation, Formation, Status und Stärke. Die Stärke wird wie gewohnt erfasst (1/8/9, 1/6 oder Gesamtzahl); die App rechnet die Gesamtzahl. Ist die letzte Zahl die Summe der übrigen, gilt sie als Gesamtstärke, sonst werden alle Zahlen addiert (2/5/24 = 31).</Li>
+          <Li><strong>Lagekarte</strong> — Kartenbild der Vorlage mit UTM-Gitter. Werkzeuge: Zeichen (97 taktische Zeichen der RV-Hilfstabelle), Fläche, Linie, EA-Grenze. Orte per Klick, als Gitterwert von der Wandkarte (351,2/5466,8) oder als Adresse aus dem Adressverzeichnis Heusweiler. Nicht gefundene Adressen nicht raten – Gitterwert erfragen. Gestrichelt umrandete Zeichen stehen im Export groß im Randkästchen mit Pfeil zum Ort. Keine Kräfte auf die Karte.</Li>
+          <Li><strong>Lagebericht</strong> — „1. Lagebericht anlegen“, danach stündlich „Fortschreiben“: die neue Nummer übernimmt alle Werte, Zeit ist die nächste volle Stunde (taktische Zeit, z. B. 141400nov26). „Aus Kräfteübersicht übernehmen“ füllt Kräftezeilen, Stärke gesamt und Einheitenliste. Einsatzabschnitte kommen automatisch aus dem Tab Abschnitte.</Li>
+          <Li><strong>Prüfen und versenden</strong> — Die Prüfung meldet Widersprüche (z. B. kritisch ohne Probleme/Bedarfe, EA ohne Grenze, Verstorbene gesunken). Download: Lagebericht (Excel), Lagekarte als PDF (nur Folie 1) und PowerPoint. Der Mailtext ist nach Vorlage vorausgefüllt; die App versendet nichts selbst. Reicht die Zeit für die Karte nicht, „Lagekarte als Foto“ ankreuzen.</Li>
+        </ul>
+        <P>Datenschutz: keine Namen von Betroffenen erfassen, solange die Übernahme personenbezogener Daten nicht geklärt ist.</P>
+
+        {/* 11. Installation Windows */}
+        <H2 id="install-windows">11. Installation Windows</H2>
         <H3>Voraussetzungen</H3>
         <ul className="mb-4">
           <Li>Windows 10/11</Li>
@@ -246,7 +261,7 @@ npm run dev`}</Code>
         <P>Für den Produktionsbetrieb unter Windows empfiehlt sich die Nutzung von PM2 oder eines Windows-Diensts (z.B. NSSM).</P>
 
         {/* 11. Installation Linux (Manjaro) */}
-        <H2 id="install-linux">11. Installation Linux (Manjaro)</H2>
+        <H2 id="install-linux">12. Installation Linux (Manjaro)</H2>
         <H3>Systempakete installieren</H3>
         <Code>{`sudo pacman -Syu
 sudo pacman -S nodejs npm mysql nginx git base-devel
@@ -307,7 +322,7 @@ sudo systemctl start nginx
 sudo systemctl enable nginx`}</Code>
 
         {/* 12. Wartung & Backup */}
-        <H2 id="wartung">12. Wartung &amp; Backup</H2>
+        <H2 id="wartung">13. Wartung &amp; Backup</H2>
         <H3>Datenbank-Backup</H3>
         <Code>{`# Manuelles Backup
 mysqldump -u FFWVSLB12 -p FFWVSLB12 > backup-$(date +%Y%m%d).sql

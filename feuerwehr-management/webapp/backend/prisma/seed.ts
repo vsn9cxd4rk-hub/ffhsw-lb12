@@ -1,9 +1,9 @@
 import 'dotenv/config';
-import { PrismaClient } from '../src/generated/prisma/client';
+import { prisma } from '../src/config/database';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 
-const prisma = new PrismaClient();
+// Shared client with the MariaDB driver adapter (Prisma 7 has no built-in engine anymore)
 
 async function main() {
   console.log('Seeding database...');
@@ -72,7 +72,7 @@ async function main() {
       id: 5,
       name: 'Gruppenführer',
       description: 'Wie Benutzer, zusätzlich Berichte bei Einsätzen und Veranstaltungen',
-      br2: true, br4: true, br5: true, // Einsätze, Veranstaltungen pflegen, Ausbildung pflegen
+      br2: true, br4: true, br5: true, br6: true, // Einsätze, Veranstaltungen pflegen, Ausbildung pflegen, S2-Lage
     },
   });
 
