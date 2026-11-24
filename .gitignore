@@ -13,3 +13,6 @@ target/
 *.jar
 !local-maven-repo/**/*.jar
 .gradle/
+
+# --- Editor/IDE settings (local only) ---
+.vscode/
