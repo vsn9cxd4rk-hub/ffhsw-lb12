@@ -11,7 +11,7 @@ test.describe('Bestandsliste', () => {
   test('zeigt die Spalte „Letzte Prüfung“', async ({ page }) => {
     await page.goto('/inventory');
     await expect(page.getByRole('columnheader', { name: 'Letzte Prüfung' })).toBeVisible();
-    await expect(page.locator('table tbody tr').first()).toBeVisible();
+    await expect(page.locator('table[aria-busy="false"] tbody tr').first()).toBeVisible();
   });
 
   test('öffnet Artikel-Formular', async ({ page }) => {
@@ -45,8 +45,9 @@ test.describe('Bestandsliste', () => {
 
   test('Artikeldetail zeigt QR-Code und Barcode', async ({ page }) => {
     await page.goto('/inventory');
-    // Warten bis die Artikel-Tabelle Zeilen geladen hat, dann ersten Artikel öffnen
-    const firstRow = page.locator('table tbody tr').first();
+    // Warten bis die Artikel geladen sind (vorher stehen Platzhalterzeilen in der Tabelle),
+    // dann ersten Artikel öffnen
+    const firstRow = page.locator('table[aria-busy="false"] tbody tr').first();
     await expect(firstRow).toBeVisible();
     await firstRow.click();
     await expect(page).toHaveURL(/\/inventory\/\d+/);

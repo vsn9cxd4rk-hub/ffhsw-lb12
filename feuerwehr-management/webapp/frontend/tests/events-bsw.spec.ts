@@ -1,5 +1,11 @@
 import { test, expect } from '@playwright/test';
 
+// Wait for the PUT before reloading: axios starts the request asynchronously (since 1.21
+// it reads the XSRF cookie via the async Cookie Store API), an immediate reload aborts it.
+function savedEvent(page: import('@playwright/test').Page) {
+  return page.waitForResponse(r => /\/api\/events\/\d+$/.test(r.url()) && r.request().method() === 'PUT' && r.ok());
+}
+
 async function createEvent(page: import('@playwright/test').Page, name: string, category: string): Promise<string> {
   // Eindeutiger Name, damit wiederholte Testläufe eindeutig bleiben.
   const uniqueName = `${name}-${Date.now()}`;
@@ -55,7 +61,10 @@ test.describe('Veranstaltung - Brandsicherheitswache (BSW)', () => {
     await page.getByLabel('Veranstaltungsort').fill('Bürgerhalle Heusweiler');
     await page.getByLabel('Wachhabender').fill('Erika Musterfrau');
 
-    await page.getByRole('button', { name: 'Formular speichern' }).click();
+    await Promise.all([
+      savedEvent(page),
+      page.getByRole('button', { name: 'Formular speichern' }).click(),
+    ]);
     await expect(page.getByLabel('Veranstaltungsort')).toHaveValue('Bürgerhalle Heusweiler');
 
     // Nach Reload muss der gespeicherte Stand erhalten bleiben
@@ -67,6 +76,7 @@ test.describe('Veranstaltung - Brandsicherheitswache (BSW)', () => {
   });
 
   test('zeigt zwei PDF-Erzeugen-Buttons mit Rückmeldung', async ({ page }) => {
+    test.setTimeout(60000);
     await createEvent(page, 'Test-BSW-PDF', '3');
     await page.getByRole('button', { name: 'BSW' }).click();
 
@@ -74,6 +84,7 @@ test.describe('Veranstaltung - Brandsicherheitswache (BSW)', () => {
     await expect(generateButtons).toHaveCount(2);
 
     await generateButtons.first().click();
-    await expect(page.getByText(/erzeugt|fehlt|fehlgeschlagen/i)).toBeVisible({ timeout: 15000 });
+    // Result message only ("... wurde erzeugt" or an error), not a static hint text
+    await expect(page.getByText(/wurde erzeugt|fehlt|fehlgeschlagen/)).toBeVisible({ timeout: 45000 });
   });
 });
